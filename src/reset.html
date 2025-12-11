@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset IQ Vote Data</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d1a24 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #2a2a2a;
+            border: 2px solid #FF1A88;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(255, 26, 136, 0.3);
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #FF1A88 0%, #cc1570 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #FF1A88 0%, #ff4da6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #999;
+            margin-bottom: 32px;
+        }
+        
+        .warning {
+            background: rgba(255, 26, 136, 0.1);
+            border: 1px solid #FF1A88;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .warning-title {
+            color: #FF1A88;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .warning ul {
+            margin-left: 20px;
+            margin-top: 12px;
+        }
+        
+        .warning li {
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+        
+        .info-box {
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .info-box h4 {
+            margin-bottom: 12px;
+        }
+        
+        .info-box ol {
+            margin-left: 20px;
+            color: #999;
+        }
+        
+        .info-box li {
+            margin-bottom: 8px;
+        }
+        
+        .input-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .code {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #FF1A88;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #FF1A88;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #FF1A88 0%, #cc1570 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 26, 136, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        
+        .success-text {
+            color: #22c55e;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 16px;
+            color: #ef4444;
+            margin-top: 16px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">⚠️</div>
+        <h1>Reset All Data</h1>
+        <p class="subtitle">Clear demo data and start fresh</p>
+        
+        <div id="resetForm">
+            <div class="warning">
+                <div class="warning-title">⚠️ Warning: This action cannot be undone!</div>
+                <p>This will permanently delete ALL data including:</p>
+                <ul>
+                    <li>All user accounts and authentication data</li>
+                    <li>All employees</li>
+                    <li>All elections</li>
+                    <li>All votes and ballots</li>
+                    <li>All leaderboard data</li>
+                </ul>
+            </div>
+            
+            <div class="info-box">
+                <h4>What happens after reset:</h4>
+                <ol>
+                    <li>All data will be cleared from the database</li>
+                    <li>All user accounts will be deleted</li>
+                    <li>You'll be able to start fresh</li>
+                    <li>The first person to sign up will become admin</li>
+                </ol>
+            </div>
+            
+            <div class="input-group">
+                <label>Type <span class="code">RESET</span> to confirm:</label>
+                <input 
+                    type="text" 
+                    id="confirmInput" 
+                    placeholder="Type RESET here"
+                    autocomplete="off"
+                >
+            </div>
+            
+            <button id="resetButton" disabled onclick="handleReset()">
+                <span id="buttonText">🗑️ Reset All Data</span>
+            </button>
+            
+            <div id="errorMessage" class="error hidden"></div>
+        </div>
+        
+        <div id="successMessage" class="success hidden">
+            <div class="success-icon">✅</div>
+            <div class="success-text">All data has been reset successfully!</div>
+            <p style="color: #999;">Redirecting to sign-up page in <span id="countdown">3</span> seconds...</p>
+        </div>
+    </div>
+    
+    <script>
+        const confirmInput = document.getElementById('confirmInput');
+        const resetButton = document.getElementById('resetButton');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        // Enable button when "RESET" is typed
+        confirmInput.addEventListener('input', (e) => {
+            resetButton.disabled = e.target.value !== 'RESET';
+        });
+        
+        async function handleReset() {
+            const confirmText = confirmInput.value;
+            
+            if (confirmText !== 'RESET') {
+                showError('Please type RESET to confirm');
+                return;
+            }
+            
+            // Disable button and show loading
+            resetButton.disabled = true;
+            document.getElementById('buttonText').innerHTML = '<span class="spinner"></span>Resetting All Data...';
+            errorMessage.classList.add('hidden');
+            
+            try {
+                // Get Supabase project info from the main app
+                // You'll need to replace these with your actual values
+                const projectId = window.location.hostname.includes('supabase') 
+                    ? window.location.hostname.split('.')[0] 
+                    : 'YOUR_PROJECT_ID'; // Replace with your project ID
+                
+                const publicAnonKey = 'YOUR_ANON_KEY'; // Replace with your anon key
+                
+                const response = await fetch(
+                    `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/reset`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${publicAnonKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to reset data');
+                }
+                
+                // Show success and redirect
+                document.getElementById('resetForm').classList.add('hidden');
+                document.getElementById('successMessage').classList.remove('hidden');
+                
+                // Countdown
+                let count = 3;
+                const countdownEl = document.getElementById('countdown');
+                const interval = setInterval(() => {
+                    count--;
+                    countdownEl.textContent = count;
+                    if (count === 0) {
+                        clearInterval(interval);
+                        window.location.href = '/';
+                    }
+                }, 1000);
+                
+            } catch (err) {
+                showError(err.message || 'Something went wrong');
+                resetButton.disabled = false;
+                document.getElementById('buttonText').innerHTML = '🗑️ Reset All Data';
+            }
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+import { useState, useEffect, useCallback } from 'react';
+import { createClient } from './utils/supabase/client';
+import { api } from './utils/api';
+import { AuthPage } from './components/AuthPage';
+import { VotingPage } from './components/VotingPage';
+import { LeaderboardPage } from './components/LeaderboardPage';
+import { AdminPage } from './components/AdminPage';
+import { ProfilePage } from './components/ProfilePage';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import { Header } from './components/Header';
+import { ThemeProvider } from './components/ThemeProvider';
+import { MyHistory } from './components/MyHistory';
+import { OgImagePage } from './components/OgImagePage';
+import { Employee, Election } from './types';
+import { Toaster } from 'sonner@2.0.3';
+import { ThemeToggle } from './components/ThemeToggle';
+import { LogOut } from 'lucide-react';
+import { Button } from './components/ui/button';
+import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
+import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
+import ogImage from 'figma:asset/6f65d30a8110ac76cf93c26c68bcbe5766e3e6bc.png';
+
+export default function App() {
+  // Check if we should render the OG image preview page
+  if (window.location.pathname === '/og-image-preview' || window.location.hash === '#og-preview') {
+    return <OgImagePage />;
+  }
+
+  // Set OG meta tags
+  useEffect(() => {
+    // Set title
+    document.title = 'IQ Vote - Employee of the Month Voting';
+    
+    // Create or update meta tags
+    const setMetaTag = (property: string, content: string) => {
+      let meta = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', property);
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    };
+
+    const setMetaTagName = (name: string, content: string) => {
+      let meta = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement;
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', name);
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    };
+
+    // Get absolute URL for the image
+    const imageUrl = new URL(ogImage, window.location.origin).href;
+    const currentUrl = window.location.href;
+
+    // OG tags
+    setMetaTag('og:title', 'IQ Vote - Employee of the Month Voting');
+    setMetaTag('og:description', 'Modern employee recognition platform with frictionless voting experience');
+    setMetaTag('og:image', imageUrl);
+    setMetaTag('og:image:secure_url', imageUrl);
+    setMetaTag('og:image:type', 'image/png');
+    setMetaTag('og:image:width', '1200');
+    setMetaTag('og:image:height', '630');
+    setMetaTag('og:type', 'website');
+    setMetaTag('og:url', currentUrl);
+    setMetaTag('og:site_name', 'IQ Vote');
+    
+    // Twitter Card tags
+    setMetaTagName('twitter:card', 'summary_large_image');
+    setMetaTagName('twitter:title', 'IQ Vote - Employee of the Month Voting');
+    setMetaTagName('twitter:description', 'Modern employee recognition platform with frictionless voting experience');
+    setMetaTagName('twitter:image', imageUrl);
+    
+    // Standard meta description
+    setMetaTagName('description', 'Modern employee recognition platform with frictionless voting experience');
+  }, []);
+
+  // Restore navigation state from localStorage
+  const [currentView, setCurrentView] = useState<'vote' | 'leaderboard' | 'admin' | 'history'>(() => {
+    const saved = localStorage.getItem('figmake_last_page');
+    return (saved === 'vote' || saved === 'leaderboard' || saved === 'admin' || saved === 'history') ? saved : 'vote';
+  });
+  const [currentUser, setCurrentUser] = useState<Employee | null>(null);
+  const [currentElection, setCurrentElection] = useState<Election | null>(null);
+  const [allElections, setAllElections] = useState<Election[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Wrap data loading functions in useCallback
+  const loadCurrentElection = useCallback(async () => {
+    try {
+      const { election } = await api.getCurrentElection();
+      setCurrentElection(election);
+    } catch (err) {
+      console.error('Failed to load current election:', err);
+    }
+  }, []);
+
+  const loadAllElections = useCallback(async () => {
+    try {
+      const { elections } = await api.getElections();
+      setAllElections(elections);
+    } catch (err) {
+      console.error('Failed to load elections:', err);
+    }
+  }, []);
+
+  const loadEmployees = useCallback(async () => {
+    try {
+      const { employees: data } = await api.getEmployees();
+      setEmployees(data);
+    } catch (err) {
+      console.error('Failed to load employees:', err);
+    }
+  }, []);
+
+  const checkAuth = useCallback(async () => {
+    console.log('checkAuth started');
+    setLoading(true);
+    
+    try {
+      const storedToken = localStorage.getItem('access_token');
+      
+      if (!storedToken) {
+        console.log('No stored token found');
+        setCurrentUser(null);
+        setLoading(false);
+        return;
+      }
+      
+      // Verify token with API
+      try {
+        const { user } = await api.getCurrentUser();
+        console.log('User verified:', user);
+        setCurrentUser(user);
+        setAuthError(null);
+      } catch (apiErr: any) {
+        console.log('Session verification failed:', apiErr.message);
+        
+        // If it's a 401, the token is invalid - this is expected behavior
+        if (apiErr.status === 401 || apiErr.message?.includes('Unauthorized')) {
+          console.log('Token is invalid or expired, clearing local storage');
+          localStorage.removeItem('access_token');
+          setCurrentUser(null);
+          setAuthError(null); // Don't show error for expired sessions
+        } else {
+          // Other errors - keep token but show error
+          console.error('Unexpected API error:', apiErr);
+          setAuthError('Failed to verify session. Please try refreshing.');
+        }
+      }
+    } catch (err) {
+      console.error('Auth check error:', err);
+      localStorage.removeItem('access_token');
+      setCurrentUser(null);
+      setAuthError(null); // Don't show error for auth failures
+    } finally {
+      console.log('checkAuth finished');
+      setLoading(false);
+    }
+  }, []);
+
+  const initializeData = useCallback(async () => {
+    setInitialized(true);
+    
+    // Load data
+    try {
+      await Promise.all([
+        loadCurrentElection(),
+        loadAllElections(),
+        loadEmployees(),
+      ]);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+    }
+  }, [loadCurrentElection, loadAllElections, loadEmployees]);
+
+  useEffect(() => {
+    let mounted = true;
+    let authSubscription: any = null;
+    
+    const initialize = async () => {
+      console.log('Starting initialization');
+      
+      // Quick check - if no token in localStorage, skip session check
+      const storedToken = localStorage.getItem('access_token');
+      if (!storedToken) {
+        console.log('No stored token, showing auth page');
+        if (mounted) {
+          setLoading(false);
+        }
+        return;
+      }
+      
+      try {
+        // Try to verify the stored token directly with our API instead of Supabase
+        await checkAuth();
+        
+        if (!mounted) return;
+        
+        // Only set up auth listener after initial check completes
+        const supabase = createClient();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (!mounted) return;
+          
+          console.log('Auth state changed:', event);
+          
+          if (event === 'SIGNED_OUT') {
+            localStorage.removeItem('access_token');
+            setCurrentUser(null);
+            setCurrentElection(null);
+            setAllElections([]);
+            setEmployees([]);
+            setInitialized(false);
+          } else if (event === 'SIGNED_IN' && session) {
+            localStorage.setItem('access_token', session.access_token);
+            await checkAuth();
+          }
+        });
+        
+        authSubscription = subscription;
+      } catch (err) {
+        console.error('Initialization error:', err);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    initialize();
+    
+    return () => {
+      mounted = false;
+      if (authSubscription) {
+        authSubscription.unsubscribe();
+      }
+    };
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (currentUser && !initialized) {
+      initializeData();
+    }
+  }, [currentUser, initialized, initializeData]);
+
+  async function handleSignIn() {
+    await checkAuth();
+  }
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    localStorage.removeItem('access_token');
+    setCurrentUser(null);
+    setCurrentElection(null);
+    setAllElections([]);
+    setEmployees([]);
+    setInitialized(false);
+  }
+
+  function handleNavigate(view: 'vote' | 'leaderboard' | 'admin' | 'history') {
+    setCurrentView(view);
+    localStorage.setItem('figmake_last_page', view);
+  }
+
+  async function handleVoteSubmitted() {
+    // Refresh leaderboard data
+    if (currentElection) {
+      // Could refresh leaderboard here if needed
+    }
+  }
+
+  async function handleElectionCreated() {
+    await loadCurrentElection();
+    await loadAllElections();
+  }
+
+  if (loading) {
+    return <LoadingSpinner fullScreen text="Loading IQ Vote" />;
+  }
+
+  if (!currentUser) {
+    return (
+      <ThemeProvider>
+        <AuthPage 
+          onSignIn={handleSignIn} 
+          error={authError}
+        />
+      </ThemeProvider>
+    );
+  }
+
+  return (
+    <ThemeProvider>
+      <Toaster position="top-center" />
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        <Header
+          user={currentUser}
+          onSignOut={handleSignOut}
+          onNavigate={handleNavigate}
+          currentView={currentView}
+        />
+        
+        <main id="main-content" role="main" className="overflow-x-hidden">
+          {currentView === 'vote' && (
+            <VotingPage
+              currentUser={currentUser}
+              election={currentElection}
+              employees={employees}
+              onVoteSubmitted={handleVoteSubmitted}
+            />
+          )}
+          
+          {currentView === 'leaderboard' && (
+            <LeaderboardPage
+              currentUser={currentUser}
+              election={currentElection}
+              elections={allElections}
+            />
+          )}
+          
+          {currentView === 'admin' && currentUser.is_admin && (
+            <AdminPage
+              currentUser={currentUser}
+              onElectionCreated={handleElectionCreated}
+            />
+          )}
+          
+          {currentView === 'history' && (
+            <MyHistory
+              currentUser={currentUser}
+            />
+          )}
+        </main>
+      </div>
+    </ThemeProvider>
+  );
+}
