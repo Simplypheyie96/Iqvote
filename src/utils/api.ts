@@ -94,6 +94,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email }),
     }),
+  resetPassword: (token: string, password: string) =>
+    apiCall('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    }),
   
   getCurrentUser: async () => {
     const session = await apiCall('/auth/session');

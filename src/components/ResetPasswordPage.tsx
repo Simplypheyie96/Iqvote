@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Alert, AlertDescription } from './ui/alert';
-import { createClient } from '../utils/supabase/client';
+import { api } from '../utils/api';
 import { LoadingSpinner } from './LoadingSpinner';
 import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
@@ -18,7 +18,9 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isDark, setIsDark] = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
+
+  // Read the token from URL query params (?token=...&type=reset)
+  const token = new URLSearchParams(window.location.search).get('token') || '';
 
   useEffect(() => {
     const checkTheme = () => setIsDark(document.documentElement.classList.contains('dark'));
@@ -26,25 +28,6 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
-  }, []);
-
-  // Wait for Supabase to establish the recovery session from the URL tokens
-  useEffect(() => {
-    const supabase = createClient();
-
-    // Listen for the PASSWORD_RECOVERY event — fires once session is ready
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') && session) {
-        setSessionReady(true);
-      }
-    });
-
-    // Also check if session is already available (in case event already fired)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -61,20 +44,15 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
       setLoading(false);
       return;
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      setLoading(false);
-      return;
-    }
 
     try {
-      const supabase = createClient();
-      const { error: updateError } = await supabase.auth.updateUser({ password });
-      if (updateError) throw updateError;
+      await api.resetPassword(token, password);
       setSuccess(true);
+      // Clear the token from the URL then go to sign in
+      window.history.replaceState({}, '', '/');
       setTimeout(onComplete, 2000);
     } catch (err: any) {
-      setError(err.message || 'Failed to update password. Please try again.');
+      setError(err.message || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -104,22 +82,13 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
             </Alert>
           )}
 
-          {success && (
+          {success ? (
             <Alert className="mb-6 border-green-500/50 bg-green-500/10">
               <AlertDescription className="text-green-600 dark:text-green-400">
-                ✅ Password updated! Signing you in…
+                ✅ Password updated! Redirecting to sign in…
               </AlertDescription>
             </Alert>
-          )}
-
-          {!sessionReady && !success && (
-            <div className="flex items-center justify-center py-6 gap-2 text-muted-foreground text-sm">
-              <LoadingSpinner size="sm" inline />
-              Preparing secure session…
-            </div>
-          )}
-
-          {!success && sessionReady && (
+          ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="rp-password">New Password</Label>

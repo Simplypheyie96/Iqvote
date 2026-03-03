@@ -110,10 +110,9 @@ export default function App() {
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(() => {
-    // Detect recovery redirect immediately from URL hash before auth listener is ready
-    // Supabase appends #access_token=...&type=recovery to the redirect URL
-    const params = new URLSearchParams(window.location.hash.replace('#', ''));
-    return params.get('type') === 'recovery';
+    // Detect our custom reset token in the URL query params
+    const params = new URLSearchParams(window.location.search);
+    return params.get('type') === 'reset' && !!params.get('token');
   });
 
   // Add refs to prevent infinite loops
@@ -353,10 +352,9 @@ export default function App() {
       if (hasInitialized) return;
       hasInitialized = true;
 
-      // If this is a password recovery redirect, skip auth check entirely —
-      // performAuthCheck would sign out the recovery session before updateUser runs
-      const urlParams = new URLSearchParams(window.location.hash.replace('#', ''));
-      if (urlParams.get('type') === 'recovery') {
+      // If this is our custom password reset link, skip auth check
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('type') === 'reset' && urlParams.get('token')) {
         setLoading(false);
         return;
       }

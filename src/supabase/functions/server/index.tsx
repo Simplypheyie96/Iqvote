@@ -152,7 +152,7 @@ app.get('/make-server-e2c9f810/auth/session', async (c) => {
   }
 });
 
-// ─── Forgot password — generate link via admin API, send via Brevo ───────────
+// ─── Forgot / Reset password — fully custom token flow via Brevo ─────────────
 
 app.post('/make-server-e2c9f810/auth/forgot-password', async (c) => {
   try {
@@ -161,22 +161,24 @@ app.post('/make-server-e2c9f810/auth/forgot-password', async (c) => {
 
     const appUrl = Deno.env.get('APP_URL') || 'https://iqvote.vercel.app';
 
-    // Generate a recovery link using the admin API
-    const { data, error } = await supabase.auth.admin.generateLink({
-      type: 'recovery',
-      email,
-      options: { redirectTo: appUrl },
-    });
-
-    // Always return success — never reveal whether an email exists
-    if (error || !data?.properties?.action_link) {
-      console.log('Generate recovery link error:', error?.message);
+    // Confirm the user exists before generating a token
+    const users = await kv.getByPrefix('user:');
+    const userRecord = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+    if (!userRecord) {
+      // Always return success — never reveal whether an email exists
       return c.json({ success: true });
     }
 
-    const resetLink = data.properties.action_link;
+    // Generate a single-use token valid for 1 hour
+    const token = crypto.randomUUID();
+    await kv.set(`reset:${token}`, {
+      email: userRecord.email,
+      userId: userRecord.id,
+      expiresAt: Date.now() + 3600000,
+    });
 
-    // Send via Brevo HTTP API
+    const resetLink = `${appUrl}?token=${token}&type=reset`;
+
     const brevoApiKey = Deno.env.get('BREVO_API_KEY');
     const senders = (Deno.env.get('BREVO_FROM_EMAIL') || '')
       .split(',').map((s: string) => s.trim()).filter(Boolean);
@@ -200,7 +202,7 @@ app.post('/make-server-e2c9f810/auth/forgot-password', async (c) => {
           <a href="${resetLink}" style="display:inline-block;background:#781444;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:600;">
             Reset Password →
           </a>
-          <p style="margin:28px 0 0;color:#999;font-size:12px;">If you didn't request a password reset, you can ignore this email.</p>
+          <p style="margin:28px 0 0;color:#999;font-size:12px;">If you didn't request a password reset, you can safely ignore this email.</p>
         </td></tr>
       </table>
     </td></tr>
@@ -213,7 +215,7 @@ app.post('/make-server-e2c9f810/auth/forgot-password', async (c) => {
         headers: { 'api-key': brevoApiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sender: { name: 'IQ Vote', email: senders[0] },
-          to: [{ email }],
+          to: [{ email: userRecord.email, name: userRecord.name || userRecord.email }],
           subject: 'Reset your IQ Vote password',
           htmlContent: html,
         }),
@@ -223,7 +225,35 @@ app.post('/make-server-e2c9f810/auth/forgot-password', async (c) => {
     return c.json({ success: true });
   } catch (err: any) {
     console.log('Forgot password error:', err);
-    return c.json({ success: true }); // Always succeed for security
+    return c.json({ success: true });
+  }
+});
+
+// Verify token and update password — no Supabase session required
+app.post('/make-server-e2c9f810/auth/reset-password', async (c) => {
+  try {
+    const { token, password } = await c.req.json();
+    if (!token || !password) return c.json({ error: 'Token and password are required' }, 400);
+    if (password.length < 6) return c.json({ error: 'Password must be at least 6 characters' }, 400);
+
+    const resetData = await kv.get(`reset:${token}`);
+    if (!resetData) return c.json({ error: 'Invalid or expired reset link. Please request a new one.' }, 400);
+    if (Date.now() > resetData.expiresAt) {
+      await kv.del(`reset:${token}`);
+      return c.json({ error: 'This reset link has expired. Please request a new one.' }, 400);
+    }
+
+    // Update the password via admin API — no client session needed
+    const { error } = await supabase.auth.admin.updateUserById(resetData.userId, { password });
+    if (error) throw error;
+
+    // Delete the token so it can't be reused
+    await kv.del(`reset:${token}`);
+
+    return c.json({ success: true });
+  } catch (err: any) {
+    console.log('Reset password error:', err);
+    return c.json({ error: err.message || 'Failed to reset password' }, 500);
   }
 });
 
