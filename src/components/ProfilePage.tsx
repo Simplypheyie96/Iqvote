@@ -35,16 +35,20 @@ interface ReceivedVotes {
 }
 
 export function ProfilePage({ currentUser, employees, onProfileUpdated }: ProfilePageProps) {
-  // Inherit image from the matching employee record if available
-  const employeeRecord = employees.find(e => e.email === currentUser.email);
-  const inheritedImageUrl = employeeRecord?.image_url || currentUser.image_url || '';
-
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(currentUser.name);
   const [role, setRole] = useState(currentUser.role);
-  const [imageUrl, setImageUrl] = useState(inheritedImageUrl);
+  const [imageUrl, setImageUrl] = useState('');
   const [imageError, setImageError] = useState(false);
+
+  // Sync image from employee record whenever employees list loads or changes
+  useEffect(() => {
+    if (isEditing) return;
+    const emp = employees.find(e => e.email === currentUser.email);
+    setImageUrl(emp?.image_url || currentUser.image_url || '');
+    setImageError(false);
+  }, [employees, currentUser, isEditing]);
 
   const [myVotes, setMyVotes] = useState<VoteHistory[]>([]);
   const [receivedVotes, setReceivedVotes] = useState<ReceivedVotes[]>([]);
@@ -75,7 +79,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
   function cancelEdit() {
     setName(currentUser.name);
     setRole(currentUser.role);
-    setImageUrl(currentUser.image_url || '');
+    // imageUrl will re-sync via the useEffect when isEditing becomes false
     setImageError(false);
     setIsEditing(false);
   }
