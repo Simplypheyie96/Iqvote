@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 
 interface ProfilePageProps {
   currentUser: Employee;
+  employees: Employee[];
   onProfileUpdated: (updated: Employee) => void;
 }
 
@@ -33,12 +34,16 @@ interface ReceivedVotes {
   total_participants: number;
 }
 
-export function ProfilePage({ currentUser, onProfileUpdated }: ProfilePageProps) {
+export function ProfilePage({ currentUser, employees, onProfileUpdated }: ProfilePageProps) {
+  // Inherit image from the matching employee record if available
+  const employeeRecord = employees.find(e => e.email === currentUser.email);
+  const inheritedImageUrl = employeeRecord?.image_url || currentUser.image_url || '';
+
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(currentUser.name);
   const [role, setRole] = useState(currentUser.role);
-  const [imageUrl, setImageUrl] = useState(currentUser.image_url || '');
+  const [imageUrl, setImageUrl] = useState(inheritedImageUrl);
   const [imageError, setImageError] = useState(false);
 
   const [myVotes, setMyVotes] = useState<VoteHistory[]>([]);

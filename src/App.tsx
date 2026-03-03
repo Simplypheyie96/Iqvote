@@ -510,7 +510,11 @@ export default function App() {
             <div style={{ display: currentView === 'profile' ? '' : 'none' }}>
               <ProfilePage
                 currentUser={currentUser}
-                onProfileUpdated={setCurrentUser}
+                employees={employees}
+                onProfileUpdated={(updated) => {
+                  setCurrentUser(updated);
+                  loadEmployees();
+                }}
               />
             </div>
           )}

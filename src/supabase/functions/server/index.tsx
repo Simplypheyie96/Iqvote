@@ -176,6 +176,20 @@ app.put('/make-server-e2c9f810/profile', async (c) => {
     };
 
     await kv.set(`user:${user.id}`, updated);
+
+    // If this user also has an employee record, sync image_url there too
+    if (image_url !== undefined) {
+      const allEmployees = await kv.getByPrefix('employee:');
+      const matchingEmployee = allEmployees.find((e: any) => e.email === profile.email);
+      if (matchingEmployee) {
+        await kv.set(`employee:${matchingEmployee.id}`, {
+          ...matchingEmployee,
+          image_url,
+          updated_at: new Date().toISOString(),
+        });
+      }
+    }
+
     return c.json({ user: updated });
   } catch (error) {
     console.log('Update profile error:', error);
