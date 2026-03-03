@@ -152,6 +152,100 @@ app.get('/make-server-e2c9f810/auth/session', async (c) => {
   }
 });
 
+// ─── Email notifications via Resend ─────────────────────────────────────────
+
+async function sendElectionNotificationEmails(election: any) {
+  const resendApiKey = Deno.env.get('RESEND_API_KEY');
+  if (!resendApiKey) {
+    console.log('RESEND_API_KEY not set — skipping email notification');
+    return { sent: 0, skipped: true };
+  }
+
+  const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'IQ Vote <noreply@iqvote.app>';
+  const appUrl = Deno.env.get('APP_URL') || 'https://iqvote.vercel.app';
+
+  const users = await kv.getByPrefix('user:');
+  const recipients = users.filter((u: any) => u.active !== false && u.email);
+
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,#781444,#ff007a);padding:32px 40px;">
+          <h1 style="margin:0;color:#ffffff;font-size:28px;letter-spacing:-0.5px;">IQ Vote</h1>
+          <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:14px;">Employee Recognition Platform</p>
+        </td></tr>
+        <!-- Body -->
+        <tr><td style="padding:40px;">
+          <h2 style="margin:0 0 8px;color:#111;font-size:22px;">🗳️ Voting is now open!</h2>
+          <p style="margin:0 0 24px;color:#555;font-size:15px;">A new election has started. Cast your vote before the deadline.</p>
+          <!-- Election card -->
+          <div style="background:#fdf2f7;border:1px solid #f0c0d8;border-radius:10px;padding:24px;margin-bottom:28px;">
+            <h3 style="margin:0 0 12px;color:#781444;font-size:18px;">${election.title}</h3>
+            <p style="margin:4px 0;color:#444;font-size:14px;">📅 <strong>Starts:</strong> ${fmt(election.start_time)}</p>
+            <p style="margin:4px 0;color:#444;font-size:14px;">⏰ <strong>Deadline:</strong> ${fmt(election.end_time)}</p>
+          </div>
+          <!-- CTA -->
+          <a href="${appUrl}" style="display:inline-block;background:#781444;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:600;">
+            Vote Now →
+          </a>
+          <p style="margin:28px 0 0;color:#999;font-size:12px;">You received this because you have an account on IQ Vote.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  let sent = 0;
+  const errors: string[] = [];
+
+  await Promise.all(
+    recipients.map(async (u: any) => {
+      try {
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [u.email],
+            subject: `🗳️ ${election.title} — Voting is now open!`,
+            html,
+          }),
+        });
+        if (res.ok) {
+          sent++;
+        } else {
+          const err = await res.json().catch(() => ({}));
+          errors.push(`${u.email}: ${(err as any).message || res.status}`);
+        }
+      } catch (err: any) {
+        errors.push(`${u.email}: ${err.message}`);
+      }
+    })
+  );
+
+  if (errors.length) console.log('Email send errors:', errors);
+  console.log(`Election notification: sent ${sent}/${recipients.length} emails`);
+  return { sent, total: recipients.length, errors };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Self-profile update (authenticated user updates their own profile)
 app.put('/make-server-e2c9f810/profile', async (c) => {
   try {
@@ -827,7 +921,12 @@ app.post('/make-server-e2c9f810/admin/elections', async (c) => {
     };
     
     await kv.set(`election:${electionId}`, election);
-    
+
+    // Fire-and-forget notification emails
+    sendElectionNotificationEmails(election).catch(err =>
+      console.log('Election email error:', err)
+    );
+
     return c.json({ election });
   } catch (error) {
     console.log('Create election error:', error);
@@ -912,6 +1011,25 @@ app.delete('/make-server-e2c9f810/admin/elections/:id', async (c) => {
     });
   } catch (error) {
     console.log('Delete election error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+// Manual notify endpoint — admin re-sends election emails
+app.post('/make-server-e2c9f810/admin/elections/:id/notify', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    if (!(await isUserAdmin(user.id))) return c.json({ error: 'Admin access required' }, 403);
+
+    const electionId = c.req.param('id');
+    const election = await kv.get(`election:${electionId}`);
+    if (!election) return c.json({ error: 'Election not found' }, 404);
+
+    const result = await sendElectionNotificationEmails(election);
+    return c.json(result);
+  } catch (error) {
+    console.log('Notify election error:', error);
     return c.json({ error: String(error) }, 500);
   }
 });

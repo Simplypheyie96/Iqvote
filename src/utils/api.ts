@@ -151,6 +151,11 @@ export const api = {
     apiCall(`/admin/elections/${electionId}`, {
       method: 'DELETE',
     }),
+
+  notifyElection: (electionId: string) =>
+    apiCall(`/admin/elections/${electionId}/notify`, {
+      method: 'POST',
+    }),
   
   getElectionVoteCounts: () => apiCall('/admin/elections/vote-counts'),
   

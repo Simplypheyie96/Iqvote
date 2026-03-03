@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, AlertCircle, CheckCircle2, Calendar, Clock, Search, Users, Vote, Play, X } from 'lucide-react';
+import { Trash2, AlertCircle, CheckCircle2, Calendar, Clock, Search, Users, Vote, Play, X, Bell } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -40,6 +40,9 @@ export function ElectionsManagement() {
   const [electionToDelete, setElectionToDelete] = useState<ElectionWithVotes | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
+  // Notify
+  const [notifyingId, setNotifyingId] = useState<string | null>(null);
+
   // Close/Reopen dialog
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [statusAction, setStatusAction] = useState<'close' | 'reopen'>('close');
@@ -75,6 +78,24 @@ export function ElectionsManagement() {
       setError('Failed to load data: ' + err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleNotify(election: ElectionWithVotes) {
+    setNotifyingId(election.id);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await api.notifyElection(election.id);
+      if (result.skipped) {
+        setError('Email not configured. Add RESEND_API_KEY to your Supabase environment variables.');
+      } else {
+        setSuccess(`Reminder sent to ${result.sent} user${result.sent !== 1 ? 's' : ''}!`);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to send notifications');
+    } finally {
+      setNotifyingId(null);
     }
   }
 
@@ -302,6 +323,17 @@ export function ElectionsManagement() {
                           Reopen
                         </Button>
                       )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleNotify(election)}
+                        disabled={notifyingId === election.id}
+                        className="gap-1.5 hover:border-primary/50 hover:text-primary"
+                        title="Send reminder email to all users"
+                      >
+                        <Bell className="w-3 h-3" />
+                        {notifyingId === election.id ? 'Sending…' : 'Notify All'}
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"

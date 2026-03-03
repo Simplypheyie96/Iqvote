@@ -470,6 +470,7 @@ export default function App() {
         <Header
           user={currentUser}
           employees={employees}
+          currentElection={currentElection}
           onSignOut={handleSignOut}
           onNavigate={handleNavigate}
           currentView={currentView}
