@@ -155,13 +155,13 @@ app.get('/make-server-e2c9f810/auth/session', async (c) => {
 // ─── Email notifications via Resend ─────────────────────────────────────────
 
 async function sendElectionNotificationEmails(election: any) {
-  const resendApiKey = Deno.env.get('RESEND_API_KEY');
-  if (!resendApiKey) {
-    console.log('RESEND_API_KEY not set — skipping email notification');
+  const brevoApiKey = Deno.env.get('BREVO_API_KEY');
+  if (!brevoApiKey) {
+    console.log('BREVO_API_KEY not set — skipping email notification');
     return { sent: 0, skipped: true };
   }
 
-  const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'IQ Vote <noreply@iqvote.app>';
+  const fromEmail = Deno.env.get('BREVO_FROM_EMAIL') || '';
   const appUrl = Deno.env.get('APP_URL') || 'https://iqvote.vercel.app';
 
   const users = await kv.getByPrefix('user:');
@@ -214,17 +214,17 @@ async function sendElectionNotificationEmails(election: any) {
   await Promise.all(
     recipients.map(async (u: any) => {
       try {
-        const res = await fetch('https://api.resend.com/emails', {
+        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${resendApiKey}`,
+            'api-key': brevoApiKey,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: fromEmail,
-            to: [u.email],
+            sender: { name: 'IQ Vote', email: fromEmail },
+            to: [{ email: u.email, name: u.name || u.email }],
             subject: `🗳️ ${election.title} — Voting is now open!`,
-            html,
+            htmlContent: html,
           }),
         });
         if (res.ok) {

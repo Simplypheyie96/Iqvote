@@ -88,7 +88,7 @@ export function ElectionsManagement() {
     try {
       const result = await api.notifyElection(election.id);
       if (result.skipped) {
-        setError('Email not configured. Add RESEND_API_KEY to your Supabase environment variables.');
+        setError('Email not configured. Add BREVO_API_KEY to your Supabase environment variables.');
       } else {
         setSuccess(`Reminder sent to ${result.sent} user${result.sent !== 1 ? 's' : ''}!`);
       }
