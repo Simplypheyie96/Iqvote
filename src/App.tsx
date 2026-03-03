@@ -78,11 +78,32 @@ export default function App() {
     setMetaTagName('description', 'Modern employee recognition platform with frictionless voting experience');
   }, []);
 
-  // Restore navigation state from localStorage
-  const [currentView, setCurrentView] = useState<'vote' | 'leaderboard' | 'admin' | 'history'>(() => {
-    const saved = localStorage.getItem('figmake_last_page');
-    return (saved === 'vote' || saved === 'leaderboard' || saved === 'admin' || saved === 'history') ? saved : 'vote';
-  });
+  // Derive initial view from URL path
+  const viewFromPath = (path: string): 'vote' | 'leaderboard' | 'admin' | 'history' => {
+    if (path.startsWith('/leaderboard')) return 'leaderboard';
+    if (path.startsWith('/admin')) return 'admin';
+    if (path.startsWith('/history')) return 'history';
+    return 'vote';
+  };
+
+  const pathForView = (view: 'vote' | 'leaderboard' | 'admin' | 'history') => {
+    if (view === 'vote') return '/';
+    return `/${view}`;
+  };
+
+  const titleForView = (view: 'vote' | 'leaderboard' | 'admin' | 'history') => {
+    const titles = { vote: 'IQ Vote', leaderboard: 'IQ Vote - Leaderboard', admin: 'IQ Vote - Admin', history: 'IQ Vote - My History' };
+    return titles[view];
+  };
+
+  const [currentView, setCurrentView] = useState<'vote' | 'leaderboard' | 'admin' | 'history'>(
+    () => viewFromPath(window.location.pathname)
+  );
+
+  // Track which views have been visited so they stay mounted (no re-fetching on tab switch)
+  const [visitedViews, setVisitedViews] = useState<Set<string>>(
+    () => new Set([viewFromPath(window.location.pathname)])
+  );
   const [currentUser, setCurrentUser] = useState<Employee | null>(null);
   const [currentElection, setCurrentElection] = useState<Election | null>(null);
   const [allElections, setAllElections] = useState<Election[]>([]);
@@ -399,9 +420,23 @@ export default function App() {
     clearSessionCache();
   }
 
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const view = viewFromPath(window.location.pathname);
+      setCurrentView(view);
+      setVisitedViews(prev => new Set(prev).add(view));
+      document.title = titleForView(view);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   function handleNavigate(view: 'vote' | 'leaderboard' | 'admin' | 'history') {
     setCurrentView(view);
-    localStorage.setItem('figmake_last_page', view);
+    setVisitedViews(prev => new Set(prev).add(view));
+    window.history.pushState({}, '', pathForView(view));
+    document.title = titleForView(view);
   }
 
   async function handleVoteSubmitted() {
@@ -443,34 +478,42 @@ export default function App() {
         />
         
         <main id="main-content" role="main" className="overflow-x-hidden">
-          {currentView === 'vote' && (
-            <VotingPage
-              currentUser={currentUser}
-              election={currentElection}
-              employees={employees}
-              onVoteSubmitted={handleVoteSubmitted}
-            />
+          {visitedViews.has('vote') && (
+            <div style={{ display: currentView === 'vote' ? '' : 'none' }}>
+              <VotingPage
+                currentUser={currentUser}
+                election={currentElection}
+                employees={employees}
+                onVoteSubmitted={handleVoteSubmitted}
+              />
+            </div>
           )}
-          
-          {currentView === 'leaderboard' && (
-            <LeaderboardPage
-              currentUser={currentUser}
-              election={currentElection}
-              elections={allElections}
-            />
+
+          {visitedViews.has('leaderboard') && (
+            <div style={{ display: currentView === 'leaderboard' ? '' : 'none' }}>
+              <LeaderboardPage
+                currentUser={currentUser}
+                election={currentElection}
+                elections={allElections}
+              />
+            </div>
           )}
-          
-          {currentView === 'admin' && currentUser.is_admin && (
-            <AdminPage
-              currentUser={currentUser}
-              onElectionCreated={handleElectionCreated}
-            />
+
+          {visitedViews.has('admin') && currentUser.is_admin && (
+            <div style={{ display: currentView === 'admin' ? '' : 'none' }}>
+              <AdminPage
+                currentUser={currentUser}
+                onElectionCreated={handleElectionCreated}
+              />
+            </div>
           )}
-          
-          {currentView === 'history' && (
-            <MyHistory
-              currentUser={currentUser}
-            />
+
+          {visitedViews.has('history') && (
+            <div style={{ display: currentView === 'history' ? '' : 'none' }}>
+              <MyHistory
+                currentUser={currentUser}
+              />
+            </div>
           )}
         </main>
       </div>
