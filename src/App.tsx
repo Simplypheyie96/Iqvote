@@ -109,7 +109,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(() => {
+    // Detect recovery redirect immediately from URL hash before auth listener is ready
+    // Supabase appends #access_token=...&type=recovery to the redirect URL
+    const params = new URLSearchParams(window.location.hash.replace('#', ''));
+    return params.get('type') === 'recovery';
+  });
 
   // Add refs to prevent infinite loops
   const authCheckInProgress = useRef(false);
