@@ -18,6 +18,7 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
     const checkTheme = () => setIsDark(document.documentElement.classList.contains('dark'));
@@ -25,6 +26,25 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
+  }, []);
+
+  // Wait for Supabase to establish the recovery session from the URL tokens
+  useEffect(() => {
+    const supabase = createClient();
+
+    // Listen for the PASSWORD_RECOVERY event — fires once session is ready
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') && session) {
+        setSessionReady(true);
+      }
+    });
+
+    // Also check if session is already available (in case event already fired)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -92,7 +112,14 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
             </Alert>
           )}
 
-          {!success && (
+          {!sessionReady && !success && (
+            <div className="flex items-center justify-center py-6 gap-2 text-muted-foreground text-sm">
+              <LoadingSpinner size="sm" inline />
+              Preparing secure session…
+            </div>
+          )}
+
+          {!success && sessionReady && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="rp-password">New Password</Label>
