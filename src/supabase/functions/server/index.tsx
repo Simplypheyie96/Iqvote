@@ -223,8 +223,10 @@ async function sendElectionNotificationEmails(election: any) {
 
   await Promise.all(
     recipients.map(async (u: any, i: number) => {
-      // Round-robin across available senders
-      const senderEmail = senders[i % senders.length];
+      // Round-robin across available senders, but never send from the recipient's own address
+      const eligibleSenders = senders.filter((s: string) => s !== u.email);
+      const pool = eligibleSenders.length > 0 ? eligibleSenders : senders;
+      const senderEmail = pool[i % pool.length];
       try {
         const res = await fetch('https://api.brevo.com/v3/smtp/email', {
           method: 'POST',
