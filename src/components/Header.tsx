@@ -136,13 +136,17 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="relative rounded-full"
+                        className="rounded-full w-9 h-9"
                         onClick={() => setBellOpen(v => !v)}
                         aria-label="Election notification"
                       >
-                        <Bell className="w-4 h-4" />
-                        <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border border-background" />
+                        <Bell className="w-5 h-5 text-foreground" />
                       </Button>
+                      {/* Badge sits on the container, not inside the button */}
+                      <span className="pointer-events-none absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary border-2 border-background" />
+                      </span>
 
                       {bellOpen && (
                         <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-border bg-card shadow-lg z-50 p-4">
