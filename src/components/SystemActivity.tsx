@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Activity, Eye, Shield, UserPlus, Vote, Calendar, Trash2, Edit2, Clock, User, Award, Search, Filter } from 'lucide-react';
+import { Activity, User, Vote, Shield, Calendar, UserPlus, Clock, AlertCircle, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
+import { Alert, AlertDescription } from './ui/alert';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { api } from '../utils/api';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { LoadingSpinner } from './LoadingSpinner';
+import { projectId } from '../utils/supabase/info';
+import { createClient } from '../utils/supabase/client';
 
 interface ActivityLog {
   id: string;
@@ -35,11 +36,39 @@ export function SystemActivity() {
 
   const loadActivities = async () => {
     try {
+      // Get token from Supabase session
+      const supabase = createClient();
+      
+      let token = null;
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error in SystemActivity:', sessionError);
+          // If it's a refresh token error, clear and return
+          if (sessionError.message.includes('Refresh Token')) {
+            console.log('Invalid refresh token detected in SystemActivity');
+            await supabase.auth.signOut();
+            return;
+          }
+        }
+        
+        token = session?.access_token;
+      } catch (err: any) {
+        console.error('Error getting session in SystemActivity:', err);
+        return;
+      }
+
+      if (!token) {
+        console.error('No authentication token available');
+        return;
+      }
+
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/admin/system-activity`,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            'Authorization': `Bearer ${token}`
           }
         }
       );

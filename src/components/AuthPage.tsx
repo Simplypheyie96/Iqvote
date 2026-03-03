@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, LogIn, RefreshCw } from 'lucide-react';
+import { Trophy, LogIn, RefreshCw, ArrowLeft, Mail } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -24,6 +24,8 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   // Detect theme changes
   useEffect(() => {
@@ -80,7 +82,7 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
         if (signInError) throw signInError;
         
         if (signInData.session) {
-          localStorage.setItem('access_token', signInData.session.access_token);
+          // Supabase handles session storage automatically
           onSignIn();
         }
       } else {
@@ -99,7 +101,7 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
         }
         
         if (data.session) {
-          localStorage.setItem('access_token', data.session.access_token);
+          // Supabase handles session storage automatically
           onSignIn();
         }
       }
@@ -109,6 +111,124 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleForgotPassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const supabase = createClient();
+      
+      // Get the current URL origin for the redirect
+      const redirectUrl = `${window.location.origin}/#reset-password`;
+      
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: redirectUrl,
+      });
+
+      if (resetError) {
+        // Check if it's an email server configuration issue
+        if (resetError.message.includes('email') || resetError.message.includes('SMTP')) {
+          throw new Error('Password reset emails are not configured yet. Please contact your administrator to reset your password manually.');
+        }
+        throw resetError;
+      }
+
+      setSuccess('✅ Password reset instructions have been sent to your email. Please check your inbox and spam folder.');
+      setResetEmail('');
+      
+      // After 3 seconds, go back to sign in
+      setTimeout(() => {
+        setShowForgotPassword(false);
+        setSuccess(null);
+      }, 5000);
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      setError(err.message || 'Failed to send password reset email');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // If showing forgot password view
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-gradient-to-br from-primary/5 via-background to-primary/5">
+        <div className="w-full max-w-md">
+          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+            {/* Logo and Title */}
+            <div className="flex flex-col items-center justify-center mb-6">
+              <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-[102px] h-[102px] sm:w-[134px] sm:h-[134px] object-contain mb-[6px]" />
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+                Reset Password
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground text-center">
+                Enter your email to receive password reset instructions
+              </p>
+            </div>
+
+            {error && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {success && (
+              <Alert className="mb-6 border-green-500/50 bg-green-500/10">
+                <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+              </Alert>
+            )}
+
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div>
+                <Label htmlFor="reset-email">Email Address</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  required
+                  placeholder="your@email.com"
+                  className="mt-1.5"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                />
+              </div>
+
+              <Button type="submit" className="w-full gap-2" disabled={loading}>
+                {loading ? (
+                  <>
+                    <LoadingSpinner size="sm" inline />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    Send Reset Link
+                  </>
+                )}
+              </Button>
+
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="w-full gap-2"
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setError(null);
+                  setSuccess(null);
+                  setResetEmail('');
+                }}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Sign In
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -190,6 +310,17 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
                     </>
                   )}
                 </Button>
+
+                {/* Forgot Password Link */}
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
               </form>
             </TabsContent>
             

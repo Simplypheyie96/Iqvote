@@ -1,11 +1,63 @@
 # How to Reset All Data and Start Fresh
 
 ## Problem
-You signed up but don't see the Admin tab because demo data exists in the database from previous testing. This means you weren't detected as the "first user" and didn't get admin rights.
+You need to start completely fresh, clearing all existing data from the database so the first person to sign up (you: ajayifey@gmail.com) will be automatically granted admin access.
 
-## Solution: Reset All Data
+## Complete Fresh Start (Recommended)
 
-### Option 1: Use Browser Console (Recommended - Fastest)
+Since you mentioned "So we already have some data stored. Now we need to start afresh", here's how to do a complete database reset:
+
+### Step 1: Clear the KV Store Database (via Supabase Dashboard)
+
+1. **Go to your Supabase Project Dashboard**
+2. **Navigate to**: Database > Tables
+3. **Find the `kv_store_e2c9f810` table**
+4. **Click on the table** to view its contents
+5. **Delete all rows**: 
+   - Click the checkbox at the top to select all rows
+   - Click the "Delete" button
+   - Or run this SQL query in the SQL Editor:
+   ```sql
+   DELETE FROM kv_store_e2c9f810;
+   ```
+
+### Step 2: Clear All Supabase Auth Users
+
+1. **Still in Supabase Dashboard**
+2. **Navigate to**: Authentication > Users
+3. **Delete all existing users** one by one, or use the SQL Editor:
+   ```sql
+   -- This clears all auth users
+   -- Run in SQL Editor
+   ```
+   Note: You may need to use the Supabase dashboard UI to delete auth users as they're managed separately.
+
+### Step 3: Sign Up as the First User
+
+1. **Refresh your IQ Vote application**
+2. **Go to Sign Up**
+3. **Create your account with**: ajayifey@gmail.com
+4. **You will automatically be granted admin access** as the first user!
+
+---
+
+## Alternative: Quick Reset (If You Have Access)
+
+If you're already logged in as an admin, you can use the built-in reset feature:
+
+1. **Log in to IQ Vote**
+2. **Go to Admin Dashboard**
+3. **Navigate to**: Employees tab
+4. **Scroll to the bottom**: Find the "Danger Zone" card
+5. **Click "Reset Database"**
+6. **Type "RESET" to confirm**
+7. **Click "Reset Everything"**
+8. **Wait for the reset to complete and page reload**
+9. **Sign up again** with ajayifey@gmail.com
+
+---
+
+## Option 1: Use Browser Console (Recommended - Fastest)
 
 1. **Open the application in your browser**
 
@@ -42,7 +94,7 @@ You signed up but don't see the Admin tab because demo data exists in the databa
         
         // Call reset endpoint
         const resetResponse = await fetch(
-            `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/reset`,
+            `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/admin/reset-database`,
             {
                 method: 'POST',
                 headers: {
@@ -126,7 +178,7 @@ If you prefer, you can call the reset endpoint directly:
 
 ```bash
 curl -X POST \
-  https://YOUR_PROJECT_ID.supabase.co/functions/v1/make-server-e2c9f810/reset \
+  https://YOUR_PROJECT_ID.supabase.co/functions/v1/make-server-e2c9f810/admin/reset-database \
   -H "Authorization: Bearer YOUR_ANON_KEY" \
   -H "Content-Type: application/json"
 ```
@@ -140,14 +192,19 @@ Replace `YOUR_PROJECT_ID` and `YOUR_ANON_KEY` with your actual values.
 The reset endpoint will:
 
 ✅ Delete ALL Supabase Auth users  
+✅ Clear all user profiles (voters)  
 ✅ Clear all employees from database  
 ✅ Clear all elections from database  
 ✅ Clear all votes/ballots from database  
-✅ Clear all eligibility data  
-✅ Clear all leaderboard cache  
-✅ Delete all uploaded images from storage  
+✅ Clear all tallies/vote counts  
+✅ Clear all audit logs  
 
 **This gives you a completely clean slate!**
+
+### Security Note
+- **If NO users exist**: Anyone can call the reset endpoint (for initial setup)
+- **If users exist**: Only the super admin (ajayifey@gmail.com) can reset the database
+- This ensures your data is protected once the system is in use
 
 ---
 

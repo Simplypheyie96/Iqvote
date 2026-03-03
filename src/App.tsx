@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from './utils/supabase/client';
-import { api } from './utils/api';
+import { api, clearSessionCache } from './utils/api';
 import { AuthPage } from './components/AuthPage';
 import { VotingPage } from './components/VotingPage';
 import { LeaderboardPage } from './components/LeaderboardPage';
 import { AdminPage } from './components/AdminPage';
-import { ProfilePage } from './components/ProfilePage';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Header } from './components/Header';
 import { ThemeProvider } from './components/ThemeProvider';
@@ -91,6 +90,11 @@ export default function App() {
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
+  // Add refs to prevent infinite loops
+  const authCheckInProgress = useRef(false);
+  const lastAuthCheck = useRef(0);
+  const AUTH_CHECK_THROTTLE = 2000; // Minimum 2 seconds between auth checks
+
   // Wrap data loading functions in useCallback
   const loadCurrentElection = useCallback(async () => {
     try {
@@ -120,16 +124,58 @@ export default function App() {
   }, []);
 
   const checkAuth = useCallback(async () => {
+    // Throttle auth checks to prevent rapid re-checking
+    const now = Date.now();
+    if (authCheckInProgress.current || (now - lastAuthCheck.current) < AUTH_CHECK_THROTTLE) {
+      console.log('Auth check throttled or already in progress');
+      return;
+    }
+
+    authCheckInProgress.current = true;
+    lastAuthCheck.current = now;
     console.log('checkAuth started');
     setLoading(true);
     
     try {
-      const storedToken = localStorage.getItem('access_token');
+      const supabase = createClient();
       
-      if (!storedToken) {
-        console.log('No stored token found');
+      // Try to get the session, but handle refresh token errors
+      let session = null;
+      try {
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          // If it's a refresh token error, clear everything and start fresh
+          if (sessionError.message.includes('Refresh Token')) {
+            console.log('Invalid refresh token, clearing all auth data');
+            await supabase.auth.signOut();
+            setCurrentUser(null);
+            setAuthError(null);
+            setLoading(false);
+            authCheckInProgress.current = false;
+            return;
+          }
+          throw sessionError;
+        }
+        
+        session = currentSession;
+      } catch (err: any) {
+        console.error('Error getting session:', err);
+        // Clear session on any error
+        await supabase.auth.signOut();
+        setCurrentUser(null);
+        setAuthError(null);
+        setLoading(false);
+        authCheckInProgress.current = false;
+        return;
+      }
+      
+      if (!session) {
+        console.log('No active session found');
         setCurrentUser(null);
         setLoading(false);
+        authCheckInProgress.current = false;
         return;
       }
       
@@ -142,26 +188,28 @@ export default function App() {
       } catch (apiErr: any) {
         console.log('Session verification failed:', apiErr.message);
         
-        // If it's a 401, the token is invalid - this is expected behavior
+        // If it's a 401, the session is invalid
         if (apiErr.status === 401 || apiErr.message?.includes('Unauthorized')) {
-          console.log('Token is invalid or expired, clearing local storage');
-          localStorage.removeItem('access_token');
+          console.log('Session is invalid or expired, signing out');
+          await supabase.auth.signOut();
           setCurrentUser(null);
           setAuthError(null); // Don't show error for expired sessions
         } else {
-          // Other errors - keep token but show error
+          // Other errors - show error
           console.error('Unexpected API error:', apiErr);
           setAuthError('Failed to verify session. Please try refreshing.');
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Auth check error:', err);
-      localStorage.removeItem('access_token');
+      const supabase = createClient();
+      await supabase.auth.signOut();
       setCurrentUser(null);
       setAuthError(null); // Don't show error for auth failures
     } finally {
       console.log('checkAuth finished');
       setLoading(false);
+      authCheckInProgress.current = false;
     }
   }, []);
 
@@ -183,23 +231,107 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
     let authSubscription: any = null;
+    let hasInitialized = false;
     
-    const initialize = async () => {
-      console.log('Starting initialization');
-      
-      // Quick check - if no token in localStorage, skip session check
-      const storedToken = localStorage.getItem('access_token');
-      if (!storedToken) {
-        console.log('No stored token, showing auth page');
-        if (mounted) {
-          setLoading(false);
-        }
+    const performAuthCheck = async () => {
+      // Throttle auth checks to prevent rapid re-checking
+      const now = Date.now();
+      if (authCheckInProgress.current || (now - lastAuthCheck.current) < AUTH_CHECK_THROTTLE) {
+        console.log('Auth check throttled or already in progress');
         return;
       }
+
+      authCheckInProgress.current = true;
+      lastAuthCheck.current = now;
+      console.log('checkAuth started');
+      setLoading(true);
       
       try {
-        // Try to verify the stored token directly with our API instead of Supabase
-        await checkAuth();
+        const supabase = createClient();
+        
+        // Try to get the session, but handle refresh token errors
+        let session = null;
+        try {
+          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            console.error('Session error:', sessionError);
+            // If it's a refresh token error, clear everything and start fresh
+            if (sessionError.message.includes('Refresh Token')) {
+              console.log('Invalid refresh token, clearing all auth data');
+              await supabase.auth.signOut();
+              setCurrentUser(null);
+              setAuthError(null);
+              setLoading(false);
+              authCheckInProgress.current = false;
+              return;
+            }
+            throw sessionError;
+          }
+          
+          session = currentSession;
+        } catch (err: any) {
+          console.error('Error getting session:', err);
+          // Clear session on any error
+          await supabase.auth.signOut();
+          setCurrentUser(null);
+          setAuthError(null);
+          setLoading(false);
+          authCheckInProgress.current = false;
+          return;
+        }
+        
+        if (!session) {
+          console.log('No active session found');
+          setCurrentUser(null);
+          setLoading(false);
+          authCheckInProgress.current = false;
+          return;
+        }
+        
+        // Verify token with API
+        try {
+          const { user } = await api.getCurrentUser();
+          console.log('User verified:', user);
+          setCurrentUser(user);
+          setAuthError(null);
+        } catch (apiErr: any) {
+          console.log('Session verification failed:', apiErr.message);
+          
+          // If it's a 401, the session is invalid
+          if (apiErr.status === 401 || apiErr.message?.includes('Unauthorized')) {
+            console.log('Session is invalid or expired, signing out');
+            await supabase.auth.signOut();
+            setCurrentUser(null);
+            setAuthError(null); // Don't show error for expired sessions
+          } else {
+            // Other errors - show error
+            console.error('Unexpected API error:', apiErr);
+            setAuthError('Failed to verify session. Please try refreshing.');
+          }
+        }
+      } catch (err: any) {
+        console.error('Auth check error:', err);
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        setCurrentUser(null);
+        setAuthError(null); // Don't show error for auth failures
+      } finally {
+        console.log('checkAuth finished');
+        setLoading(false);
+        authCheckInProgress.current = false;
+      }
+    };
+    
+    const initialize = async () => {
+      if (hasInitialized) return;
+      hasInitialized = true;
+      
+      console.log('Starting initialization');
+      
+      try {
+        // Try to verify the session with our API
+        await performAuthCheck();
         
         if (!mounted) return;
         
@@ -211,15 +343,18 @@ export default function App() {
           console.log('Auth state changed:', event);
           
           if (event === 'SIGNED_OUT') {
-            localStorage.removeItem('access_token');
             setCurrentUser(null);
             setCurrentElection(null);
             setAllElections([]);
             setEmployees([]);
             setInitialized(false);
           } else if (event === 'SIGNED_IN' && session) {
-            localStorage.setItem('access_token', session.access_token);
-            await checkAuth();
+            // Don't re-check on SIGNED_IN if we just signed in
+            // The checkAuth will be called by handleSignIn
+            console.log('Signed in, skipping redundant check');
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            // Don't trigger checkAuth on token refresh, just log it
+            console.log('Token refreshed silently');
           }
         });
         
@@ -240,7 +375,7 @@ export default function App() {
         authSubscription.unsubscribe();
       }
     };
-  }, [checkAuth]);
+  }, []); // Empty dependency array - only run once
 
   useEffect(() => {
     if (currentUser && !initialized) {
@@ -255,12 +390,12 @@ export default function App() {
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    localStorage.removeItem('access_token');
     setCurrentUser(null);
     setCurrentElection(null);
     setAllElections([]);
     setEmployees([]);
     setInitialized(false);
+    clearSessionCache();
   }
 
   function handleNavigate(view: 'vote' | 'leaderboard' | 'admin' | 'history') {

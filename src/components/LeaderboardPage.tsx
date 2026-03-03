@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Trophy, Medal, Award, User, Crown, Star, MessageCircle, Calendar } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Trophy, Medal, Award, User, Crown, Star, MessageCircle, Calendar, Download } from 'lucide-react';
 import { Employee, Election, LeaderboardEntry } from '../types';
 import { api } from '../utils/api';
 import { Alert, AlertDescription } from './ui/alert';
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { VotingReasonsModal } from './VotingReasonsModal';
 import { Button } from './ui/button';
 import { LoadingSpinner } from './LoadingSpinner';
+import * as XLSX from 'xlsx';
 
 interface LeaderboardPageProps {
   currentUser: Employee;
@@ -26,7 +27,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
 
   // Time-based filtering states
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
-  const [selectedMonth, setSelectedMonth] = useState<string>('full-year'); // 'full-year' means whole year
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [electionsCount, setElectionsCount] = useState(0);
 
   // Get available years from elections
@@ -42,11 +43,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
     availableYears.unshift(currentYear);
   }
 
-  useEffect(() => {
-    loadLeaderboard();
-  }, [selectedYear, selectedMonth]);
-
-  async function loadLeaderboard() {
+  const loadLeaderboard = useCallback(async () => {
     setLoading(true);
     try {
       if (selectedYear === 'all-time') {
@@ -82,7 +79,11 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
     } finally {
       setLoading(false);
     }
-  }
+  }, [selectedYear, selectedMonth]);
+
+  useEffect(() => {
+    loadLeaderboard();
+  }, [loadLeaderboard]);
 
   const months = [
     { value: 'full-year', label: 'Full Year' },
@@ -114,6 +115,72 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
       return `Showing ${selectedYear} totals (${electionsCount} ${electionsCount === 1 ? 'election' : 'elections'})`;
     }
   }
+
+  // Function to export leaderboard to Excel
+  const exportToExcel = () => {
+    // Prepare data for export
+    const wsData = [
+      ['IQ Vote - Leaderboard Export'],
+      [`Period: ${getFilterDescription()}`],
+      [`Exported on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`],
+      [], // Empty row for spacing
+      ['Rank', 'Name', 'Role', 'Department', 'Total Points', '1st Place (5pts)', '2nd Place (3pts)', '3rd Place (2pts)', 'Messages']
+    ];
+
+    leaderboard.forEach(entry => {
+      wsData.push([
+        entry.rank,
+        entry.employee?.name || 'Unknown',
+        entry.employee?.role || 'N/A',
+        entry.employee?.department || 'N/A',
+        entry.total_points,
+        entry.count_first,
+        entry.count_second,
+        entry.count_third,
+        (entry as any).message_count || 0
+      ]);
+    });
+
+    // Add summary statistics at the bottom
+    wsData.push([]);
+    wsData.push(['Summary Statistics']);
+    wsData.push(['Total Employees:', leaderboard.length]);
+    wsData.push(['Total Elections:', electionsCount]);
+    const totalPoints = leaderboard.reduce((sum, entry) => sum + entry.total_points, 0);
+    wsData.push(['Total Points Awarded:', totalPoints]);
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 6 },  // Rank
+      { wch: 20 }, // Name
+      { wch: 20 }, // Role
+      { wch: 20 }, // Department
+      { wch: 12 }, // Total Points
+      { wch: 16 }, // 1st Place
+      { wch: 16 }, // 2nd Place
+      { wch: 16 }, // 3rd Place
+      { wch: 10 }  // Messages
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leaderboard');
+    
+    // Generate filename based on period
+    let filename = 'IQ_Vote_Leaderboard';
+    if (selectedYear === 'all-time') {
+      filename += '_All_Time';
+    } else if (selectedMonth && selectedMonth !== 'full-year') {
+      const monthName = months.find(m => m.value === selectedMonth)?.label || '';
+      filename += `_${monthName}_${selectedYear}`;
+    } else {
+      filename += `_${selectedYear}`;
+    }
+    filename += `_${new Date().toISOString().split('T')[0]}.xlsx`;
+    
+    XLSX.writeFile(wb, filename);
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -171,6 +238,17 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                 </SelectContent>
               </Select>
             )}
+            
+            {/* Export Button */}
+            <Button
+              variant="outline"
+              onClick={exportToExcel}
+              className="gap-2"
+              disabled={leaderboard.length === 0 || loading}
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </Button>
           </div>
         </div>
       </div>

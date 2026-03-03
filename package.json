@@ -54,7 +54,8 @@
           "tailwind-merge": "*",
           "tailwindcss": "*",
           "vaul": "^1.1.2",
-          "vite": "*"
+          "vite": "*",
+          "xlsx": "*"
       },
       "devDependencies": {
           "@types/node": "^20.10.0",

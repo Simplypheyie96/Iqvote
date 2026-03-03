@@ -19,8 +19,24 @@ async function getAuthenticatedUser(request: Request) {
   const accessToken = request.headers.get('Authorization')?.split(' ')[1];
   if (!accessToken) return null;
   
-  const { data: { user }, error } = await supabase.auth.getUser(accessToken);
-  if (error || !user) return null;
+  // Create a client with the user's access token for proper validation
+  const userClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      }
+    }
+  );
+  
+  const { data: { user }, error } = await userClient.auth.getUser();
+  if (error || !user) {
+    console.log('Auth validation error:', error);
+    return null;
+  }
   
   return user;
 }
@@ -31,13 +47,11 @@ async function isUserAdmin(userId: string): Promise<boolean> {
   return userProfile?.is_admin === true;
 }
 
-// Helper to check if user is the super admin (owner)
 async function isSuperAdmin(userId: string): Promise<boolean> {
   const userProfile = await kv.get(`user:${userId}`);
   return userProfile?.email === 'ajayifey@gmail.com' && userProfile?.is_admin === true;
 }
 
-// Helper to check if email is the super admin
 async function isSuperAdminEmail(email: string): Promise<boolean> {
   return email === 'ajayifey@gmail.com';
 }
@@ -124,9 +138,8 @@ app.get('/make-server-e2c9f810/auth/session', async (c) => {
       return c.json({ error: 'User profile not found' }, 404);
     }
     
-    // AUTO-GRANT ADMIN to super admin email if not already set
     if (await isSuperAdminEmail(user.email || '') && !profile.is_admin) {
-      console.log(`Auto-granting admin to super admin: ${user.email}`);
+      console.log(`Auto-granting admin privileges: ${user.email}`);
       profile.is_admin = true;
       profile.updated_at = new Date().toISOString();
       await kv.set(`user:${user.id}`, profile);
@@ -183,7 +196,6 @@ app.put('/make-server-e2c9f810/users/:userId/admin', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
     
-    // ONLY super admin can manage other admins
     if (!(await isSuperAdmin(user.id))) {
       return c.json({ error: 'Forbidden: Only the system owner can manage admin privileges' }, 403);
     }
@@ -196,7 +208,6 @@ app.put('/make-server-e2c9f810/users/:userId/admin', async (c) => {
       return c.json({ error: 'User not found' }, 404);
     }
     
-    // PROTECT THE SUPER ADMIN - Cannot be demoted
     if (await isSuperAdminEmail(targetUser.email)) {
       return c.json({ error: 'Cannot modify admin status of system owner' }, 403);
     }
@@ -309,7 +320,6 @@ app.delete('/make-server-e2c9f810/users/:userId', async (c) => {
       return c.json({ error: 'User not found' }, 404);
     }
     
-    // Protect the super admin from being deleted by other admins
     if (await isSuperAdminEmail(targetUser.email)) {
       return c.json({ error: 'Cannot delete the system owner account' }, 403);
     }
@@ -352,6 +362,71 @@ app.delete('/make-server-e2c9f810/users/:userId', async (c) => {
     return c.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.log('Delete user error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+app.put('/make-server-e2c9f810/users/:userId/reset-password', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    
+    // Check if user is admin
+    const profile = await kv.get(`user:${user.id}`);
+    if (!profile?.is_admin) {
+      return c.json({ error: 'Forbidden: Admin access required' }, 403);
+    }
+    
+    const userId = c.req.param('userId');
+    const { new_password } = await c.req.json();
+    
+    if (!new_password || new_password.length < 6) {
+      return c.json({ error: 'Password must be at least 6 characters' }, 400);
+    }
+    
+    const targetUser = await kv.get(`user:${userId}`);
+    if (!targetUser) {
+      return c.json({ error: 'User not found' }, 404);
+    }
+    
+    // Update password using Supabase admin API
+    const { data, error: updateError } = await supabase.auth.admin.updateUserById(
+      userId,
+      { password: new_password }
+    );
+    
+    if (updateError) {
+      console.log('Password update error:', updateError);
+      return c.json({ error: updateError.message }, 400);
+    }
+    
+    // Create audit log
+    const auditId = crypto.randomUUID();
+    const currentUserProfile = await kv.get(`user:${user.id}`);
+    const auditLog = {
+      id: auditId,
+      timestamp: new Date().toISOString(),
+      action: 'password_reset',
+      admin_id: user.id,
+      admin_email: user.email,
+      admin_name: currentUserProfile?.name || user.email,
+      target_user_id: userId,
+      target_user_email: targetUser.email,
+      target_user_name: targetUser.name,
+      details: {
+        reason: 'Password reset by admin',
+        performed_by: currentUserProfile?.name || user.email
+      }
+    };
+    await kv.set(`audit:${auditId}`, auditLog);
+    
+    console.log(`Password reset for user ${targetUser.email} by admin ${user.email}`);
+    
+    return c.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.log('Reset password error:', error);
     return c.json({ error: String(error) }, 500);
   }
 });
@@ -614,11 +689,13 @@ app.get('/make-server-e2c9f810/leaderboard/aggregated', async (c) => {
     // Get all messages across filtered elections
     const aggregatedMessages = new Map<string, {count: number, messages: string[]}>();
     
+    // Fetch all ballots ONCE upfront (instead of per-election to avoid N+1 timeout)
+    const allBallots = await kv.getByPrefix('ballot:');
+    
     for (const election of filteredElections) {
       const tallies = await kv.getByPrefix(`tally:${election.id}:`);
       
-      // Get ballots for this election to collect reasons
-      const allBallots = await kv.getByPrefix(`ballot:`);
+      // Filter ballots for this election from the pre-fetched set
       const electionBallots = allBallots.filter(b => 
         b.election_id === election.id && !b.revoked
       );
@@ -709,6 +786,207 @@ app.post('/make-server-e2c9f810/admin/elections', async (c) => {
     return c.json({ election });
   } catch (error) {
     console.log('Create election error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+// Delete election
+app.delete('/make-server-e2c9f810/admin/elections/:id', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    
+    if (!(await isUserAdmin(user.id))) {
+      return c.json({ error: 'Admin access required' }, 403);
+    }
+    
+    const electionId = c.req.param('id');
+    
+    // Check if election exists
+    const election = await kv.get(`election:${electionId}`);
+    if (!election) {
+      return c.json({ error: 'Election not found' }, 404);
+    }
+    
+    console.log(`Deleting election: ${election.title} (${electionId})`);
+    
+    // Delete all associated data
+    // 1. Delete all ballots for this election
+    const allBallots = await kv.getByPrefix(`ballot:${electionId}:`);
+    for (const ballot of allBallots) {
+      await kv.del(`ballot:${electionId}:${ballot.voter_id}`);
+    }
+    console.log(`Deleted ${allBallots.length} ballots`);
+    
+    // 2. Delete all tallies for this election
+    const allTallies = await kv.getByPrefix(`tally:${electionId}:`);
+    for (const tally of allTallies) {
+      await kv.del(`tally:${electionId}:${tally.employee_id}`);
+    }
+    console.log(`Deleted ${allTallies.length} tallies`);
+    
+    // 3. Delete all audit logs for this election
+    const allAudits = await kv.getByPrefix(`audit:`);
+    const electionAudits = allAudits.filter(audit => audit.election_id === electionId);
+    for (const audit of electionAudits) {
+      await kv.del(`audit:${audit.id}`);
+    }
+    console.log(`Deleted ${electionAudits.length} audit logs`);
+    
+    // 4. Delete the election itself
+    await kv.del(`election:${electionId}`);
+    
+    // Log the deletion
+    const auditId = crypto.randomUUID();
+    await kv.set(`audit:${auditId}`, {
+      id: auditId,
+      action: 'delete_election',
+      election_id: electionId,
+      election_title: election.title,
+      admin_id: user.id,
+      timestamp: new Date().toISOString(),
+      details: {
+        ballots_deleted: allBallots.length,
+        tallies_deleted: allTallies.length,
+        audits_deleted: electionAudits.length
+      }
+    });
+    
+    console.log(`Election ${electionId} and all associated data deleted successfully`);
+    
+    return c.json({ 
+      success: true,
+      deleted: {
+        election: 1,
+        ballots: allBallots.length,
+        tallies: allTallies.length,
+        audits: electionAudits.length
+      }
+    });
+  } catch (error) {
+    console.log('Delete election error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+// Batch vote counts for all elections (avoids N+1 queries)
+app.get('/make-server-e2c9f810/admin/elections/vote-counts', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    
+    if (!(await isUserAdmin(user.id))) {
+      return c.json({ error: 'Admin access required' }, 403);
+    }
+    
+    const allBallots = await kv.getByPrefix('ballot:');
+    const counts: Record<string, number> = {};
+    
+    for (const ballot of allBallots) {
+      if (ballot.revoked) continue;
+      const electionId = ballot.election_id;
+      if (electionId) {
+        counts[electionId] = (counts[electionId] || 0) + 1;
+      }
+    }
+    
+    return c.json({ counts });
+  } catch (error) {
+    console.log('Get vote counts error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+// Update election status (close/reopen)
+app.put('/make-server-e2c9f810/admin/elections/:id/status', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    
+    if (!(await isUserAdmin(user.id))) {
+      return c.json({ error: 'Admin access required' }, 403);
+    }
+    
+    const electionId = c.req.param('id');
+    const { action, new_end_time } = await c.req.json();
+    
+    const election = await kv.get(`election:${electionId}`);
+    if (!election) {
+      return c.json({ error: 'Election not found' }, 404);
+    }
+    
+    const now = new Date();
+    const start = new Date(election.start_time);
+    const end = new Date(election.end_time);
+    
+    if (action === 'close') {
+      if (now > end) {
+        return c.json({ error: 'Election is already closed' }, 400);
+      }
+      
+      if (now < start) {
+        election.start_time = now.toISOString();
+      }
+      election.end_time = now.toISOString();
+      election.manually_closed = true;
+      election.closed_at = now.toISOString();
+      election.closed_by = user.id;
+      
+    } else if (action === 'reopen') {
+      if (now < end) {
+        return c.json({ error: 'Election is not closed yet' }, 400);
+      }
+      
+      if (!new_end_time) {
+        return c.json({ error: 'new_end_time is required to reopen an election' }, 400);
+      }
+      
+      const newEnd = new Date(new_end_time);
+      if (newEnd <= now) {
+        return c.json({ error: 'New end time must be in the future' }, 400);
+      }
+      
+      election.end_time = newEnd.toISOString();
+      election.manually_closed = false;
+      election.reopened_at = now.toISOString();
+      election.reopened_by = user.id;
+      
+    } else {
+      return c.json({ error: 'Invalid action. Use "close" or "reopen"' }, 400);
+    }
+    
+    election.updated_at = now.toISOString();
+    await kv.set(`election:${electionId}`, election);
+    
+    const auditId = crypto.randomUUID();
+    const adminProfile = await kv.get(`user:${user.id}`);
+    await kv.set(`audit:${auditId}`, {
+      id: auditId,
+      action: action === 'close' ? 'election_closed' : 'election_reopened',
+      election_id: electionId,
+      election_title: election.title,
+      admin_id: user.id,
+      admin_email: user.email,
+      admin_name: adminProfile?.name || user.email,
+      timestamp: now.toISOString(),
+      details: {
+        action,
+        new_end_time: election.end_time,
+        performed_by: adminProfile?.name || user.email
+      }
+    });
+    
+    console.log(`Election "${election.title}" ${action}d by ${user.email}`);
+    
+    return c.json({ election });
+  } catch (error) {
+    console.log('Update election status error:', error);
     return c.json({ error: String(error) }, 500);
   }
 });
@@ -1870,6 +2148,134 @@ app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
     return c.json({ activities: recentActivities });
   } catch (error) {
     console.log('Get system activity error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+// RESET DATABASE ROUTE - WARNING: This will delete ALL data!
+app.post('/make-server-e2c9f810/admin/reset-database', async (c) => {
+  try {
+    const existingUsers = await kv.getByPrefix('user:');
+    
+    if (existingUsers.length > 0) {
+      const user = await getAuthenticatedUser(c.req.raw);
+      if (!user) {
+        return c.json({ error: 'Unauthorized: Authentication required when users exist' }, 401);
+      }
+      
+      if (!(await isSuperAdmin(user.id))) {
+        return c.json({ error: 'Forbidden: Only the system owner can reset the database when users exist' }, 403);
+      }
+    }
+    
+    console.log('=== STARTING DATABASE RESET ===');
+    
+    // Get all data to count items
+    const users = await kv.getByPrefix('user:');
+    const employees = await kv.getByPrefix('employee:');
+    const elections = await kv.getByPrefix('election:');
+    const ballots = await kv.getByPrefix('ballot:');
+    const tallies = await kv.getByPrefix('tally:');
+    const audits = await kv.getByPrefix('audit:');
+    
+    console.log(`Found: ${users.length} users, ${employees.length} employees, ${elections.length} elections, ${ballots.length} ballots, ${tallies.length} tallies, ${audits.length} audits`);
+    
+    // Use Supabase client to delete all records directly (more efficient)
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    
+    // Delete all keys by prefix using SQL-like patterns
+    await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'user:%');
+    await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'employee:%');
+    await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'election:%');
+    await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'ballot:%');
+    await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'tally:%');
+    await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'audit:%');
+    
+    console.log('KV store cleared');
+    
+    // Delete all users from Supabase Auth
+    let deletedAuthUsers = 0;
+    for (const user of users) {
+      try {
+        const { error } = await supabase.auth.admin.deleteUser(user.id);
+        if (!error) {
+          deletedAuthUsers++;
+        } else {
+          console.log(`Warning: Could not delete auth user ${user.email}:`, error.message);
+        }
+      } catch (error) {
+        console.log(`Warning: Error deleting auth user ${user.email}:`, error);
+      }
+    }
+    
+    console.log(`Deleted ${deletedAuthUsers} users from Supabase Auth`);
+    console.log('=== DATABASE RESET COMPLETE ===');
+    console.log('You can now sign up as the first user to automatically receive admin privileges');
+    
+    return c.json({
+      success: true,
+      message: 'Database reset complete',
+      deleted: {
+        users: users.length,
+        employees: employees.length,
+        elections: elections.length,
+        ballots: ballots.length,
+        tallies: tallies.length,
+        audits: audits.length,
+        auth_users: deletedAuthUsers
+      }
+    });
+  } catch (error) {
+    console.log('Reset database error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+// Debug endpoint to check auth users
+app.get('/make-server-e2c9f810/debug/auth-users', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    // Only allow admins to access this
+    const isAdmin = await isUserAdmin(user.id);
+    if (!isAdmin) {
+      return c.json({ error: 'Forbidden - Admin access required' }, 403);
+    }
+
+    // List all auth users
+    const { data: { users }, error } = await supabase.auth.admin.listUsers();
+    
+    if (error) {
+      console.error('Error listing auth users:', error);
+      return c.json({ error: error.message }, 500);
+    }
+
+    // Also get KV user profiles
+    const kvUsers = await kv.getByPrefix('user:');
+    
+    return c.json({ 
+      auth_users: users?.map(u => ({
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        email_confirmed: u.email_confirmed_at !== null,
+        last_sign_in: u.last_sign_in_at
+      })) || [],
+      kv_users: kvUsers.map(u => ({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        is_admin: u.is_admin
+      }))
+    });
+  } catch (error) {
+    console.error('Debug auth users error:', error);
     return c.json({ error: String(error) }, 500);
   }
 });

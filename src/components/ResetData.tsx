@@ -3,7 +3,8 @@ import { AlertTriangle, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { createClient } from '../utils/supabase/client';
+import { projectId } from '../utils/supabase/info';
 
 export function ResetData() {
   const [loading, setLoading] = useState(false);
@@ -21,12 +22,20 @@ export function ResetData() {
     setError(null);
     
     try {
+      // Get the current user's access token
+      const supabase = createClient();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Authentication required. Please sign in again.');
+      }
+
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/reset`,
+        `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/admin/reset-database`,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json'
           }
         }

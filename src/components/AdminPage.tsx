@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Users, Trophy, Edit2, Trash2, Calendar, Eye, Shield, UserCog, TrendingUp, Activity, FileDown, Award, AlertTriangle, Upload } from 'lucide-react';
+import { Plus, Users, Trophy, Edit2, Trash2, Calendar, Eye, Shield, UserCog, TrendingUp, Activity, FileDown, Award, AlertTriangle, Upload, Key } from 'lucide-react';
 import { Employee, Election } from '../types';
 import { api } from '../utils/api';
+import { createClient } from '../utils/supabase/client';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -19,6 +20,8 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { SystemActivity } from './SystemActivity';
 import { LeaderboardImport } from './LeaderboardImport';
 import { HistoricalDataImport } from './HistoricalDataImport';
+import { VoteManagement } from './VoteManagement';
+import { ElectionsManagement } from './ElectionsManagement';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 
 interface AdminPageProps {
@@ -85,6 +88,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
   const [deleteUserConfirmText, setDeleteUserConfirmText] = useState('');
   const [deletingUser, setDeletingUser] = useState(false);
+
+  // Reset password dialog
+  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
+  const [userToResetPassword, setUserToResetPassword] = useState<any | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -262,12 +271,20 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
     setSuccess(null);
 
     try {
+      // Get the current user's access token
+      const supabase = createClient();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Authentication required. Please sign in again.');
+      }
+
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/reset`,
+        `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/admin/reset-database`,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json'
           }
         }
@@ -284,7 +301,8 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       sessionStorage.clear();
       
       // Show success and reload
-      alert(`Database reset complete! Deleted: ${data.details.users_deleted} users, ${data.details.database_entries_deleted} records. Reloading...`);
+      const deletedCount = data.deleted || {};
+      alert(`Database reset complete!\n\nDeleted:\n- ${deletedCount.users || 0} users\n- ${deletedCount.employees || 0} employees\n- ${deletedCount.elections || 0} elections\n- ${deletedCount.ballots || 0} ballots\n- ${deletedCount.auth_users || 0} auth users\n\nReloading...`);
       window.location.reload();
     } catch (err: any) {
       console.error('Reset error:', err);
@@ -364,6 +382,34 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       setDeletingUser(false);
       setShowDeleteUserDialog(false);
       setDeleteUserConfirmText('');
+    }
+  }
+
+  async function handleResetPassword(userId: string) {
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setResettingPassword(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await api.resetUserPassword(userId, newPassword);
+      setSuccess(`Password reset successfully!`);
+      
+      // Reload users
+      const usersRes = await api.getUsers();
+      setUsers(usersRes.users || []);
+    } catch (err: any) {
+      console.error('Reset user password error:', err);
+      setError(err.message || 'Failed to reset user password');
+    } finally {
+      setResettingPassword(false);
+      setShowResetPasswordDialog(false);
+      setNewPassword('');
+      setUserToResetPassword(null);
     }
   }
 
@@ -463,7 +509,10 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
         <div className="w-full overflow-x-auto">
           <TabsList className="w-full sm:w-auto inline-flex">
             <TabsTrigger value="elections" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
-              Elections
+              Create Election
+            </TabsTrigger>
+            <TabsTrigger value="manage-elections" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
+              Manage Elections
             </TabsTrigger>
             <TabsTrigger value="employees" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
               Employees
@@ -596,7 +645,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 <Alert className="border-blue-500/50 bg-blue-500/10">
                   <Users className="h-4 w-4 text-blue-500" />
                   <AlertDescription className="text-blue-600 dark:text-blue-400 text-xs">
-                    <strong>Note:</strong> Anyone can vote, but only the selected employees above can receive votes. This allows leaders and managers to participate in voting without being votable.
+                    <strong>Important:</strong> ALL registered users (including admins) can vote in this election. The employees selected above are candidates who can RECEIVE votes. This separation allows executives and managers to participate in voting without being candidates themselves.
                   </AlertDescription>
                 </Alert>
 
@@ -616,6 +665,17 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               </form>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Manage Elections Tab */}
+        <TabsContent value="manage-elections" className="space-y-6">
+          <div className="mb-6">
+            <h3 className="text-xl font-bold mb-1">Manage Elections</h3>
+            <p className="text-sm text-muted-foreground">
+              View, search, and delete elections across all time periods
+            </p>
+          </div>
+          <ElectionsManagement />
         </TabsContent>
 
         {/* Employees Tab */}
@@ -1055,6 +1115,19 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                           variant="outline"
                           size="sm"
                           onClick={() => {
+                            setUserToResetPassword(user);
+                            setNewPassword('');
+                            setShowResetPasswordDialog(true);
+                          }}
+                          className="gap-2 flex-1 sm:flex-none"
+                        >
+                          <Key className="w-3 h-3" />
+                          <span className="sm:inline">Reset Pwd</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
                             setUserToDelete(user);
                             setDeleteUserConfirmText('');
                             setShowDeleteUserDialog(true);
@@ -1112,7 +1185,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 {userToDelete?.email === 'ajayifey@gmail.com' && (
                   <Alert variant="destructive">
                     <AlertDescription className="font-semibold">
-                      ⚠️ This is the super admin account. Deleting it is not recommended!
+                      ⚠️ This is the system owner account. Deleting it is not recommended!
                     </AlertDescription>
                   </Alert>
                 )}
@@ -1156,11 +1229,93 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Reset Password Dialog */}
+          <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
+            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-destructive" />
+                  </div>
+                </div>
+                <DialogTitle className="text-center">Reset User Password?</DialogTitle>
+                <DialogDescription className="text-center">
+                  This will reset the password for{' '}
+                  <span className="font-semibold">{userToResetPassword?.name}</span>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 overflow-y-auto flex-1 pr-2">
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    <ul className="list-disc list-inside space-y-1 text-sm">
+                      <li>User will be signed out immediately</li>
+                      <li>Their current password will be invalidated</li>
+                      <li>They will receive a password reset email</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+
+                {userToResetPassword?.email === 'ajayifey@gmail.com' && (
+                  <Alert variant="destructive">
+                    <AlertDescription className="font-semibold">
+                      ⚠️ This is the system owner account. Resetting the password is not recommended!
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div>
+                  <Label htmlFor="new-password" className="text-sm">
+                    Enter New Password:
+                  </Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    className="mt-2"
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 flex-shrink-0 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowResetPasswordDialog(false);
+                    setNewPassword('');
+                    setUserToResetPassword(null);
+                  }}
+                  disabled={resettingPassword}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => userToResetPassword && handleResetPassword(userToResetPassword.id)}
+                  disabled={newPassword.length < 6 || resettingPassword}
+                  className="flex-1"
+                >
+                  {resettingPassword ? 'Resetting...' : 'Reset Password'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* Votes Tab */}
         <TabsContent value="votes" className="space-y-6">
-          <SystemActivity />
+          <div className="mb-6">
+            <h3 className="text-xl font-bold mb-1">Vote Management</h3>
+            <p className="text-sm text-muted-foreground">
+              View who has voted and manage votes while protecting voter privacy
+            </p>
+          </div>
+          <VoteManagement />
         </TabsContent>
 
         {/* Historical Data Tab */}

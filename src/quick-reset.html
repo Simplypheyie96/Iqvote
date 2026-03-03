@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Reset - IQ Vote</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔄 Quick Reset</h1>
+        <p>Click the button below to reset all data and start fresh.</p>
+        
+        <button id="resetBtn" onclick="resetDatabase()">
+            Reset Database
+        </button>
+        
+        <div id="status" class="status hidden"></div>
+    </div>
+    
+    <script type="module">
+        window.resetDatabase = async function() {
+            const btn = document.getElementById('resetBtn');
+            const status = document.getElementById('status');
+            
+            btn.disabled = true;
+            status.className = 'status loading';
+            status.innerHTML = '<span class="spinner"></span>Resetting database...';
+            status.classList.remove('hidden');
+            
+            try {
+                // Get credentials
+                const response = await fetch(window.location.origin + '/utils/supabase/info.tsx');
+                const infoText = await response.text();
+                
+                const projectIdMatch = infoText.match(/projectId\s*=\s*['"]([^'"]+)['"]/);
+                const anonKeyMatch = infoText.match(/publicAnonKey\s*=\s*['"]([^'"]+)['"]/);
+                
+                if (!projectIdMatch || !anonKeyMatch) {
+                    throw new Error('Could not find Supabase credentials');
+                }
+                
+                const projectId = projectIdMatch[1];
+                const publicAnonKey = anonKeyMatch[1];
+                
+                // Call reset endpoint
+                const resetResponse = await fetch(
+                    `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/admin/reset-database`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${publicAnonKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                const data = await resetResponse.json();
+                
+                if (!resetResponse.ok) {
+                    throw new Error(data.error || 'Reset failed');
+                }
+                
+                // Success
+                const deleted = data.deleted || {};
+                status.className = 'status success';
+                status.innerHTML = `
+                    ✅ Reset complete!<br><br>
+                    Deleted: ${deleted.users || 0} users, ${deleted.employees || 0} employees, 
+                    ${deleted.elections || 0} elections, ${deleted.ballots || 0} votes<br><br>
+                    Redirecting to home page in 3 seconds...
+                `;
+                
+                // Clear storage and redirect
+                localStorage.clear();
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+                
+            } catch (error) {
+                status.className = 'status error';
+                
+                // Check if it's an authentication error
+                if (error.message.includes('Unauthorized') || error.message.includes('Forbidden') || error.message.includes('Authentication')) {
+                    status.innerHTML = `
+                        ❌ Authentication Required<br><br>
+                        This reset page only works when no users exist in the database.<br><br>
+                        <strong>To reset with existing users:</strong><br>
+                        1. Sign in to your account<br>
+                        2. Go to Admin Dashboard<br>
+                        3. Navigate to Settings tab<br>
+                        4. Use the "Danger Zone" reset button<br><br>
+                        (Only super admins can reset when users exist)
+                    `;
+                } else {
+                    status.innerHTML = `❌ Error: ${error.message}<br><br>Please try the Admin Dashboard reset instead.`;
+                }
+                
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

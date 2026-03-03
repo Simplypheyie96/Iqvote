@@ -273,7 +273,7 @@
                 const publicAnonKey = info.publicAnonKey;
 
                 const response = await fetch(
-                    `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/reset`,
+                    `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810/admin/reset-database`,
                     {
                         method: 'POST',
                         headers: {
@@ -291,11 +291,16 @@
                     document.getElementById('success-view').classList.remove('hidden');
 
                     // Display stats
+                    const deleted = data.deleted || {};
                     const stats = document.getElementById('deleted-stats');
                     stats.innerHTML = `
-                        <li>• ${data.details.users_deleted} user accounts</li>
-                        <li>• ${data.details.database_entries_deleted} database entries</li>
-                        <li>• ${data.details.storage_files_deleted} storage files</li>
+                        <li>• ${deleted.users || 0} users</li>
+                        <li>• ${deleted.employees || 0} employees</li>
+                        <li>• ${deleted.elections || 0} elections</li>
+                        <li>• ${deleted.ballots || 0} ballots</li>
+                        <li>• ${deleted.tallies || 0} tallies</li>
+                        <li>• ${deleted.audits || 0} audit logs</li>
+                        <li>• ${deleted.auth_users || 0} auth users</li>
                     `;
 
                     // Clear storage
@@ -320,7 +325,14 @@
             } catch (error) {
                 document.getElementById('loading-view').classList.add('hidden');
                 document.getElementById('error-view').classList.remove('hidden');
-                document.getElementById('error-message').textContent = error.message;
+                
+                // Check if it's an authentication error
+                let errorMsg = error.message;
+                if (error.message.includes('Unauthorized') || error.message.includes('Forbidden') || error.message.includes('Authentication')) {
+                    errorMsg = 'Authentication Required: This reset page only works when no users exist. To reset with existing users, please sign in and use the Admin Dashboard > Settings > Danger Zone reset button. (Only super admins can reset when users exist)';
+                }
+                
+                document.getElementById('error-message').textContent = errorMsg;
             }
         };
     </script>

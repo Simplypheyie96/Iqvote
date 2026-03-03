@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, AlertCircle, CheckCircle2, XCircle, Search } from 'lucide-react';
+import { Trash2, AlertCircle, CheckCircle2, XCircle, Search, FileDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -58,6 +58,9 @@ export function VoteManagement() {
   
   // Election selection modal
   const [showElectionModal, setShowElectionModal] = useState(false);
+
+  // Search/filter state for voters
+  const [voterSearch, setVoterSearch] = useState('');
 
   useEffect(() => {
     loadElections();
@@ -166,6 +169,34 @@ export function VoteManagement() {
     return employee ? employee.name : 'Unknown';
   }
 
+  async function handleExportVotes() {
+    if (!selectedElectionId) return;
+    
+    try {
+      const data = await api.exportResults(selectedElectionId);
+      
+      // Create CSV content
+      const election = elections.find(e => e.id === selectedElectionId);
+      const electionTitle = election?.title || 'Election';
+      
+      // Download as JSON
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${electionTitle.replace(/\s+/g, '_')}_results.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      setSuccess('Election results exported successfully!');
+    } catch (err: any) {
+      console.error('Failed to export results:', err);
+      setError('Failed to export results: ' + err.message);
+    }
+  }
+
   const activeVotes = votes.filter(v => !v.revoked);
   const revokedVotes = votes.filter(v => v.revoked);
 
@@ -173,6 +204,17 @@ export function VoteManagement() {
   const filteredElections = elections.filter(election =>
     election.title.toLowerCase().includes(electionSearch.toLowerCase()) ||
     new Date(election.start_time).toLocaleDateString().includes(electionSearch)
+  );
+
+  // Filter votes based on voter search
+  const filteredActiveVotes = activeVotes.filter(ballot =>
+    ballot.voter?.name.toLowerCase().includes(voterSearch.toLowerCase()) ||
+    ballot.voter?.email.toLowerCase().includes(voterSearch.toLowerCase())
+  );
+
+  const filteredRevokedVotes = revokedVotes.filter(ballot =>
+    ballot.voter?.name.toLowerCase().includes(voterSearch.toLowerCase()) ||
+    ballot.voter?.email.toLowerCase().includes(voterSearch.toLowerCase())
   );
 
   // Group elections by status
@@ -210,6 +252,14 @@ export function VoteManagement() {
           <CardDescription>Search and select an election to view and manage votes</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Privacy Notice */}
+          <Alert className="border-blue-500/50 bg-blue-500/10">
+            <AlertCircle className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-blue-600 dark:text-blue-400">
+              <strong>Privacy Protection:</strong> Vote choices are kept confidential. You can see who has voted and delete votes if needed, but the specific candidates each person voted for remain private.
+            </AlertDescription>
+          </Alert>
+
           {/* Search/Select Combo */}
           <div className="space-y-3">
             <div className="relative">
@@ -321,6 +371,18 @@ export function VoteManagement() {
 
       {selectedElectionId && (
         <>
+          {/* Export Button */}
+          <div className="flex justify-end">
+            <Button
+              onClick={handleExportVotes}
+              variant="outline"
+              className="gap-2"
+            >
+              <FileDown className="w-4 h-4" />
+              Export Results
+            </Button>
+          </div>
+
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
@@ -354,51 +416,49 @@ export function VoteManagement() {
           {/* Active Votes */}
           <Card>
             <CardHeader>
-              <CardTitle>Active Votes</CardTitle>
-              <CardDescription>
-                {activeVotes.length} vote{activeVotes.length !== 1 ? 's' : ''} recorded
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Active Votes</CardTitle>
+                  <CardDescription>
+                    {activeVotes.length} vote{activeVotes.length !== 1 ? 's' : ''} recorded
+                  </CardDescription>
+                </div>
+                {/* Voter Search */}
+                {activeVotes.length > 0 && (
+                  <div className="relative w-72">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      placeholder="Search by name or email..."
+                      value={voterSearch}
+                      onChange={(e) => setVoterSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="text-center py-8 text-muted-foreground">Loading votes...</div>
               ) : activeVotes.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">No votes found for this election.</div>
+              ) : filteredActiveVotes.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">No voters match your search.</div>
               ) : (
                 <div className="space-y-3">
-                  {activeVotes.map((ballot, idx) => (
+                  {filteredActiveVotes.map((ballot, idx) => (
                     <div
                       key={idx}
-                      className="flex items-start justify-between p-4 bg-muted/30 border border-border rounded-lg hover:border-primary/30 transition-all"
+                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg hover:border-primary/30 transition-all"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-1">
                           <div className="font-semibold">{ballot.voter?.name || 'Unknown Voter'}</div>
                           <span className="text-xs text-muted-foreground">•</span>
                           <div className="text-sm text-muted-foreground truncate">{ballot.voter?.email}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground mb-3">
+                        <div className="text-xs text-muted-foreground">
                           Voted on {new Date(ballot.created_at).toLocaleString()}
-                        </div>
-                        
-                        {/* Vote Details */}
-                        <div className="grid grid-cols-3 gap-2">
-                          {ballot.selections
-                            .sort((a, b) => a.rank - b.rank)
-                            .map(selection => (
-                              <div
-                                key={selection.rank}
-                                className="flex items-center gap-2 p-2 bg-background rounded border border-border"
-                              >
-                                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs shrink-0">
-                                  {selection.rank}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-xs truncate">{getEmployeeName(selection.employee_id)}</div>
-                                  <div className="text-xs text-muted-foreground">{selection.points} pts</div>
-                                </div>
-                              </div>
-                            ))}
                         </div>
                       </div>
 
@@ -432,7 +492,7 @@ export function VoteManagement() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {revokedVotes.map((ballot, idx) => (
+                  {filteredRevokedVotes.map((ballot, idx) => (
                     <div
                       key={idx}
                       className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg"

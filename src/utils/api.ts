@@ -1,9 +1,63 @@
 import { projectId, publicAnonKey } from './supabase/info';
+import { createClient } from './supabase/client';
 
 const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-e2c9f810`;
 
+// Cache session to avoid constant re-fetching
+let cachedSession: { token: string; expiresAt: number } | null = null;
+const SESSION_CACHE_DURATION = 50000; // 50 seconds (tokens expire at 60s)
+
+async function getAuthToken(): Promise<string> {
+  // Return cached token if still valid
+  if (cachedSession && cachedSession.expiresAt > Date.now()) {
+    return cachedSession.token;
+  }
+
+  const supabase = createClient();
+  
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    // If there's a refresh token error, clear the session and use anon key
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+      if (sessionError.message.includes('Refresh Token')) {
+        console.log('Invalid refresh token detected, clearing session');
+        await supabase.auth.signOut();
+        cachedSession = null;
+        return publicAnonKey;
+      }
+    }
+    
+    const token = session?.access_token || publicAnonKey;
+    
+    // Cache the token
+    if (session?.access_token) {
+      cachedSession = {
+        token,
+        expiresAt: Date.now() + SESSION_CACHE_DURATION
+      };
+    }
+    
+    return token;
+  } catch (err: any) {
+    // If it's a refresh token error, clear the session
+    if (err.message?.includes('Refresh Token')) {
+      console.log('Refresh token error in catch, clearing session');
+      await supabase.auth.signOut();
+      cachedSession = null;
+    }
+    return publicAnonKey;
+  }
+}
+
+// Clear cached session (call this on sign out)
+export function clearSessionCache() {
+  cachedSession = null;
+}
+
 export async function apiCall(endpoint: string, options: RequestInit = {}) {
-  const token = localStorage.getItem('access_token') || publicAnonKey;
+  const token = await getAuthToken();
   
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
@@ -18,6 +72,7 @@ export async function apiCall(endpoint: string, options: RequestInit = {}) {
     const data = await response.json().catch(() => ({ error: 'Request failed' }));
     const error = new Error(data.error || 'API request failed');
     (error as any).status = response.status;
+    (error as any).details = data;
     throw error;
   }
   
@@ -92,6 +147,19 @@ export const api = {
       body: JSON.stringify(data),
     }),
   
+  deleteElection: (electionId: string) =>
+    apiCall(`/admin/elections/${electionId}`, {
+      method: 'DELETE',
+    }),
+  
+  getElectionVoteCounts: () => apiCall('/admin/elections/vote-counts'),
+  
+  updateElectionStatus: (electionId: string, action: 'close' | 'reopen', newEndTime?: string) =>
+    apiCall(`/admin/elections/${electionId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ action, new_end_time: newEndTime }),
+    }),
+  
   importEmployees: (employees: any[]) =>
     apiCall('/admin/employees/import', {
       method: 'POST',
@@ -133,5 +201,10 @@ export const api = {
   deleteUser: (userId: string) =>
     apiCall(`/users/${userId}`, {
       method: 'DELETE',
+    }),
+  resetUserPassword: (userId: string, newPassword: string) =>
+    apiCall(`/users/${userId}/reset-password`, {
+      method: 'PUT',
+      body: JSON.stringify({ new_password: newPassword }),
     }),
 };
