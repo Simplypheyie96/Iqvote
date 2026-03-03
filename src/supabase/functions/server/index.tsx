@@ -161,7 +161,17 @@ async function sendElectionNotificationEmails(election: any) {
     return { sent: 0, skipped: true };
   }
 
-  const fromEmail = Deno.env.get('BREVO_FROM_EMAIL') || '';
+  // Support multiple comma-separated sender emails e.g. "a@gmail.com,b@gmail.com"
+  const senders = (Deno.env.get('BREVO_FROM_EMAIL') || '')
+    .split(',')
+    .map((s: string) => s.trim())
+    .filter(Boolean);
+
+  if (senders.length === 0) {
+    console.log('BREVO_FROM_EMAIL not set — skipping email notification');
+    return { sent: 0, skipped: true };
+  }
+
   const appUrl = Deno.env.get('APP_URL') || 'https://iqvote.vercel.app';
 
   const users = await kv.getByPrefix('user:');
@@ -212,7 +222,9 @@ async function sendElectionNotificationEmails(election: any) {
   const errors: string[] = [];
 
   await Promise.all(
-    recipients.map(async (u: any) => {
+    recipients.map(async (u: any, i: number) => {
+      // Round-robin across available senders
+      const senderEmail = senders[i % senders.length];
       try {
         const res = await fetch('https://api.brevo.com/v3/smtp/email', {
           method: 'POST',
@@ -221,7 +233,7 @@ async function sendElectionNotificationEmails(election: any) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            sender: { name: 'IQ Vote', email: fromEmail },
+            sender: { name: 'IQ Vote', email: senderEmail },
             to: [{ email: u.email, name: u.name || u.email }],
             subject: `🗳️ ${election.title} — Voting is now open!`,
             htmlContent: html,
