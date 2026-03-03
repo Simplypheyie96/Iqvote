@@ -109,11 +109,16 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  // Detect password reset path immediately from URL — no event timing needed
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(
+    () => window.location.pathname === '/reset-password'
+  );
 
   // Add refs to prevent infinite loops
   const authCheckInProgress = useRef(false);
-  const passwordRecoveryMode = useRef(false); // ref so performAuthCheck closure sees it
+  const passwordRecoveryMode = useRef(
+    window.location.pathname === '/reset-password'
+  );
   const lastAuthCheck = useRef(0);
   const AUTH_CHECK_THROTTLE = 2000; // Minimum 2 seconds between auth checks
 
@@ -355,6 +360,12 @@ export default function App() {
       hasInitialized = true;
 
       console.log('Starting initialization');
+
+      // Skip all auth checks on the reset-password path — just show the form
+      if (window.location.pathname === '/reset-password') {
+        setLoading(false);
+        return;
+      }
 
       // Register the auth listener FIRST so PASSWORD_RECOVERY is never missed
       const supabase = createClient();

@@ -121,9 +121,8 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
 
     try {
       const supabase = createClient();
-      const redirectUrl = `${window.location.origin}/`;
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: redirectUrl,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (resetError) throw resetError;
 

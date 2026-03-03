@@ -18,6 +18,7 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
     const checkTheme = () => setIsDark(document.documentElement.classList.contains('dark'));
@@ -25,6 +26,24 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
+  }, []);
+
+  // Trigger PKCE code exchange and wait for session to be established
+  useEffect(() => {
+    const supabase = createClient();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') && session) {
+        setSessionReady(true);
+      }
+    });
+
+    // Calling getSession triggers the PKCE code exchange from the URL
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -90,6 +109,11 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
                 ✅ Password updated! Signing you in…
               </AlertDescription>
             </Alert>
+          ) : !sessionReady ? (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+              <LoadingSpinner size="sm" inline />
+              Verifying reset link…
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
