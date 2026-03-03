@@ -9,6 +9,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { Header } from './components/Header';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ProfilePage } from './components/ProfilePage';
+import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { OgImagePage } from './components/OgImagePage';
 import { Employee, Election } from './types';
 import { Toaster } from 'sonner@2.0.3';
@@ -108,6 +109,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   // Add refs to prevent infinite loops
   const authCheckInProgress = useRef(false);
@@ -367,6 +369,10 @@ export default function App() {
             setAllElections([]);
             setEmployees([]);
             setInitialized(false);
+            setIsPasswordRecovery(false);
+          } else if (event === 'PASSWORD_RECOVERY') {
+            // User clicked the reset link in their email — show the set-new-password form
+            setIsPasswordRecovery(true);
           } else if (event === 'SIGNED_IN' && session) {
             // Don't re-check on SIGNED_IN if we just signed in
             // The checkAuth will be called by handleSignIn
@@ -452,11 +458,22 @@ export default function App() {
     return <LoadingSpinner fullScreen text="Loading IQ Vote" />;
   }
 
+  if (isPasswordRecovery) {
+    return (
+      <ThemeProvider>
+        <ResetPasswordPage onComplete={() => {
+          setIsPasswordRecovery(false);
+          checkAuth();
+        }} />
+      </ThemeProvider>
+    );
+  }
+
   if (!currentUser) {
     return (
       <ThemeProvider>
-        <AuthPage 
-          onSignIn={handleSignIn} 
+        <AuthPage
+          onSignIn={handleSignIn}
           error={authError}
         />
       </ThemeProvider>
