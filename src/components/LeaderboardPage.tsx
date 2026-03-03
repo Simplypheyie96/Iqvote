@@ -240,15 +240,17 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
             )}
             
             {/* Export Button */}
-            <Button
-              variant="outline"
-              onClick={exportToExcel}
-              className="gap-2"
-              disabled={leaderboard.length === 0 || loading}
-            >
-              <Download className="w-4 h-4" />
-              Export
-            </Button>
+            {currentUser.is_admin && (
+              <Button
+                variant="outline"
+                onClick={exportToExcel}
+                className="gap-2"
+                disabled={leaderboard.length === 0 || loading}
+              >
+                <Download className="w-4 h-4" />
+                Export
+              </Button>
+            )}
           </div>
         </div>
       </div>
