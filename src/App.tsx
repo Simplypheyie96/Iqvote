@@ -469,10 +469,10 @@ export default function App() {
       <div className="min-h-screen bg-background overflow-x-hidden">
         <Header
           user={currentUser}
+          employees={employees}
           onSignOut={handleSignOut}
           onNavigate={handleNavigate}
           currentView={currentView}
-          onProfileUpdated={setCurrentUser}
         />
         
         <main id="main-content" role="main" className="overflow-x-hidden">

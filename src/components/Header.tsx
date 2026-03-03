@@ -8,16 +8,20 @@ import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.
 
 interface HeaderProps {
   user: Employee | null;
+  employees: Employee[];
   currentView: 'vote' | 'leaderboard' | 'admin' | 'profile';
   onNavigate: (view: 'vote' | 'leaderboard' | 'admin' | 'profile') => void;
   onSignOut: () => void;
-  onProfileUpdated?: (user: Employee) => void;
 }
 
-export function Header({ user, currentView, onNavigate, onSignOut }: HeaderProps) {
+export function Header({ user, employees, currentView, onNavigate, onSignOut }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  // Use employee record image if available, fall back to user profile image
+  const employeeRecord = user ? employees.find(e => e.email === user.email) : null;
+  const avatarSrc = !imageError ? (employeeRecord?.image_url || user?.image_url || '') : '';
 
   // Detect theme changes
   useEffect(() => {
@@ -118,9 +122,9 @@ export function Header({ user, currentView, onNavigate, onSignOut }: HeaderProps
                     onClick={() => onNavigate('profile')}
                   >
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden flex-shrink-0" aria-hidden="true">
-                      {user.image_url && !imageError ? (
+                      {avatarSrc ? (
                         <img
-                          src={user.image_url}
+                          src={avatarSrc}
                           alt={user.name}
                           className="w-full h-full object-cover"
                           onError={() => setImageError(true)}
@@ -177,9 +181,9 @@ export function Header({ user, currentView, onNavigate, onSignOut }: HeaderProps
                 aria-label="Go to your profile"
               >
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden flex-shrink-0">
-                  {user.image_url && !imageError ? (
+                  {avatarSrc ? (
                     <img
-                      src={user.image_url}
+                      src={avatarSrc}
                       alt={user.name}
                       className="w-full h-full object-cover"
                       onError={() => setImageError(true)}
