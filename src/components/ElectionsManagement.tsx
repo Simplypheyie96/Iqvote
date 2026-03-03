@@ -90,7 +90,13 @@ export function ElectionsManagement() {
       if (result.skipped) {
         setError('Email not configured. Add BREVO_API_KEY to your Supabase environment variables.');
       } else {
-        setSuccess(`Reminder sent to ${result.sent} user${result.sent !== 1 ? 's' : ''}!`);
+        const failCount = result.errors?.length || 0;
+        if (failCount === 0) {
+          setSuccess(`Reminder sent to all ${result.sent} user${result.sent !== 1 ? 's' : ''}!`);
+        } else {
+          setSuccess(`Sent ${result.sent}/${result.total} emails.`);
+          setError(`${failCount} failed — check that both sender emails are verified in Brevo. Failures: ${result.errors.slice(0, 3).join(' | ')}${result.errors.length > 3 ? ' …' : ''}`);
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Failed to send notifications');

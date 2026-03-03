@@ -221,37 +221,50 @@ async function sendElectionNotificationEmails(election: any) {
   let sent = 0;
   const errors: string[] = [];
 
-  await Promise.all(
-    recipients.map(async (u: any, i: number) => {
-      // Round-robin across available senders, but never send from the recipient's own address
-      const eligibleSenders = senders.filter((s: string) => s !== u.email);
-      const pool = eligibleSenders.length > 0 ? eligibleSenders : senders;
-      const senderEmail = pool[i % pool.length];
-      try {
-        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-          method: 'POST',
-          headers: {
-            'api-key': brevoApiKey,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            sender: { name: 'IQ Vote', email: senderEmail },
-            to: [{ email: u.email, name: u.name || u.email }],
-            subject: `🗳️ ${election.title} — Voting is now open!`,
-            htmlContent: html,
-          }),
-        });
-        if (res.ok) {
-          sent++;
-        } else {
-          const err = await res.json().catch(() => ({}));
-          errors.push(`${u.email}: ${(err as any).message || res.status}`);
+  // Send in batches of 5 to avoid hitting Brevo rate limits
+  const BATCH_SIZE = 5;
+  for (let b = 0; b < recipients.length; b += BATCH_SIZE) {
+    const batch = recipients.slice(b, b + BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (u: any, j: number) => {
+        const i = b + j;
+        // Round-robin across available senders, but never send from the recipient's own address
+        const eligibleSenders = senders.filter((s: string) => s !== u.email);
+        const pool = eligibleSenders.length > 0 ? eligibleSenders : senders;
+        const senderEmail = pool[i % pool.length];
+        try {
+          const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+              'api-key': brevoApiKey,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              sender: { name: 'IQ Vote', email: senderEmail },
+              to: [{ email: u.email, name: u.name || u.email }],
+              subject: `🗳️ ${election.title} — Voting is now open!`,
+              htmlContent: html,
+            }),
+          });
+          if (res.ok) {
+            sent++;
+          } else {
+            const err = await res.json().catch(() => ({}));
+            const msg = (err as any).message || res.status;
+            errors.push(`${u.email} (via ${senderEmail}): ${msg}`);
+            console.log(`Send failed — to: ${u.email}, sender: ${senderEmail}, error: ${msg}`);
+          }
+        } catch (err: any) {
+          errors.push(`${u.email} (via ${senderEmail}): ${err.message}`);
+          console.log(`Send threw — to: ${u.email}, sender: ${senderEmail}, error: ${err.message}`);
         }
-      } catch (err: any) {
-        errors.push(`${u.email}: ${err.message}`);
-      }
-    })
-  );
+      })
+    );
+    // Small pause between batches
+    if (b + BATCH_SIZE < recipients.length) {
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
 
   if (errors.length) console.log('Email send errors:', errors);
   console.log(`Election notification: sent ${sent}/${recipients.length} emails`);
