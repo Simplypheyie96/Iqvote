@@ -37,7 +37,7 @@ export default function OgImage() {
         }}
       >
         <img
-          src="/og-assets/og-lines.png"
+          src="/og-assets/og-lines.svg"
           alt=""
           style={{ width: '100%', height: '100%', objectFit: 'fill', display: 'block' }}
         />
