@@ -323,17 +323,19 @@ export function ElectionsManagement() {
                           Reopen
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleNotify(election)}
-                        disabled={notifyingId === election.id}
-                        className="gap-1.5 hover:border-primary/50 hover:text-primary"
-                        title="Send reminder email to all users"
-                      >
-                        <Bell className="w-3 h-3" />
-                        {notifyingId === election.id ? 'Sending…' : 'Notify All'}
-                      </Button>
+                      {status === 'active' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleNotify(election)}
+                          disabled={notifyingId === election.id}
+                          className="gap-1.5 hover:border-primary/50 hover:text-primary"
+                          title="Send reminder email to all users"
+                        >
+                          <Bell className="w-3 h-3" />
+                          {notifyingId === election.id ? 'Sending…' : 'Notify All'}
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
