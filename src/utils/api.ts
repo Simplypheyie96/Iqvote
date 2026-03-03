@@ -176,6 +176,8 @@ export const api = {
   
   exportResults: (electionId: string) => apiCall(`/admin/elections/${electionId}/export`),
   
+  exportAllData: () => apiCall('/admin/export/all-data'),
+  
   importHistoricalData: (data: any) =>
     apiCall('/admin/import/historical', {
       method: 'POST',

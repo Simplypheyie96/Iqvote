@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Users, Trophy, Edit2, Trash2, Calendar, Eye, Shield, UserCog, TrendingUp, Activity, FileDown, Award, AlertTriangle, Upload, Key } from 'lucide-react';
+import { Plus, Users, Trophy, Edit2, Trash2, Calendar, Eye, Shield, UserCog, TrendingUp, Activity, FileDown, Award, AlertTriangle, Upload, Key, Download, Loader2 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { Employee, Election } from '../types';
 import { api } from '../utils/api';
 import { createClient } from '../utils/supabase/client';
@@ -94,6 +95,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
   const [userToResetPassword, setUserToResetPassword] = useState<any | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resettingPassword, setResettingPassword] = useState(false);
+
+  // Export state
+  const [exporting, setExporting] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -417,16 +421,211 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
     return employees.some(emp => emp.id === userId);
   }
 
+  async function handleExportAllData() {
+    setExporting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const data = await api.exportAllData();
+      const wb = XLSX.utils.book_new();
+
+      // --- Sheet 1: Summary Overview ---
+      const summaryRows: any[][] = [
+        ['IQ Vote - Complete System Data Export'],
+        [`Exported on: ${new Date(data.exported_at).toLocaleString()}`],
+        [],
+        ['System Summary'],
+        ['Metric', 'Value'],
+        ['Total Elections', data.summary.total_elections],
+        ['Total Employees (Candidates)', data.summary.total_employees],
+        ['Total Users (Voters)', data.summary.total_users],
+        ['Total Ballots Cast', data.summary.total_ballots],
+        ['Revoked Ballots', data.summary.total_revoked],
+        [],
+        ['All Elections'],
+        ['Title', 'Status', 'Start Date', 'End Date', 'Candidates', 'Ballots Cast', 'Revoked', 'Historical'],
+      ];
+      for (const el of data.elections) {
+        summaryRows.push([
+          el.title,
+          el.status.charAt(0).toUpperCase() + el.status.slice(1),
+          new Date(el.start_time).toLocaleDateString(),
+          new Date(el.end_time).toLocaleDateString(),
+          el.candidate_count,
+          el.total_ballots,
+          el.revoked_ballots,
+          el.is_historical ? 'Yes' : 'No',
+        ]);
+      }
+      const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
+      summaryWs['!cols'] = [
+        { wch: 42 }, { wch: 12 }, { wch: 14 }, { wch: 14 },
+        { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 12 },
+      ];
+      XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+
+      // --- Sheet 2: Election Results ---
+      const resultsRows: any[][] = [
+        ['IQ Vote - Election Results (All Elections)'],
+        [`Exported on: ${new Date(data.exported_at).toLocaleString()}`],
+        [],
+      ];
+      for (const el of data.elections) {
+        resultsRows.push([`Election: ${el.title}`]);
+        resultsRows.push([
+          `Period: ${new Date(el.start_time).toLocaleDateString()} - ${new Date(el.end_time).toLocaleDateString()}`,
+          '', '', '', '', '', '', '',
+          `Status: ${el.status}`,
+          `Ballots: ${el.total_ballots}`,
+        ]);
+        if (el.leaderboard.length > 0) {
+          resultsRows.push([
+            'Rank', 'Name', 'Email', 'Role', 'Department',
+            'Total Points', '1st Place (5pts)', '2nd Place (3pts)', '3rd Place (2pts)', 'Total Votes',
+          ]);
+          el.leaderboard.forEach((entry: any, idx: number) => {
+            resultsRows.push([
+              idx + 1,
+              entry.employee_name,
+              entry.employee_email,
+              entry.employee_role,
+              entry.employee_department,
+              entry.total_points,
+              entry.count_first,
+              entry.count_second,
+              entry.count_third,
+              entry.total_votes,
+            ]);
+          });
+        } else {
+          resultsRows.push(['No results for this election']);
+        }
+        resultsRows.push([]);
+      }
+      const resultsWs = XLSX.utils.aoa_to_sheet(resultsRows);
+      resultsWs['!cols'] = [
+        { wch: 8 }, { wch: 22 }, { wch: 26 }, { wch: 20 }, { wch: 18 },
+        { wch: 14 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
+      ];
+      XLSX.utils.book_append_sheet(wb, resultsWs, 'Election Results');
+
+      // --- Sheet 3: Voter Participation ---
+      const participationRows: any[][] = [
+        ['IQ Vote - Voter Participation (Who Voted, Not What They Voted)'],
+        [`Exported on: ${new Date(data.exported_at).toLocaleString()}`],
+        [],
+      ];
+      for (const el of data.elections) {
+        participationRows.push([`Election: ${el.title}`]);
+        participationRows.push([
+          `Period: ${new Date(el.start_time).toLocaleDateString()} - ${new Date(el.end_time).toLocaleDateString()}`,
+        ]);
+        if (el.voters.length > 0) {
+          participationRows.push(['Voter Name', 'Voter Email', 'Voted At']);
+          for (const voter of el.voters) {
+            participationRows.push([
+              voter.voter_name,
+              voter.voter_email,
+              new Date(voter.voted_at).toLocaleString(),
+            ]);
+          }
+          participationRows.push([`Total voters: ${el.voters.length}`]);
+        } else {
+          participationRows.push(['No votes recorded']);
+        }
+        participationRows.push([]);
+      }
+      const participationWs = XLSX.utils.aoa_to_sheet(participationRows);
+      participationWs['!cols'] = [{ wch: 24 }, { wch: 30 }, { wch: 24 }];
+      XLSX.utils.book_append_sheet(wb, participationWs, 'Voter Participation');
+
+      // --- Sheet 4: Employees (Candidates) ---
+      const empRows: any[][] = [
+        ['IQ Vote - Employee Directory (Candidates)'],
+        [`Exported on: ${new Date(data.exported_at).toLocaleString()}`],
+        [`Total Active Employees: ${data.employees.length}`],
+        [],
+        ['Name', 'Email', 'Role', 'Department', 'Added On'],
+      ];
+      for (const emp of data.employees) {
+        empRows.push([
+          emp.name,
+          emp.email,
+          emp.role,
+          emp.department,
+          emp.created_at ? new Date(emp.created_at).toLocaleDateString() : '',
+        ]);
+      }
+      const empWs = XLSX.utils.aoa_to_sheet(empRows);
+      empWs['!cols'] = [{ wch: 22 }, { wch: 28 }, { wch: 22 }, { wch: 18 }, { wch: 14 }];
+      XLSX.utils.book_append_sheet(wb, empWs, 'Employees');
+
+      // --- Sheet 5: Users (Voters) ---
+      const userRows: any[][] = [
+        ['IQ Vote - Registered Users (Voters)'],
+        [`Exported on: ${new Date(data.exported_at).toLocaleString()}`],
+        [`Total Users: ${data.users.length}`],
+        [],
+        ['Name', 'Email', 'Role', 'Admin', 'Registered On'],
+      ];
+      for (const u of data.users) {
+        userRows.push([
+          u.name,
+          u.email,
+          u.role,
+          u.is_admin ? 'Yes' : 'No',
+          u.created_at ? new Date(u.created_at).toLocaleDateString() : '',
+        ]);
+      }
+      const userWs = XLSX.utils.aoa_to_sheet(userRows);
+      userWs['!cols'] = [{ wch: 22 }, { wch: 28 }, { wch: 22 }, { wch: 8 }, { wch: 14 }];
+      XLSX.utils.book_append_sheet(wb, userWs, 'Users');
+
+      // Generate and download
+      const dateStr = new Date().toISOString().split('T')[0];
+      const filename = `IQ_Vote_Complete_Export_${dateStr}.xlsx`;
+      XLSX.writeFile(wb, filename);
+
+      setSuccess(`Export complete! Downloaded ${filename} with ${data.summary.total_elections} elections, ${data.summary.total_employees} employees, ${data.summary.total_users} users, and ${data.summary.total_ballots} ballots.`);
+    } catch (err: any) {
+      console.error('Export all data error:', err);
+      setError('Failed to export data: ' + err.message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
-          Admin Dashboard
-        </h2>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Manage elections, employees, and view analytics
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 sm:mb-8">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+            Admin Dashboard
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Manage elections, employees, and view analytics
+          </p>
+        </div>
+        <Button
+          onClick={handleExportAllData}
+          disabled={exporting}
+          variant="outline"
+          className="gap-2 shrink-0 w-full sm:w-auto hover:border-primary/50 hover:text-primary transition-colors"
+        >
+          {exporting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" />
+              Export All Data
+            </>
+          )}
+        </Button>
       </div>
 
       {error && (

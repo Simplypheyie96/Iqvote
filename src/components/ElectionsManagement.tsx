@@ -110,7 +110,6 @@ export function ElectionsManagement() {
     setElectionToUpdate(election);
     setStatusAction(action);
     if (action === 'reopen') {
-      // Default to 7 days from now
       const defaultEnd = new Date();
       defaultEnd.setDate(defaultEnd.getDate() + 7);
       setReopenEndDate(defaultEnd.toISOString().split('T')[0]);
@@ -289,7 +288,6 @@ export function ElectionsManagement() {
                           className="gap-1.5 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400"
                         >
                         <X className="w-3 h-3" />
-
                           Close
                         </Button>
                       )}

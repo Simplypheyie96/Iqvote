@@ -1281,6 +1281,149 @@ app.get('/make-server-e2c9f810/admin/elections/:electionId/export', async (c) =>
   }
 });
 
+// Export all election data (comprehensive)
+app.get('/make-server-e2c9f810/admin/export/all-data', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    
+    if (!(await isUserAdmin(user.id))) {
+      return c.json({ error: 'Admin access required' }, 403);
+    }
+    
+    // Fetch all data in parallel where possible
+    const [allElections, allEmployees, allBallots, allUsers] = await Promise.all([
+      kv.getByPrefix('election:'),
+      kv.getByPrefix('employee:'),
+      kv.getByPrefix('ballot:'),
+      kv.getByPrefix('user:'),
+    ]);
+    
+    // Sort elections by start_time descending
+    const sortedElections = allElections.sort((a: any, b: any) =>
+      new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+    );
+    
+    // Build employee lookup
+    const employeeMap: Record<string, any> = {};
+    for (const emp of allEmployees) {
+      employeeMap[emp.id] = emp;
+    }
+    
+    // Build user lookup
+    const userMap: Record<string, any> = {};
+    for (const u of allUsers) {
+      userMap[u.id] = u;
+    }
+    
+    // For each election, gather tallies + ballot metadata
+    const electionDetails = [];
+    for (const election of sortedElections) {
+      const tallies = await kv.getByPrefix(`tally:${election.id}:`);
+      
+      const electionBallots = allBallots.filter((b: any) => b.election_id === election.id);
+      const activeBallots = electionBallots.filter((b: any) => !b.revoked);
+      const revokedBallots = electionBallots.filter((b: any) => b.revoked);
+      
+      const leaderboard = tallies
+        .filter((t: any) => t.total_points > 0)
+        .map((t: any) => {
+          const emp = employeeMap[t.employee_id];
+          return {
+            employee_id: t.employee_id,
+            employee_name: emp?.name || 'Unknown',
+            employee_email: emp?.email || '',
+            employee_role: emp?.role || '',
+            employee_department: emp?.department || '',
+            total_points: t.total_points,
+            count_first: t.count_first,
+            count_second: t.count_second,
+            count_third: t.count_third,
+            total_votes: t.count_first + t.count_second + t.count_third,
+          };
+        })
+        .sort((a: any, b: any) => {
+          if (b.total_points !== a.total_points) return b.total_points - a.total_points;
+          if (b.count_first !== a.count_first) return b.count_first - a.count_first;
+          if (b.count_second !== a.count_second) return b.count_second - a.count_second;
+          return b.count_third - a.count_third;
+        });
+      
+      const voters = activeBallots.map((b: any) => {
+        const voter = userMap[b.voter_id];
+        return {
+          voter_name: voter?.name || 'Unknown',
+          voter_email: voter?.email || '',
+          voted_at: b.created_at,
+        };
+      });
+      
+      const now = new Date();
+      const start = new Date(election.start_time);
+      const end = new Date(election.end_time);
+      let status = 'past';
+      if (now >= start && now <= end) status = 'active';
+      else if (now < start) status = 'upcoming';
+      
+      electionDetails.push({
+        id: election.id,
+        title: election.title,
+        status,
+        start_time: election.start_time,
+        end_time: election.end_time,
+        created_at: election.created_at,
+        candidate_count: election.eligible_employees?.length || 0,
+        total_ballots: activeBallots.length,
+        revoked_ballots: revokedBallots.length,
+        is_historical: election.is_historical || false,
+        leaderboard,
+        voters,
+      });
+    }
+    
+    const employeeSummary = allEmployees
+      .filter((e: any) => e.active !== false)
+      .map((e: any) => ({
+        id: e.id,
+        name: e.name,
+        email: e.email,
+        role: e.role || '',
+        department: e.department || '',
+        created_at: e.created_at,
+      }));
+    
+    const userSummary = allUsers.map((u: any) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role || '',
+      is_admin: u.is_admin || false,
+      created_at: u.created_at,
+    }));
+    
+    console.log(`Export all data: ${sortedElections.length} elections, ${allEmployees.length} employees, ${allBallots.length} ballots by admin ${user.email}`);
+    
+    return c.json({
+      exported_at: new Date().toISOString(),
+      elections: electionDetails,
+      employees: employeeSummary,
+      users: userSummary,
+      summary: {
+        total_elections: sortedElections.length,
+        total_employees: employeeSummary.length,
+        total_users: userSummary.length,
+        total_ballots: allBallots.filter((b: any) => !b.revoked).length,
+        total_revoked: allBallots.filter((b: any) => b.revoked).length,
+      },
+    });
+  } catch (error) {
+    console.log('Export all data error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
 app.post('/make-server-e2c9f810/admin/import/historical', async (c) => {
   try {
     const user = await getAuthenticatedUser(c.req.raw);
