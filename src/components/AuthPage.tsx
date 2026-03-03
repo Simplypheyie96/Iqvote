@@ -130,10 +130,6 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
       });
 
       if (resetError) {
-        // Check if it's an email server configuration issue
-        if (resetError.message.includes('email') || resetError.message.includes('SMTP')) {
-          throw new Error('Password reset emails are not configured yet. Please contact your administrator to reset your password manually.');
-        }
         throw resetError;
       }
 
