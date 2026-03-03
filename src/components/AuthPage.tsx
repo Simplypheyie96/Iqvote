@@ -120,7 +120,12 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
     setSuccess(null);
 
     try {
-      await api.forgotPassword(resetEmail);
+      const supabase = createClient();
+      const redirectUrl = `${window.location.origin}/`;
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: redirectUrl,
+      });
+      if (resetError) throw resetError;
 
       setSuccess('✅ Password reset instructions have been sent to your email. Please check your inbox and spam folder.');
       setResetEmail('');

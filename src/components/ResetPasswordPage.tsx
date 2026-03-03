@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Alert, AlertDescription } from './ui/alert';
-import { api } from '../utils/api';
+import { createClient } from '../utils/supabase/client';
 import { LoadingSpinner } from './LoadingSpinner';
 import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
@@ -18,9 +18,6 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isDark, setIsDark] = useState(false);
-
-  // Read the token from URL query params (?token=...&type=reset)
-  const token = new URLSearchParams(window.location.search).get('token') || '';
 
   useEffect(() => {
     const checkTheme = () => setIsDark(document.documentElement.classList.contains('dark'));
@@ -44,15 +41,20 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
       setLoading(false);
       return;
     }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      await api.resetPassword(token, password);
+      const supabase = createClient();
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) throw updateError;
       setSuccess(true);
-      // Clear the token from the URL then go to sign in
-      window.history.replaceState({}, '', '/');
       setTimeout(onComplete, 2000);
     } catch (err: any) {
-      setError(err.message || 'Failed to reset password. Please try again.');
+      setError(err.message || 'Failed to update password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -85,7 +87,7 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
           {success ? (
             <Alert className="mb-6 border-green-500/50 bg-green-500/10">
               <AlertDescription className="text-green-600 dark:text-green-400">
-                ✅ Password updated! Redirecting to sign in…
+                ✅ Password updated! Signing you in…
               </AlertDescription>
             </Alert>
           ) : (

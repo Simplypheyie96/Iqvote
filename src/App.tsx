@@ -109,14 +109,11 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(() => {
-    // Detect our custom reset token in the URL query params
-    const params = new URLSearchParams(window.location.search);
-    return params.get('type') === 'reset' && !!params.get('token');
-  });
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   // Add refs to prevent infinite loops
   const authCheckInProgress = useRef(false);
+  const passwordRecoveryMode = useRef(false); // ref so performAuthCheck closure sees it
   const lastAuthCheck = useRef(0);
   const AUTH_CHECK_THROTTLE = 2000; // Minimum 2 seconds between auth checks
 
@@ -314,7 +311,12 @@ export default function App() {
           return;
         }
         
-        // Verify token with API
+        // Verify token with API — skip if PASSWORD_RECOVERY already fired
+        if (passwordRecoveryMode.current) {
+          setLoading(false);
+          authCheckInProgress.current = false;
+          return;
+        }
         try {
           const { user } = await api.getCurrentUser();
           console.log('User verified:', user);
@@ -352,49 +354,42 @@ export default function App() {
       if (hasInitialized) return;
       hasInitialized = true;
 
-      // If this is our custom password reset link, skip auth check
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('type') === 'reset' && urlParams.get('token')) {
-        setLoading(false);
-        return;
-      }
-
       console.log('Starting initialization');
 
-      try {
-        // Try to verify the session with our API
-        await performAuthCheck();
-        
+      // Register the auth listener FIRST so PASSWORD_RECOVERY is never missed
+      const supabase = createClient();
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!mounted) return;
-        
-        // Only set up auth listener after initial check completes
-        const supabase = createClient();
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          if (!mounted) return;
-          
-          console.log('Auth state changed:', event);
-          
-          if (event === 'SIGNED_OUT') {
-            setCurrentUser(null);
-            setCurrentElection(null);
-            setAllElections([]);
-            setEmployees([]);
-            setInitialized(false);
-            setIsPasswordRecovery(false);
-          } else if (event === 'PASSWORD_RECOVERY') {
-            // User clicked the reset link in their email — show the set-new-password form
-            setIsPasswordRecovery(true);
-          } else if (event === 'SIGNED_IN' && session) {
-            // Don't re-check on SIGNED_IN if we just signed in
-            // The checkAuth will be called by handleSignIn
-            console.log('Signed in, skipping redundant check');
-          } else if (event === 'TOKEN_REFRESHED' && session) {
-            // Don't trigger checkAuth on token refresh, just log it
-            console.log('Token refreshed silently');
-          }
-        });
-        
-        authSubscription = subscription;
+
+        console.log('Auth state changed:', event);
+
+        if (event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+          setCurrentElection(null);
+          setAllElections([]);
+          setEmployees([]);
+          setInitialized(false);
+          setIsPasswordRecovery(false);
+          passwordRecoveryMode.current = false;
+        } else if (event === 'PASSWORD_RECOVERY') {
+          // Set ref immediately so performAuthCheck bails before calling signOut
+          passwordRecoveryMode.current = true;
+          setIsPasswordRecovery(true);
+          setLoading(false);
+        } else if (event === 'SIGNED_IN' && session) {
+          console.log('Signed in, skipping redundant check');
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          console.log('Token refreshed silently');
+        }
+      });
+
+      authSubscription = subscription;
+
+      try {
+        // performAuthCheck will bail early if PASSWORD_RECOVERY fires during getSession()
+        await performAuthCheck();
+
+        if (!mounted) return;
       } catch (err) {
         console.error('Initialization error:', err);
         if (mounted) {
