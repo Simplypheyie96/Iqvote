@@ -17,7 +17,8 @@ import { LogOut } from 'lucide-react';
 import { Button } from './components/ui/button';
 import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
-import ogImage from 'figma:asset/6f65d30a8110ac76cf93c26c68bcbe5766e3e6bc.png';
+
+const ogImage = '/og-image.png';
 
 export default function App() {
   // Check if we should render the OG image preview page
