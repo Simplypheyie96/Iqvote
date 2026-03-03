@@ -152,7 +152,82 @@ app.get('/make-server-e2c9f810/auth/session', async (c) => {
   }
 });
 
-// ─── Email notifications via Resend ─────────────────────────────────────────
+// ─── Forgot password — generate link via admin API, send via Brevo ───────────
+
+app.post('/make-server-e2c9f810/auth/forgot-password', async (c) => {
+  try {
+    const { email } = await c.req.json();
+    if (!email) return c.json({ error: 'Email required' }, 400);
+
+    const appUrl = Deno.env.get('APP_URL') || 'https://iqvote.vercel.app';
+
+    // Generate a recovery link using the admin API
+    const { data, error } = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email,
+      options: { redirectTo: appUrl },
+    });
+
+    // Always return success — never reveal whether an email exists
+    if (error || !data?.properties?.action_link) {
+      console.log('Generate recovery link error:', error?.message);
+      return c.json({ success: true });
+    }
+
+    const resetLink = data.properties.action_link;
+
+    // Send via Brevo HTTP API
+    const brevoApiKey = Deno.env.get('BREVO_API_KEY');
+    const senders = (Deno.env.get('BREVO_FROM_EMAIL') || '')
+      .split(',').map((s: string) => s.trim()).filter(Boolean);
+
+    if (brevoApiKey && senders.length > 0) {
+      const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#781444,#ff007a);padding:32px 40px;">
+          <h1 style="margin:0;color:#ffffff;font-size:28px;">IQ Vote</h1>
+          <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:14px;">Employee Recognition Platform</p>
+        </td></tr>
+        <tr><td style="padding:40px;">
+          <h2 style="margin:0 0 8px;color:#111;font-size:22px;">Reset your password</h2>
+          <p style="margin:0 0 24px;color:#555;font-size:15px;">Click the button below to set a new password. This link expires in 1 hour.</p>
+          <a href="${resetLink}" style="display:inline-block;background:#781444;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:600;">
+            Reset Password →
+          </a>
+          <p style="margin:28px 0 0;color:#999;font-size:12px;">If you didn't request a password reset, you can ignore this email.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'api-key': brevoApiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender: { name: 'IQ Vote', email: senders[0] },
+          to: [{ email }],
+          subject: 'Reset your IQ Vote password',
+          htmlContent: html,
+        }),
+      }).catch(err => console.log('Brevo send error:', err));
+    }
+
+    return c.json({ success: true });
+  } catch (err: any) {
+    console.log('Forgot password error:', err);
+    return c.json({ success: true }); // Always succeed for security
+  }
+});
+
+// ─── Email notifications via Brevo ───────────────────────────────────────────
 
 async function sendElectionNotificationEmails(election: any) {
   const brevoApiKey = Deno.env.get('BREVO_API_KEY');

@@ -89,6 +89,11 @@ export const api = {
     }),
   
   getSession: () => apiCall('/auth/session'),
+  forgotPassword: (email: string) =>
+    apiCall('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
   
   getCurrentUser: async () => {
     const session = await apiCall('/auth/session');
