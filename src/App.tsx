@@ -352,9 +352,17 @@ export default function App() {
     const initialize = async () => {
       if (hasInitialized) return;
       hasInitialized = true;
-      
+
+      // If this is a password recovery redirect, skip auth check entirely —
+      // performAuthCheck would sign out the recovery session before updateUser runs
+      const urlParams = new URLSearchParams(window.location.hash.replace('#', ''));
+      if (urlParams.get('type') === 'recovery') {
+        setLoading(false);
+        return;
+      }
+
       console.log('Starting initialization');
-      
+
       try {
         // Try to verify the session with our API
         await performAuthCheck();
