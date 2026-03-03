@@ -184,6 +184,13 @@ export const api = {
       body: JSON.stringify(data),
     }),
   
+  // Self-profile update
+  updateMyProfile: (data: { name?: string; role?: string; image_url?: string }) =>
+    apiCall('/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
   // User history
   getMyVotes: () => apiCall('/my-votes'),
   getMyReceivedVotes: () => apiCall('/my-received-votes'),

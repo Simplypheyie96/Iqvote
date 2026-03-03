@@ -8,13 +8,10 @@ import { AdminPage } from './components/AdminPage';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Header } from './components/Header';
 import { ThemeProvider } from './components/ThemeProvider';
-import { MyHistory } from './components/MyHistory';
+import { ProfilePage } from './components/ProfilePage';
 import { OgImagePage } from './components/OgImagePage';
 import { Employee, Election } from './types';
 import { Toaster } from 'sonner@2.0.3';
-import { ThemeToggle } from './components/ThemeToggle';
-import { LogOut } from 'lucide-react';
-import { Button } from './components/ui/button';
 import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
 
@@ -79,24 +76,24 @@ export default function App() {
   }, []);
 
   // Derive initial view from URL path
-  const viewFromPath = (path: string): 'vote' | 'leaderboard' | 'admin' | 'history' => {
+  const viewFromPath = (path: string): 'vote' | 'leaderboard' | 'admin' | 'profile' => {
     if (path.startsWith('/leaderboard')) return 'leaderboard';
     if (path.startsWith('/admin')) return 'admin';
-    if (path.startsWith('/history')) return 'history';
+    if (path.startsWith('/history') || path.startsWith('/profile')) return 'profile';
     return 'vote';
   };
 
-  const pathForView = (view: 'vote' | 'leaderboard' | 'admin' | 'history') => {
+  const pathForView = (view: 'vote' | 'leaderboard' | 'admin' | 'profile') => {
     if (view === 'vote') return '/';
     return `/${view}`;
   };
 
-  const titleForView = (view: 'vote' | 'leaderboard' | 'admin' | 'history') => {
-    const titles = { vote: 'IQ Vote', leaderboard: 'IQ Vote - Leaderboard', admin: 'IQ Vote - Admin', history: 'IQ Vote - My History' };
+  const titleForView = (view: 'vote' | 'leaderboard' | 'admin' | 'profile') => {
+    const titles = { vote: 'IQ Vote', leaderboard: 'IQ Vote - Leaderboard', admin: 'IQ Vote - Admin', profile: 'IQ Vote - My Profile' };
     return titles[view];
   };
 
-  const [currentView, setCurrentView] = useState<'vote' | 'leaderboard' | 'admin' | 'history'>(
+  const [currentView, setCurrentView] = useState<'vote' | 'leaderboard' | 'admin' | 'profile'>(
     () => viewFromPath(window.location.pathname)
   );
 
@@ -432,7 +429,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  function handleNavigate(view: 'vote' | 'leaderboard' | 'admin' | 'history') {
+  function handleNavigate(view: 'vote' | 'leaderboard' | 'admin' | 'profile') {
     setCurrentView(view);
     setVisitedViews(prev => new Set(prev).add(view));
     window.history.pushState({}, '', pathForView(view));
@@ -475,6 +472,7 @@ export default function App() {
           onSignOut={handleSignOut}
           onNavigate={handleNavigate}
           currentView={currentView}
+          onProfileUpdated={setCurrentUser}
         />
         
         <main id="main-content" role="main" className="overflow-x-hidden">
@@ -508,10 +506,11 @@ export default function App() {
             </div>
           )}
 
-          {visitedViews.has('history') && (
-            <div style={{ display: currentView === 'history' ? '' : 'none' }}>
-              <MyHistory
+          {visitedViews.has('profile') && (
+            <div style={{ display: currentView === 'profile' ? '' : 'none' }}>
+              <ProfilePage
                 currentUser={currentUser}
+                onProfileUpdated={setCurrentUser}
               />
             </div>
           )}

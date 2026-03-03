@@ -152,6 +152,37 @@ app.get('/make-server-e2c9f810/auth/session', async (c) => {
   }
 });
 
+// Self-profile update (authenticated user updates their own profile)
+app.put('/make-server-e2c9f810/profile', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const profile = await kv.get(`user:${user.id}`);
+    if (!profile) {
+      return c.json({ error: 'Profile not found' }, 404);
+    }
+
+    const { name, role, image_url } = await c.req.json();
+
+    const updated = {
+      ...profile,
+      ...(name !== undefined && { name }),
+      ...(role !== undefined && { role }),
+      ...(image_url !== undefined && { image_url }),
+      updated_at: new Date().toISOString(),
+    };
+
+    await kv.set(`user:${user.id}`, updated);
+    return c.json({ user: updated });
+  } catch (error) {
+    console.log('Update profile error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
 // Employee routes
 app.get('/make-server-e2c9f810/employees', async (c) => {
   try {
