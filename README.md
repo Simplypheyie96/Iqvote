@@ -1,6 +1,6 @@
 # IQ Vote
 
-The internal Employee of the Month voting platform for [IQ Wiki](https://iq.wiki) / BrainDAO.
+The internal Employee of the Month voting platform for [IQ Wiki](https://iq.wiki) / [BrainDAO](https://braindao.org/)
 
 > **Note:** This is a private, org-specific tool built exclusively for the BrainDAO team. It is not a general-purpose voting app.
 
