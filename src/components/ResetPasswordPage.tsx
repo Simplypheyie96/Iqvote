@@ -28,20 +28,27 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
     return () => observer.disconnect();
   }, []);
 
-  // Trigger PKCE code exchange and wait for session to be established
   useEffect(() => {
     const supabase = createClient();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') && session) {
+      if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
         setSessionReady(true);
       }
     });
 
-    // Calling getSession triggers the PKCE code exchange from the URL
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true);
-    });
+    // Explicitly exchange the PKCE code from the URL if present
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+        if (data?.session) setSessionReady(true);
+        if (error) setError('Invalid or expired reset link. Please request a new one.');
+      });
+    } else {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setSessionReady(true);
+      });
+    }
 
     return () => subscription.unsubscribe();
   }, []);

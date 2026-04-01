@@ -9,7 +9,6 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { Header } from './components/Header';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ProfilePage } from './components/ProfilePage';
-import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { OgImagePage } from './components/OgImagePage';
 import { Employee, Election } from './types';
 import { Toaster } from 'sonner@2.0.3';
@@ -109,16 +108,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  // Detect password reset path immediately from URL — no event timing needed
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(
-    () => window.location.pathname === '/reset-password'
-  );
-
   // Add refs to prevent infinite loops
   const authCheckInProgress = useRef(false);
-  const passwordRecoveryMode = useRef(
-    window.location.pathname === '/reset-password'
-  );
+  const passwordRecoveryMode = useRef(false);
   const lastAuthCheck = useRef(0);
   const AUTH_CHECK_THROTTLE = 2000; // Minimum 2 seconds between auth checks
 
@@ -361,11 +353,6 @@ export default function App() {
 
       console.log('Starting initialization');
 
-      // Skip all auth checks on the reset-password path — just show the form
-      if (window.location.pathname === '/reset-password') {
-        setLoading(false);
-        return;
-      }
 
       // Register the auth listener FIRST so PASSWORD_RECOVERY is never missed
       const supabase = createClient();
@@ -380,13 +367,7 @@ export default function App() {
           setAllElections([]);
           setEmployees([]);
           setInitialized(false);
-          setIsPasswordRecovery(false);
           passwordRecoveryMode.current = false;
-        } else if (event === 'PASSWORD_RECOVERY') {
-          // Set ref immediately so performAuthCheck bails before calling signOut
-          passwordRecoveryMode.current = true;
-          setIsPasswordRecovery(true);
-          setLoading(false);
         } else if (event === 'SIGNED_IN' && session) {
           console.log('Signed in, skipping redundant check');
         } else if (event === 'TOKEN_REFRESHED' && session) {
@@ -473,17 +454,6 @@ export default function App() {
 
   if (loading) {
     return <LoadingSpinner fullScreen text="Loading IQ Vote" />;
-  }
-
-  if (isPasswordRecovery) {
-    return (
-      <ThemeProvider>
-        <ResetPasswordPage onComplete={() => {
-          setIsPasswordRecovery(false);
-          checkAuth();
-        }} />
-      </ThemeProvider>
-    );
   }
 
   if (!currentUser) {
