@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
-  User, Camera, Save, History, Eye, TrendingUp,
-  Calendar, ChevronDown, ChevronUp, Trophy, Pencil, X, Check
+  Camera, History, Eye, TrendingUp,
+  Calendar, ChevronDown, ChevronUp, Trophy, Pencil, X, Check, KeyRound, Upload
 } from 'lucide-react';
 import { api } from '../utils/api';
+import { createClient } from '../utils/supabase/client';
 import { Employee } from '../types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Badge } from './ui/badge';
@@ -41,6 +42,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
   const [role, setRole] = useState(currentUser.role);
   const [imageUrl, setImageUrl] = useState('');
   const [imageError, setImageError] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Sync image from employee record whenever employees list loads or changes
   useEffect(() => {
@@ -49,6 +51,25 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
     setImageUrl(emp?.image_url || currentUser.image_url || '');
     setImageError(false);
   }, [employees, currentUser, isEditing]);
+
+  // Change password
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  async function handleChangePassword() {
+    setChangingPassword(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success('Profile and password updated');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  }
 
   const [myVotes, setMyVotes] = useState<VoteHistory[]>([]);
   const [receivedVotes, setReceivedVotes] = useState<ReceivedVotes[]>([]);
@@ -79,7 +100,8 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
   function cancelEdit() {
     setName(currentUser.name);
     setRole(currentUser.role);
-    // imageUrl will re-sync via the useEffect when isEditing becomes false
+    setNewPassword('');
+    setConfirmPassword('');
     setImageError(false);
     setIsEditing(false);
   }
@@ -91,6 +113,14 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
       toast.error('Name cannot be empty');
       return;
     }
+    if (newPassword && newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    if (newPassword && newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
     setSaving(true);
     try {
       const { user: updated } = await api.updateMyProfile({
@@ -99,8 +129,16 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
         image_url: imageUrl.trim() || undefined,
       });
       onProfileUpdated(updated as Employee);
+
+      if (newPassword) {
+        await handleChangePassword();
+      } else {
+        toast.success('Profile updated');
+      }
+
+      setNewPassword('');
+      setConfirmPassword('');
       setIsEditing(false);
-      toast.success('Profile updated');
     } catch (err: any) {
       toast.error(err.message || 'Failed to save profile');
     } finally {
@@ -216,26 +254,111 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
                   <div className="space-y-1">
                     <Label htmlFor="profile-image" className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <Camera className="w-3 h-3" />
-                      Profile Image URL (optional)
+                      Profile Photo (optional)
                     </Label>
-                    <Input
-                      id="profile-image"
-                      value={imageUrl}
-                      onChange={e => { setImageUrl(e.target.value); setImageError(false); }}
-                      placeholder="https://example.com/your-photo.jpg"
-                      className="h-9"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        id="profile-image"
+                        value={imageUrl}
+                        onChange={e => { setImageUrl(e.target.value); setImageError(false); }}
+                        placeholder="https://example.com/your-photo.jpg"
+                        className="h-9"
+                      />
+                      <input
+                        type="file"
+                        id="profile-photo-upload"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error('Image must be under 5MB');
+                            return;
+                          }
+                          setUploadingImage(true);
+                          try {
+                            const supabase = createClient();
+                            const ext = file.name.split('.').pop() || 'jpg';
+                            const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                            const { error: uploadError } = await supabase.storage
+                              .from('make-e2c9f810-images')
+                              .upload(filename, file, { contentType: file.type, upsert: false });
+                            if (uploadError) throw new Error(uploadError.message);
+                            const { data: { publicUrl } } = supabase.storage
+                              .from('make-e2c9f810-images')
+                              .getPublicUrl(filename);
+                            setImageUrl(publicUrl);
+                            setImageError(false);
+                            toast.success('Photo uploaded!');
+                          } catch (err: any) {
+                            toast.error('Upload failed: ' + err.message);
+                          } finally {
+                            setUploadingImage(false);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 flex-shrink-0"
+                        disabled={uploadingImage}
+                        onClick={() => document.getElementById('profile-photo-upload')?.click()}
+                      >
+                        {uploadingImage ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <Upload className="w-3.5 h-3.5" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Paste a URL or click upload to choose a photo (max 5MB)</p>
                   </div>
+                  {/* Change Password */}
+                  <div className="border-t border-border pt-3 mt-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <KeyRound className="w-3 h-3" />
+                      Change Password (optional)
+                    </p>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="new-password" className="text-xs text-muted-foreground">New Password</Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          placeholder="Leave blank to keep current"
+                          value={newPassword}
+                          onChange={e => setNewPassword(e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="confirm-password" className="text-xs text-muted-foreground">Confirm New Password</Label>
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+                          value={confirmPassword}
+                          onChange={e => setConfirmPassword(e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Must be at least 6 characters</p>
+                  </div>
+
                   <div className="flex gap-2 pt-1">
-                    <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5">
-                      {saving ? (
+                    <Button size="sm" onClick={handleSave} disabled={saving || changingPassword || uploadingImage} className="gap-1.5">
+                      {(saving || changingPassword) ? (
                         <LoadingSpinner size="sm" />
                       ) : (
                         <Check className="w-3.5 h-3.5" />
                       )}
                       Save
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={saving} className="gap-1.5">
+                    <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={saving || changingPassword} className="gap-1.5">
                       <X className="w-3.5 h-3.5" />
                       Cancel
                     </Button>
