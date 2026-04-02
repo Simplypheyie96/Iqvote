@@ -177,7 +177,7 @@ app.post('/make-server-e2c9f810/auth/forgot-password', async (c) => {
       expiresAt: Date.now() + 3600000,
     });
 
-    const resetLink = `${appUrl}?token=${token}&type=reset`;
+    const resetLink = `${appUrl}/reset-password?token=${token}`;
 
     const brevoApiKey = Deno.env.get('BREVO_API_KEY');
     const senders = (Deno.env.get('BREVO_FROM_EMAIL') || '')
@@ -218,6 +218,8 @@ app.post('/make-server-e2c9f810/auth/forgot-password', async (c) => {
           to: [{ email: userRecord.email, name: userRecord.name || userRecord.email }],
           subject: 'Reset your IQ Vote password',
           htmlContent: html,
+          trackClicks: false,
+          trackOpens: false,
         }),
       }).catch(err => console.log('Brevo send error:', err));
     }
@@ -428,7 +430,16 @@ app.get('/make-server-e2c9f810/employees', async (c) => {
   try {
     const employees = await kv.getByPrefix('employee:');
     const active = employees.filter(e => e.active !== false);
-    return c.json({ employees: active });
+    // Strip base64 image_url from list responses (large, causes slow loads).
+    // Storage URLs are small and kept as-is so images display after migration.
+    const lightEmployees = active.map((emp: any) => {
+      if (emp.image_url?.startsWith('data:')) {
+        const { image_url, ...rest } = emp;
+        return { ...rest, has_image: true };
+      }
+      return emp;
+    });
+    return c.json({ employees: lightEmployees });
   } catch (error) {
     console.log('Get employees error:', error);
     return c.json({ error: String(error) }, 500);
@@ -894,20 +905,26 @@ app.get('/make-server-e2c9f810/elections/:electionId/leaderboard', async (c) => 
     
     const leaderboard = tallies
       .filter(t => t.total_points > 0)
-      .map(t => ({
-        ...t,
-        employee: employeeMap.get(t.employee_id),
-        vote_count: t.count_first + t.count_second + t.count_third,
-        message_count: reasonsMap.get(t.employee_id)?.count || 0,
-        messages: reasonsMap.get(t.employee_id)?.messages || []
-      }))
+      .map(t => {
+        const emp = employeeMap.get(t.employee_id);
+        // Strip base64 image_url only — storage URLs are kept so images display after migration
+        const isBase64 = emp?.image_url?.startsWith('data:');
+        const { image_url, ...empWithoutImage } = (emp || {}) as any;
+        return {
+          ...t,
+          employee: emp ? { ...empWithoutImage, ...(isBase64 ? { has_image: true } : { image_url }) } : undefined,
+          vote_count: t.count_first + t.count_second + t.count_third,
+          message_count: reasonsMap.get(t.employee_id)?.count || 0,
+          messages: reasonsMap.get(t.employee_id)?.messages || []
+        };
+      })
       .sort((a, b) => {
         if (b.total_points !== a.total_points) return b.total_points - a.total_points;
         if (b.count_first !== a.count_first) return b.count_first - a.count_first;
         if (b.count_second !== a.count_second) return b.count_second - a.count_second;
         return b.count_third - a.count_third;
       });
-    
+
     return c.json({ leaderboard });
   } catch (error) {
     console.log('Get leaderboard error:', error);
@@ -1006,20 +1023,26 @@ app.get('/make-server-e2c9f810/leaderboard/aggregated', async (c) => {
     
     const leaderboard = Array.from(aggregatedTallies.values())
       .filter(t => t.total_points > 0)
-      .map(t => ({
-        ...t,
-        employee: employeeMap.get(t.employee_id),
-        vote_count: t.count_first + t.count_second + t.count_third,
-        message_count: aggregatedMessages.get(t.employee_id)?.count || 0,
-        messages: aggregatedMessages.get(t.employee_id)?.messages || []
-      }))
+      .map(t => {
+        const emp = employeeMap.get(t.employee_id);
+        // Strip base64 image_url only — storage URLs are kept so images display after migration
+        const isBase64 = emp?.image_url?.startsWith('data:');
+        const { image_url, ...empWithoutImage } = (emp || {}) as any;
+        return {
+          ...t,
+          employee: emp ? { ...empWithoutImage, ...(isBase64 ? { has_image: true } : { image_url }) } : undefined,
+          vote_count: t.count_first + t.count_second + t.count_third,
+          message_count: aggregatedMessages.get(t.employee_id)?.count || 0,
+          messages: aggregatedMessages.get(t.employee_id)?.messages || []
+        };
+      })
       .sort((a, b) => {
         if (b.total_points !== a.total_points) return b.total_points - a.total_points;
         if (b.count_first !== a.count_first) return b.count_first - a.count_first;
         if (b.count_second !== a.count_second) return b.count_second - a.count_second;
         return b.count_third - a.count_third;
       });
-    
+
     return c.json({ leaderboard, elections_count: filteredElections.length });
   } catch (error) {
     console.log('Get aggregated leaderboard error:', error);
@@ -1040,7 +1063,12 @@ app.post('/make-server-e2c9f810/admin/elections', async (c) => {
     }
     
     const { title, start_time, end_time, eligible_employees } = await c.req.json();
-    
+
+    if (!title?.trim()) return c.json({ error: 'Election title is required' }, 400);
+    if (!start_time || !end_time) return c.json({ error: 'Start and end time are required' }, 400);
+    if (new Date(start_time) >= new Date(end_time)) return c.json({ error: 'Start time must be before end time' }, 400);
+    if (!eligible_employees || eligible_employees.length === 0) return c.json({ error: 'At least one eligible employee is required' }, 400);
+
     const electionId = crypto.randomUUID();
     const election = {
       id: electionId,
@@ -1431,6 +1459,80 @@ app.post('/make-server-e2c9f810/admin/employees/import', async (c) => {
     return c.json({ employees: created });
   } catch (error) {
     console.log('Import employees error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+// Migrate base64 employee images to Supabase Storage
+app.post('/make-server-e2c9f810/admin/migrate-images', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    if (!(await isUserAdmin(user.id))) return c.json({ error: 'Admin access required' }, 403);
+
+    const BUCKET = 'make-e2c9f810-images';
+
+    // Ensure the bucket exists and is public
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const bucketExists = buckets?.some((b: any) => b.name === BUCKET);
+    if (!bucketExists) {
+      await supabase.storage.createBucket(BUCKET, { public: true });
+    }
+
+    const employees = await kv.getByPrefix('employee:');
+    let migrated = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    for (const employee of employees) {
+      // Only migrate base64 images (URLs are already fine)
+      if (!employee.image_url || !employee.image_url.startsWith('data:')) {
+        skipped++;
+        continue;
+      }
+
+      try {
+        const matches = employee.image_url.match(/^data:(.+);base64,(.+)$/);
+        if (!matches) { skipped++; continue; }
+
+        const mimeType = matches[1];
+        const base64Data = matches[2];
+        const ext = mimeType.split('/')[1]?.split('+')[0] || 'png';
+        const fileName = `${employee.id}.${ext}`;
+
+        // Decode base64 to binary
+        const binaryStr = atob(base64Data);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+
+        const { error: uploadError } = await supabase.storage
+          .from(BUCKET)
+          .upload(fileName, bytes, { contentType: mimeType, upsert: true });
+
+        if (uploadError) {
+          errors.push(`${employee.name}: ${uploadError.message}`);
+          continue;
+        }
+
+        const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(fileName);
+
+        await kv.set(`employee:${employee.id}`, {
+          ...employee,
+          image_url: publicUrl,
+          updated_at: new Date().toISOString(),
+        });
+
+        migrated++;
+      } catch (err: any) {
+        errors.push(`${employee.name}: ${String(err)}`);
+      }
+    }
+
+    return c.json({ success: true, migrated, skipped, errors,
+      message: `Migrated ${migrated} images to Supabase Storage. ${skipped} already up to date.` });
+  } catch (error) {
     return c.json({ error: String(error) }, 500);
   }
 });
@@ -2033,7 +2135,7 @@ app.post('/make-server-e2c9f810/demo/create', async (c) => {
     
     // Create 2 historical elections (October & September 2024)
     const historicalElections = [
-      { title: 'Employee of the Month - October 2024', month: 9, year: 2024 }, // October = month 9 (0-indexed)
+      { title: 'Employee of the Month - October 2024', month: 9, year: 2024 },
       { title: 'Employee of the Month - September 2024', month: 8, year: 2024 }
     ];
     
@@ -2069,23 +2171,6 @@ app.post('/make-server-e2c9f810/demo/create', async (c) => {
     }
     
     console.log('Demo data created successfully!');
-    console.log(`
-    ✅ DEMO ACCOUNTS CREATED:
-    
-    👑 Admin Account:
-       Email: admin@iqvote.demo
-       Password: admin123
-       
-    👤 Employee Account:
-       Email: employee@iqvote.demo
-       Password: employee123
-       
-    📊 Created:
-       - ${createdEmployees.length} employees
-       - 3 elections (1 active, 2 historical)
-       - ${voters.length} ballots with voting reasons
-       - Compiled tallies and leaderboard data
-    `);
     
     return c.json({ 
       success: true,
@@ -2149,22 +2234,12 @@ app.post('/make-server-e2c9f810/reset', async (c) => {
     }
     
     console.log(`Auth users deleted: ${authUsersDeleted}`);
-    if (authErrors.length > 0) {
-      console.error('Auth errors encountered:', authErrors);
-    }
     
-    // Clear entire KV store by directly querying the database
+    // Clear entire KV store
     console.log('Clearing all KV store data...');
     const prefixes = [
-      'user:',      // VOTERS - people who can vote
-      'employee:',  // CANDIDATES - people who can be voted FOR
-      'election:',
-      'ballot:',
-      'tally:',
-      'eligibility:',
-      'leaderboard:',
-      'vote_reasons:',
-      'audit:'
+      'user:', 'employee:', 'election:', 'ballot:', 'tally:',
+      'eligibility:', 'leaderboard:', 'vote_reasons:', 'audit:'
     ];
     
     let totalDeleted = 0;
@@ -2172,43 +2247,27 @@ app.post('/make-server-e2c9f810/reset', async (c) => {
     
     for (const prefix of prefixes) {
       try {
-        // Use direct database query to get keys
         const { data: items, error } = await supabase
           .from('kv_store_e2c9f810')
           .select('key')
           .like('key', `${prefix}%`);
         
         if (error) {
-          console.error(`Error fetching keys with prefix ${prefix}:`, error);
           kvErrors.push(`Fetch ${prefix}: ${error.message}`);
           continue;
         }
         
         if (items && items.length > 0) {
-          console.log(`Found ${items.length} items with prefix ${prefix}`);
-          
-          // Delete all at once
           const keys = items.map(item => item.key);
           await kv.mdel(keys);
-          
           totalDeleted += items.length;
-          console.log(`✓ Deleted ${items.length} items with prefix ${prefix}`);
-        } else {
-          console.log(`No items found with prefix ${prefix}`);
         }
       } catch (err) {
-        console.error(`Error deleting items with prefix ${prefix}:`, err);
         kvErrors.push(`Delete ${prefix}: ${String(err)}`);
       }
     }
     
-    console.log(`Total KV items deleted: ${totalDeleted}`);
-    if (kvErrors.length > 0) {
-      console.error('KV errors encountered:', kvErrors);
-    }
-    
     // Delete all images from storage
-    console.log('Cleaning up storage buckets...');
     let storageFilesDeleted = 0;
     const storageErrors = [];
     
@@ -2222,46 +2281,17 @@ app.post('/make-server-e2c9f810/reset', async (c) => {
               if (files && files.length > 0) {
                 const filePaths = files.map(f => f.name);
                 const { error: removeError } = await supabase.storage.from(bucket.name).remove(filePaths);
-                
-                if (removeError) {
-                  console.error(`Error removing files from ${bucket.name}:`, removeError);
-                  storageErrors.push(`${bucket.name}: ${removeError.message}`);
-                } else {
-                  storageFilesDeleted += files.length;
-                  console.log(`✓ Deleted ${files.length} files from bucket ${bucket.name}`);
-                }
-              } else {
-                console.log(`No files in bucket ${bucket.name}`);
+                if (!removeError) storageFilesDeleted += files.length;
               }
             } catch (bucketErr) {
-              console.error(`Error processing bucket ${bucket.name}:`, bucketErr);
               storageErrors.push(`${bucket.name}: ${String(bucketErr)}`);
             }
           }
         }
       }
     } catch (storageErr) {
-      console.error('Storage cleanup error:', storageErr);
       storageErrors.push(`Storage cleanup: ${String(storageErr)}`);
     }
-    
-    console.log('==================================');
-    console.log('✅ RESET COMPLETE');
-    console.log('Data deleted:');
-    console.log(`- ${authUsersDeleted} user accounts`);
-    console.log(`- ${totalDeleted} database entries`);
-    console.log(`- ${storageFilesDeleted} storage files`);
-    
-    if (authErrors.length > 0 || kvErrors.length > 0 || storageErrors.length > 0) {
-      console.log('\n⚠️  Some errors occurred:');
-      if (authErrors.length > 0) console.log('Auth errors:', authErrors);
-      if (kvErrors.length > 0) console.log('KV errors:', kvErrors);
-      if (storageErrors.length > 0) console.log('Storage errors:', storageErrors);
-    }
-    
-    console.log('==================================');
-    console.log('System is now ready for fresh setup.');
-    console.log('Next: Sign up with a new account to become admin!');
     
     return c.json({ 
       success: true,
@@ -2292,16 +2322,15 @@ app.get('/make-server-e2c9f810/my-votes', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    // Get all elections
     const allElections = await kv.getByPrefix('election:');
-    
-    // Get user's ballots by user ID
     const allBallots = await kv.getByPrefix(`ballot:`);
     const userBallots = allBallots.filter(b => b.voter_id === user.id);
     
-    // Get all employees for mapping
     const allEmployees = await kv.getByPrefix('employee:');
-    const employeeMap = new Map(allEmployees.map(emp => [emp.id, emp]));
+    const employeeMap = new Map(allEmployees.map((emp: any) => {
+      const { image_url, ...rest } = emp;
+      return [emp.id, { ...rest, ...(image_url?.startsWith('data:') ? { has_image: true } : { image_url }) }];
+    }));
 
     const votes = userBallots.map(ballot => {
       const election = allElections.find(e => e.id === ballot.election_id);
@@ -2313,14 +2342,9 @@ app.get('/make-server-e2c9f810/my-votes', async (c) => {
         points: sel.points
       }));
 
-      return {
-        election,
-        ballot,
-        selections
-      };
+      return { election, ballot, selections };
     }).filter(v => v !== null);
 
-    // Sort by date, newest first
     votes.sort((a: any, b: any) => new Date(b.ballot.created_at).getTime() - new Date(a.ballot.created_at).getTime());
 
     return c.json({ votes });
@@ -2338,41 +2362,34 @@ app.get('/make-server-e2c9f810/my-received-votes', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    // Check if user is an employee (candidate) - only employees can receive votes
     const profile = await kv.get(`employee:${user.id}`);
     if (!profile) {
-      // User is not an employee/candidate, so they cannot receive votes
       return c.json({ votes: [] });
     }
 
-    // Get all elections
-    const allElections = await kv.getByPrefix('election:');
-    
-    const votes = [];
+    const [allElections, allBallots] = await Promise.all([
+      kv.getByPrefix('election:'),
+      kv.getByPrefix('ballot:'),
+    ]);
 
-    for (const election of allElections) {
-      // Get tallies for this election
-      const tallies = await kv.getByPrefix(`tally:${election.id}:`);
-      const myTally = tallies.find(t => t.employee_id === user.id);
+    const votes: any[] = [];
+
+    await Promise.all(allElections.map(async (election: any) => {
+      const electionTallies = await kv.getByPrefix(`tally:${election.id}:`);
+      const myTally = electionTallies.find((t: any) => t.employee_id === user.id);
 
       if (myTally && myTally.total_points > 0) {
-        // Calculate rank
-        const sortedTallies = tallies
-          .filter(t => t.total_points > 0)
-          .sort((a, b) => {
+        const sortedTallies = electionTallies
+          .filter((t: any) => t.total_points > 0)
+          .sort((a: any, b: any) => {
             if (b.total_points !== a.total_points) return b.total_points - a.total_points;
             if (b.count_first !== a.count_first) return b.count_first - a.count_first;
             if (b.count_second !== a.count_second) return b.count_second - a.count_second;
             return b.count_third - a.count_third;
           });
 
-        const rank = sortedTallies.findIndex(t => t.employee_id === user.id) + 1;
-
-        // Count total participants (unique voters)
-        const allBallots = await kv.getByPrefix(`ballot:`);
-        const electionBallots = allBallots.filter(b => 
-          b.election_id === election.id && !b.revoked
-        );
+        const rank = sortedTallies.findIndex((t: any) => t.employee_id === user.id) + 1;
+        const electionBallots = allBallots.filter((b: any) => b.election_id === election.id && !b.revoked);
 
         votes.push({
           election,
@@ -2381,10 +2398,9 @@ app.get('/make-server-e2c9f810/my-received-votes', async (c) => {
           total_participants: electionBallots.length
         });
       }
-    }
+    }));
 
-    // Sort by election end date, newest first
-    votes.sort((a, b) => new Date(b.election.end_time).getTime() - new Date(a.election.end_time).getTime());
+    votes.sort((a: any, b: any) => new Date(b.election.end_time).getTime() - new Date(a.election.end_time).getTime());
 
     return c.json({ votes });
   } catch (error) {
@@ -2397,75 +2413,36 @@ app.get('/make-server-e2c9f810/my-received-votes', async (c) => {
 app.post('/make-server-e2c9f810/admin/users/grant-admin', async (c) => {
   try {
     const { email } = await c.req.json();
+    if (!email) return c.json({ error: 'Email is required' }, 400);
     
-    if (!email) {
-      return c.json({ error: 'Email is required' }, 400);
-    }
-    
-    // Find user by email in auth
     const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
-    
-    if (listError) {
-      console.log('Error listing users:', listError);
-      return c.json({ error: 'Failed to find user' }, 500);
-    }
+    if (listError) return c.json({ error: 'Failed to find user' }, 500);
     
     const authUser = users.find(u => u.email === email);
+    if (!authUser) return c.json({ error: 'User not found with that email' }, 404);
     
-    if (!authUser) {
-      return c.json({ error: 'User not found with that email' }, 404);
-    }
-    
-    // Get user profile
     const userProfile = await kv.get(`user:${authUser.id}`);
+    if (!userProfile) return c.json({ error: 'User profile not found' }, 404);
     
-    if (!userProfile) {
-      return c.json({ error: 'User profile not found' }, 404);
-    }
-    
-    // Update admin status
-    const updated = {
-      ...userProfile,
-      is_admin: true,
-      updated_at: new Date().toISOString()
-    };
-    
+    const updated = { ...userProfile, is_admin: true, updated_at: new Date().toISOString() };
     await kv.set(`user:${authUser.id}`, updated);
     
-    console.log(`Admin access granted to user: ${email}`);
-    
-    return c.json({ 
-      success: true, 
-      user: {
-        id: authUser.id,
-        email: authUser.email,
-        name: updated.name,
-        is_admin: true
-      }
-    });
+    return c.json({ success: true, user: { id: authUser.id, email: authUser.email, name: updated.name, is_admin: true } });
   } catch (error) {
     console.log('Grant admin error:', error);
     return c.json({ error: String(error) }, 500);
   }
 });
 
-// System Activity Monitor - ALL ADMINS
+// System Activity Monitor
 app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
   try {
     const user = await getAuthenticatedUser(c.req.raw);
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    if (!(await isUserAdmin(user.id))) return c.json({ error: 'Forbidden: Admin access required' }, 403);
     
-    // Check if user is an admin
-    if (!(await isUserAdmin(user.id))) {
-      return c.json({ error: 'Forbidden: Admin access required' }, 403);
-    }
-    
-    // Collect all activities from various sources
     const activities: any[] = [];
     
-    // Get all users (for auth events)
     const allUsers = await kv.getByPrefix('user:');
     allUsers.forEach(userProfile => {
       activities.push({
@@ -2477,7 +2454,6 @@ app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
         type: 'auth',
         details: { role: userProfile.role }
       });
-      
       if (userProfile.is_admin) {
         activities.push({
           id: `auth-admin-${userProfile.id}`,
@@ -2491,7 +2467,6 @@ app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
       }
     });
     
-    // Get all elections
     const allElections = await kv.getByPrefix('election:');
     allElections.forEach(election => {
       const creator = allUsers.find(u => u.id === election.created_by);
@@ -2502,20 +2477,14 @@ app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
         user_email: creator?.email,
         user_name: creator?.name,
         type: 'election',
-        details: { 
-          title: election.title,
-          start_time: election.start_time,
-          end_time: election.end_time
-        }
+        details: { title: election.title, start_time: election.start_time, end_time: election.end_time }
       });
     });
     
-    // Get all ballots (votes)
     const allBallots = await kv.getByPrefix('ballot:');
     allBallots.forEach(ballot => {
       const voter = allUsers.find(u => u.id === ballot.voter_id);
       const election = allElections.find(e => e.id === ballot.election_id);
-      
       activities.push({
         id: `vote-${ballot.election_id}-${ballot.voter_id}`,
         timestamp: ballot.created_at,
@@ -2523,15 +2492,10 @@ app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
         user_email: voter?.email,
         user_name: voter?.name,
         type: 'vote',
-        details: { 
-          election_title: election?.title,
-          revoked: ballot.revoked,
-          revoke_reason: ballot.revoke_reason
-        }
+        details: { election_title: election?.title, revoked: ballot.revoked, revoke_reason: ballot.revoke_reason }
       });
     });
     
-    // Get all employees
     const allEmployees = await kv.getByPrefix('employee:');
     allEmployees.forEach(employee => {
       activities.push({
@@ -2541,12 +2505,8 @@ app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
         user_email: 'system',
         user_name: 'System',
         type: 'employee',
-        details: { 
-          employee_name: employee.name,
-          employee_role: employee.role
-        }
+        details: { employee_name: employee.name, employee_role: employee.role }
       });
-      
       if (employee.deleted_at) {
         activities.push({
           id: `employee-deleted-${employee.id}`,
@@ -2560,7 +2520,6 @@ app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
       }
     });
     
-    // Get audit logs if any
     const auditLogs = await kv.getByPrefix('audit:');
     auditLogs.forEach(audit => {
       const admin = allUsers.find(u => u.id === audit.admin_id);
@@ -2575,40 +2534,26 @@ app.get('/make-server-e2c9f810/admin/system-activity', async (c) => {
       });
     });
     
-    // Sort by timestamp, newest first
-    activities.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     
-    // Limit to last 500 activities
-    const recentActivities = activities.slice(0, 500);
-    
-    return c.json({ activities: recentActivities });
+    return c.json({ activities: activities.slice(0, 500) });
   } catch (error) {
     console.log('Get system activity error:', error);
     return c.json({ error: String(error) }, 500);
   }
 });
 
-// RESET DATABASE ROUTE - WARNING: This will delete ALL data!
+// RESET DATABASE ROUTE
 app.post('/make-server-e2c9f810/admin/reset-database', async (c) => {
   try {
     const existingUsers = await kv.getByPrefix('user:');
     
     if (existingUsers.length > 0) {
       const user = await getAuthenticatedUser(c.req.raw);
-      if (!user) {
-        return c.json({ error: 'Unauthorized: Authentication required when users exist' }, 401);
-      }
-      
-      if (!(await isSuperAdmin(user.id))) {
-        return c.json({ error: 'Forbidden: Only the system owner can reset the database when users exist' }, 403);
-      }
+      if (!user) return c.json({ error: 'Unauthorized: Authentication required when users exist' }, 401);
+      if (!(await isSuperAdmin(user.id))) return c.json({ error: 'Forbidden: Only the system owner can reset the database when users exist' }, 403);
     }
     
-    console.log('=== STARTING DATABASE RESET ===');
-    
-    // Get all data to count items
     const users = await kv.getByPrefix('user:');
     const employees = await kv.getByPrefix('employee:');
     const elections = await kv.getByPrefix('election:');
@@ -2616,15 +2561,11 @@ app.post('/make-server-e2c9f810/admin/reset-database', async (c) => {
     const tallies = await kv.getByPrefix('tally:');
     const audits = await kv.getByPrefix('audit:');
     
-    console.log(`Found: ${users.length} users, ${employees.length} employees, ${elections.length} elections, ${ballots.length} ballots, ${tallies.length} tallies, ${audits.length} audits`);
-    
-    // Use Supabase client to delete all records directly (more efficient)
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
     
-    // Delete all keys by prefix using SQL-like patterns
     await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'user:%');
     await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'employee:%');
     await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'election:%');
@@ -2632,26 +2573,15 @@ app.post('/make-server-e2c9f810/admin/reset-database', async (c) => {
     await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'tally:%');
     await supabaseClient.from('kv_store_e2c9f810').delete().like('key', 'audit:%');
     
-    console.log('KV store cleared');
-    
-    // Delete all users from Supabase Auth
     let deletedAuthUsers = 0;
     for (const user of users) {
       try {
         const { error } = await supabase.auth.admin.deleteUser(user.id);
-        if (!error) {
-          deletedAuthUsers++;
-        } else {
-          console.log(`Warning: Could not delete auth user ${user.email}:`, error.message);
-        }
+        if (!error) deletedAuthUsers++;
       } catch (error) {
         console.log(`Warning: Error deleting auth user ${user.email}:`, error);
       }
     }
-    
-    console.log(`Deleted ${deletedAuthUsers} users from Supabase Auth`);
-    console.log('=== DATABASE RESET COMPLETE ===');
-    console.log('You can now sign up as the first user to automatically receive admin privileges');
     
     return c.json({
       success: true,
@@ -2676,25 +2606,12 @@ app.post('/make-server-e2c9f810/admin/reset-database', async (c) => {
 app.get('/make-server-e2c9f810/debug/auth-users', async (c) => {
   try {
     const user = await getAuthenticatedUser(c.req.raw);
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    if (!(await isUserAdmin(user.id))) return c.json({ error: 'Forbidden - Admin access required' }, 403);
 
-    // Only allow admins to access this
-    const isAdmin = await isUserAdmin(user.id);
-    if (!isAdmin) {
-      return c.json({ error: 'Forbidden - Admin access required' }, 403);
-    }
-
-    // List all auth users
     const { data: { users }, error } = await supabase.auth.admin.listUsers();
-    
-    if (error) {
-      console.error('Error listing auth users:', error);
-      return c.json({ error: error.message }, 500);
-    }
+    if (error) return c.json({ error: error.message }, 500);
 
-    // Also get KV user profiles
     const kvUsers = await kv.getByPrefix('user:');
     
     return c.json({ 
