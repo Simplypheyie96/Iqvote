@@ -28,39 +28,32 @@ IQ Vote powers BrainDAO's internal monthly recognition elections. Team members c
 - **Vote history** — team members can review their past votes
 - **Admin panel** — manage team members, elections, and eligibility (admin-only)
 - **Role-based access** — admins manage the platform and can promote other admins
-- **Light & dark mode** — theme toggle in the header
-- **Historical data import** — bulk import past leaderboard data
-- **Export** — export leaderboard data to XLSX
-- **Responsive** — works on desktop, tablet, and mobile
+- **Email notifications** — Brevo integration sends vote confirmation and result emails
+- **Supabase backend** — PostgreSQL database with row-level security
 
-## Tech Stack
-
-- **Frontend**: React 18, TypeScript, Vite
-- **UI**: Tailwind CSS, Radix UI, Lucide React, Recharts
-- **Backend**: Supabase (auth, database, storage)
-- **Deployment**: Vercel
-
-## Running the App
+## Quick Start
 
 ```bash
-npm i
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Fill in your Supabase URL, anon key, and Brevo API key
+
+# Run the development server
 npm run dev
 ```
 
-### Build for Production
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-```bash
-npm run build
-```
+## Tech Stack
 
-## User Roles
+- **Framework** — Next.js (App Router)
+- **Database** — Supabase (PostgreSQL)
+- **Email** — Brevo (transactional emails)
+- **Hosting** — Vercel
 
-| Feature | Team Member | Admin |
-|---------|-------------|-------|
-| Vote | Yes (if eligible) | Yes |
-| View leaderboard | Yes | Yes |
-| View vote history | Yes | Yes |
-| Manage team members | No | Yes |
-| Create elections | No | Yes |
-| Set eligibility | No | Yes |
-| Promote admins | No | Yes |
+## License
+
+All Rights Reserved. Internal use only.
