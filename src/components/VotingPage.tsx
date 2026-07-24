@@ -278,9 +278,8 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         </div>
 
         {/* Instructions */}
-        <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-xl p-6 mb-8 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
-          <div className="relative">
+        <div className="bg-accent border border-border rounded-xl p-6 mb-8">
+          <div>
             <h4 className="flex items-center gap-2 mb-3 font-semibold">
               <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
                 <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -315,7 +314,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
             <div className="flex items-center gap-2">
               <span className="text-sm sm:text-base font-semibold text-foreground">0 of 3</span>
               <div className="hidden sm:block w-16 h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500" style={{ width: '0%' }} />
+                <div className="h-full bg-primary transition-all duration-500" style={{ width: '0%' }} />
               </div>
             </div>
           </div>
@@ -347,7 +346,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
 
         {/* Empty employee list */}
         <div className="text-center py-16 bg-card border border-border rounded-xl">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
             <Clock className="w-10 h-10 text-muted-foreground opacity-40" />
           </div>
           <h3 className="text-xl font-semibold mb-2">No Active Election</h3>
@@ -406,7 +405,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         </div>
         
         {success && (
-          <Alert className="border-primary/50 bg-gradient-to-r from-primary/10 to-primary/5 shadow-lg shadow-primary/10" role="status" aria-live="polite">
+          <Alert className="border-primary/50 bg-primary/10 shadow-lg " role="status" aria-live="polite">
             <CheckCircle2 className="h-4 w-4 text-primary" aria-hidden="true" />
             <AlertDescription className="text-foreground font-medium">{success}</AlertDescription>
           </Alert>
@@ -421,9 +420,8 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
       </div>
 
       {/* Instructions */}
-      <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-xl p-6 mb-8 overflow-hidden" role="region" aria-labelledby="instructions-heading">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
-        <div className="relative">
+      <div className="bg-accent border border-border rounded-xl p-6 mb-8" role="region" aria-labelledby="instructions-heading">
+        <div>
           <h4 className="flex items-center gap-2 mb-3 font-semibold" id="instructions-heading">
             <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -478,7 +476,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         {/* Animated progress bar */}
         <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-4">
           <div
-            className={`h-full rounded-full transition-all duration-700 ease-out ${canSubmit() ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-primary to-primary/70'}`}
+            className={`h-full rounded-full transition-all duration-700 ease-out ${canSubmit() ? 'bg-green-500' : 'bg-primary'}`}
             style={{ width: `${(selections.size / 3) * 100}%` }}
           />
         </div>
@@ -494,7 +492,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
                 key={rank}
                 className={`relative p-4 rounded-lg border transition-all duration-300 ${
                   selected 
-                    ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 shadow-lg shadow-primary/10' 
+                    ? 'bg-primary/10 border-primary/30 shadow-lg ' 
                     : 'bg-muted/30 border-border'
                 }`}
                 role="status"
@@ -583,7 +581,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
           <Button
             size="lg"
             onClick={() => setShowConfirmation(true)}
-            className="gap-2 shadow-2xl shadow-primary/30 hover:shadow-primary/40 transition-all duration-300 hover:scale-105 px-8"
+            className="gap-2 shadow-2xl transition-all duration-300 hover:scale-105 px-8"
             aria-label="Review and submit your ballot"
           >
             <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
@@ -677,7 +675,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
       {/* Success Modal */}
       <Dialog open={!!success} onOpenChange={(open) => { if (!open) setSuccess(null); }}>
         <DialogContent className="max-w-md text-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center mx-auto animate-pop" aria-hidden="true">
+          <div className="w-16 h-16 rounded-full bg-primary/20 border border-primary/20 flex items-center justify-center mx-auto animate-pop" aria-hidden="true">
             <CheckCircle2 className="w-9 h-9 text-primary" />
           </div>
           <DialogHeader>

@@ -385,7 +385,7 @@ export function VoteManagement() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <Card className="bg-primary/10 border-primary/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
               </CardHeader>
@@ -394,7 +394,7 @@ export function VoteManagement() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+            <Card className="bg-green-500/10 border-green-500/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Active Votes</CardTitle>
               </CardHeader>
@@ -403,7 +403,7 @@ export function VoteManagement() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
+            <Card className="bg-red-500/10 border-red-500/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Deleted Votes</CardTitle>
               </CardHeader>
@@ -449,7 +449,7 @@ export function VoteManagement() {
                   {filteredActiveVotes.map((ballot, idx) => (
                     <div
                       key={ballot.voter?.id || ballot.voter?.email || idx}
-                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl animate-fade-in-up hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl animate-fade-in-up hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg transition-all duration-300"
                       style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
                     >
                       <div className="flex-1 min-w-0">

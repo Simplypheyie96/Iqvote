@@ -48,7 +48,6 @@
   --animate-pop: pop 0.35s var(--ease-spring) both;
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-float: float 6s ease-in-out infinite;
-  --animate-glow-pulse: glow-pulse 2.2s ease-in-out infinite;
   --animate-shine: shine 2.8s ease-in-out infinite;
   --animate-count-up: fade-in-up 0.5s var(--ease-out-soft) both;
 }
@@ -176,10 +175,6 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.35); }
-}
 @keyframes shine {
   0% { transform: translateX(-120%) skewX(-15deg); }
   60%, 100% { transform: translateX(220%) skewX(-15deg); }
@@ -201,26 +196,13 @@
     animation: var(--animate-shimmer);
   }
 
-  /* Gradient clip-text — the app's signature heading treatment */
+  /* Solid heading colors (legacy .text-gradient* names kept so existing
+     markup stays valid — no gradients, no glow) */
   .text-gradient {
-    background-image: linear-gradient(
-      to right,
-      var(--color-foreground),
-      color-mix(in srgb, var(--color-foreground) 55%, transparent)
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--color-foreground);
   }
   .text-gradient-primary {
-    background-image: linear-gradient(
-      120deg,
-      var(--color-primary),
-      color-mix(in srgb, var(--color-primary) 55%, #ff7ac0)
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--color-primary);
   }
 
   /* Distinctive display type */
@@ -229,40 +211,12 @@
     letter-spacing: -0.02em;
   }
 
-  /* Layered mesh background — the signature ambient surface */
-  .bg-mesh {
-    background-color: var(--color-background);
-    background-image:
-      radial-gradient(at 15% 15%, color-mix(in srgb, var(--color-primary) 22%, transparent) 0px, transparent 45%),
-      radial-gradient(at 85% 10%, color-mix(in srgb, #a855f7 18%, transparent) 0px, transparent 40%),
-      radial-gradient(at 75% 85%, color-mix(in srgb, var(--color-primary) 16%, transparent) 0px, transparent 45%),
-      radial-gradient(at 20% 90%, color-mix(in srgb, #6366f1 14%, transparent) 0px, transparent 40%);
-  }
-
-  /* Subtle grid overlay */
+  /* Subtle grid overlay — flat lines, no glow */
   .bg-grid {
     background-image:
       linear-gradient(color-mix(in srgb, var(--color-foreground) 6%, transparent) 1px, transparent 1px),
       linear-gradient(90deg, color-mix(in srgb, var(--color-foreground) 6%, transparent) 1px, transparent 1px);
     background-size: 44px 44px;
-  }
-
-  /* Frosted glass surface */
-  .glass {
-    background-color: color-mix(in srgb, var(--color-card) 70%, transparent);
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid color-mix(in srgb, var(--color-foreground) 10%, transparent);
-  }
-
-  /* Primary glow — for hero elements and focal CTAs */
-  .glow-primary {
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent),
-      0 8px 40px -8px color-mix(in srgb, var(--color-primary) 45%, transparent);
-  }
-  .glow-ring {
-    box-shadow: 0 0 60px -12px color-mix(in srgb, var(--color-primary) 60%, transparent);
   }
 
   /* Staggered entrance delays */

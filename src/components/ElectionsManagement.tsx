@@ -245,7 +245,7 @@ export function ElectionsManagement() {
           return (
             <div
               key={election.id}
-              className="rounded-xl border border-border bg-card/40 p-4 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+              className="rounded-xl border border-border bg-card/40 p-4 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg "
               style={{ animationDelay: `${Math.min(idx, 10) * 40}ms` }}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -362,7 +362,7 @@ export function ElectionsManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+        <Card className="bg-green-500/10 border-green-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
           </CardHeader>
@@ -371,7 +371,7 @@ export function ElectionsManagement() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+        <Card className="bg-blue-500/10 border-blue-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Elections</CardTitle>
           </CardHeader>

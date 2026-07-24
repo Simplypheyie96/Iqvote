@@ -103,7 +103,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
 
   function getPointsBadge(points: number) {
     if (points >= 5) {
-      return <Badge className="bg-gradient-to-r from-primary to-primary/70">{points} pts</Badge>;
+      return <Badge className="bg-primary">{points} pts</Badge>;
     } else if (points >= 3) {
       return <Badge variant="secondary">{points} pts</Badge>;
     } else {
@@ -162,21 +162,21 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '0ms' }}>
+        <Card className="bg-blue-500/10 border-blue-500/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '0ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Votes Cast</CardDescription>
             <CardTitle className="text-3xl">{totalVotesCast}</CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '80ms' }}>
+        <Card className="bg-primary/10 border-primary/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Points Received</CardDescription>
             <CardTitle className="text-3xl text-primary">{totalPointsReceived}</CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '160ms' }}>
+        <Card className="bg-green-500/10 border-green-500/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '160ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Elections Participated</CardDescription>
             <CardTitle className="text-3xl">{myVotes.length}</CardTitle>
@@ -254,9 +254,9 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                                 key={selection.rank}
                                 className={`p-4 rounded-xl border ${
                                   selection.rank === 1 
-                                    ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20'
+                                    ? 'bg-primary/10 border-primary/20'
                                     : selection.rank === 2
-                                    ? 'bg-gradient-to-br from-primary/8 to-primary/3 border-primary/15'
+                                    ? 'bg-primary/8 border-primary/15'
                                     : 'bg-muted/30 border-border'
                                 }`}
                               >
@@ -272,7 +272,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                                 <p className="text-xs text-muted-foreground mb-2 truncate">{selection.employee.role}</p>
                                 <Badge className={
                                   selection.rank === 1 
-                                    ? 'bg-gradient-to-r from-primary to-primary/70'
+                                    ? 'bg-primary'
                                     : selection.rank === 2
                                     ? 'bg-primary/60'
                                     : ''
@@ -345,7 +345,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                     {isExpanded && (
                       <CardContent className="pt-4 pb-4">
                         <div className="grid sm:grid-cols-2 gap-4">
-                          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                          <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
                             <p className="text-xs text-muted-foreground mb-1">Points Received</p>
                             <p className="text-3xl font-bold text-primary">{vote.total_points}</p>
                           </div>

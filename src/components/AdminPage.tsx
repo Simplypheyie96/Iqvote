@@ -597,7 +597,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '0ms' }}>
+        <Card className="bg-blue-500/10 border-blue-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '0ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
@@ -614,7 +614,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '80ms' }}>
+        <Card className="bg-primary/10 border-primary/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
@@ -631,7 +631,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '160ms' }}>
+        <Card className="bg-green-500/10 border-green-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '160ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
@@ -648,7 +648,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '240ms' }}>
+        <Card className="bg-purple-500/10 border-purple-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '240ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
@@ -1024,7 +1024,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                     className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
                   >
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20">
+                      <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
                         {employee.image_url ? (
                           <img 
                             src={employee.image_url} 
@@ -1126,7 +1126,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                       className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
                     >
                       <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20">
+                        <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
                           <Users className="w-6 h-6 text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">

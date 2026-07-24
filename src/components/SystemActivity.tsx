@@ -202,7 +202,7 @@ export function SystemActivity() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+        <Card className="bg-blue-500/10 border-blue-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Activities</CardTitle>
           </CardHeader>
@@ -212,7 +212,7 @@ export function SystemActivity() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+        <Card className="bg-green-500/10 border-green-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Recent Votes</CardTitle>
           </CardHeader>
@@ -224,7 +224,7 @@ export function SystemActivity() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
+        <Card className="bg-red-500/10 border-red-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Admin Actions</CardTitle>
           </CardHeader>

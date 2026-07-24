@@ -22,7 +22,7 @@ const RANKS = [
     points: 5,
     emoji: '🥇',
     // Selected-button treatment (metallic gold)
-    selected: 'bg-gradient-to-br from-amber-300 to-yellow-500 text-amber-950 border-transparent shadow-lg shadow-amber-500/30',
+    selected: 'bg-amber-300 text-amber-950 border-transparent shadow-lg ',
     ring: 'ring-amber-400/50',
   },
   {
@@ -30,7 +30,7 @@ const RANKS = [
     label: '2nd',
     points: 3,
     emoji: '🥈',
-    selected: 'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-800 border-transparent shadow-lg shadow-slate-400/30',
+    selected: 'bg-slate-200 text-slate-800 border-transparent shadow-lg ',
     ring: 'ring-slate-400/50',
   },
   {
@@ -38,7 +38,7 @@ const RANKS = [
     label: '3rd',
     points: 2,
     emoji: '🥉',
-    selected: 'bg-gradient-to-br from-orange-300 to-amber-600 text-orange-950 border-transparent shadow-lg shadow-orange-500/30',
+    selected: 'bg-orange-300 text-orange-950 border-transparent shadow-lg ',
     ring: 'ring-orange-400/50',
   },
 ] as const;
@@ -56,7 +56,7 @@ export function EmployeeCard({
 
   return (
     <div
-      className={`group relative bg-card border rounded-2xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/5 ${
+      className={`group relative bg-card border rounded-2xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
         activeRank
           ? `border-transparent ring-2 ${activeRank.ring} shadow-lg`
           : 'border-border hover:border-primary/30'
@@ -78,7 +78,7 @@ export function EmployeeCard({
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
           <div
-            className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center flex-shrink-0 border border-primary/20 shadow-inner overflow-hidden transition-transform duration-300 group-hover:scale-105"
+            className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 border border-primary/20 shadow-inner overflow-hidden transition-transform duration-300 group-hover:scale-105"
             aria-hidden="true"
           >
             {employee.image_url ? (

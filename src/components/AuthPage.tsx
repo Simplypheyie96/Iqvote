@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LogIn, Trophy, Vote, ShieldCheck, Sparkles } from 'lucide-react';
+import { LogIn, Trophy, Vote, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -111,47 +111,42 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* ---------- Left: brand panel (desktop) ---------- */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 xl:p-16 overflow-hidden bg-mesh">
-        <div className="absolute inset-0 bg-grid opacity-[0.4]" aria-hidden="true" />
-        <div className="pointer-events-none absolute -top-32 -left-24 w-96 h-96 rounded-full bg-primary/25 blur-3xl animate-float" aria-hidden="true" />
-        <div className="pointer-events-none absolute bottom-0 right-0 w-[28rem] h-[28rem] rounded-full bg-purple-500/20 blur-3xl animate-float" style={{ animationDelay: '3s' }} aria-hidden="true" />
-
+      {/* ---------- Left: solid brand panel (desktop) ---------- */}
+      <div className="hidden lg:flex flex-col justify-between p-12 xl:p-16 bg-slate-900 text-white">
         {/* Logo lockup */}
-        <div className="relative flex items-center gap-3 animate-fade-in-down">
-          <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-14 h-14 object-contain drop-shadow-lg" />
+        <div className="flex items-center gap-3">
+          <img src={logoImageDark} alt="IQ Vote Logo" className="w-12 h-12 object-contain" />
           <span className="font-display text-xl font-bold tracking-tight">IQ Vote</span>
         </div>
 
         {/* Headline */}
-        <div className="relative animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-6">
-            <Sparkles className="w-3.5 h-3.5" />
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs font-medium text-white/80 mb-8">
             BrainDAO · Employee Recognition
           </div>
           <h1 className="font-display text-4xl xl:text-5xl font-bold leading-[1.1] tracking-tight mb-5">
-            Celebrate the people who move{' '}
-            <span className="text-gradient-primary">IQ</span> forward.
+            Recognize the people who move{' '}
+            <span className="text-primary">IQ</span> forward.
           </h1>
-          <p className="text-base xl:text-lg text-muted-foreground max-w-md">
-            Cast your monthly ranked vote for the colleagues doing standout work — and watch the leaderboard come alive.
+          <p className="text-base xl:text-lg text-white/60 max-w-md">
+            Cast your monthly ranked vote for the colleagues doing standout work.
           </p>
         </div>
 
-        {/* Feature chips */}
-        <div className="relative grid gap-3 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
+        {/* Feature list */}
+        <div className="grid gap-4">
           {[
             { icon: Vote, title: 'Ranked voting', desc: 'Pick your top 3 — 5, 3 and 2 points.' },
             { icon: Trophy, title: 'Live leaderboard', desc: 'Results update as the team votes.' },
             { icon: ShieldCheck, title: 'Private & fair', desc: 'One locked ballot, anonymous reasons.' },
           ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex items-center gap-3 rounded-xl glass px-4 py-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                <Icon className="w-4.5 h-4.5 text-primary" />
+            <div key={title} className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                <Icon className="w-5 h-5 text-white" />
               </div>
               <div>
                 <div className="text-sm font-semibold leading-tight">{title}</div>
-                <div className="text-xs text-muted-foreground">{desc}</div>
+                <div className="text-sm text-white/50">{desc}</div>
               </div>
             </div>
           ))}
@@ -159,19 +154,16 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
       </div>
 
       {/* ---------- Right: auth card ---------- */}
-      <div className="relative flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12 overflow-hidden">
-        {/* Mobile ambient background */}
-        <div className="lg:hidden absolute inset-0 bg-mesh opacity-70" aria-hidden="true" />
-
-        <div className="relative w-full max-w-md animate-fade-in-up">
+      <div className="flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12">
+        <div className="w-full max-w-md">
           {/* Mobile brand header */}
-          <div className="lg:hidden flex flex-col items-center text-center mb-6">
-            <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-20 h-20 object-contain mb-3 drop-shadow-lg" />
-            <h1 className="font-display text-2xl font-bold text-gradient-primary">IQ Vote</h1>
-            <p className="text-sm text-muted-foreground mt-1">Celebrate your top performers</p>
+          <div className="lg:hidden flex flex-col items-center text-center mb-8">
+            <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-16 h-16 object-contain mb-3" />
+            <h1 className="font-display text-2xl font-bold">IQ Vote</h1>
+            <p className="text-sm text-muted-foreground mt-1">Recognize your top performers</p>
           </div>
 
-          <div className="glass rounded-2xl p-6 sm:p-8 shadow-2xl shadow-primary/10 glow-primary">
+          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
             <div className="hidden lg:block mb-6">
               <h2 className="font-display text-2xl font-bold tracking-tight mb-1">Welcome back</h2>
               <p className="text-sm text-muted-foreground">Sign in to cast your vote.</p>

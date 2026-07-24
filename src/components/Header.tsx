@@ -177,7 +177,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     aria-label="Go to your profile"
                     onClick={() => onNavigate('profile')}
                   >
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden flex-shrink-0" aria-hidden="true">
+                    <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20 overflow-hidden flex-shrink-0" aria-hidden="true">
                       {avatarSrc ? (
                         <img
                           src={avatarSrc}
@@ -236,7 +236,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                 onClick={() => handleNavigate('profile')}
                 aria-label="Go to your profile"
               >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20 overflow-hidden flex-shrink-0">
                   {avatarSrc ? (
                     <img
                       src={avatarSrc}

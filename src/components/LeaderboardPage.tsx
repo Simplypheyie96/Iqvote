@@ -153,7 +153,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
 
     // Set column widths
     ws['!cols'] = [
-      { wch: 6 },  // Rank
+      { wch: 6 }, // Rank
       { wch: 20 }, // Name
       { wch: 20 }, // Role
       { wch: 20 }, // Department
@@ -161,7 +161,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
       { wch: 16 }, // 1st Place
       { wch: 16 }, // 2nd Place
       { wch: 16 }, // 3rd Place
-      { wch: 10 }  // Messages
+      { wch: 10 } // Messages
     ];
 
     const wb = XLSX.utils.book_new();
@@ -264,7 +264,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
         </div>
       ) : leaderboard.length === 0 ? (
         <div className="text-center py-16 px-4">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center">
             <Trophy className="w-10 h-10 text-primary/40" />
           </div>
           <h3 className="text-xl font-semibold mb-2">No Results Yet</h3>
@@ -294,7 +294,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
           {topThree.length > 0 && (
             <section className="mb-8 sm:mb-12 animate-fade-in" aria-labelledby="top-performers-heading">
               <div className="flex items-center gap-2 mb-8 sm:mb-10">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/20">
                   <Crown className="w-5 h-5 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold" id="top-performers-heading">Top Performers</h3>
@@ -303,9 +303,9 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 md:items-end">
                 {topThree.map((entry, index) => {
                   const config = [
-                    { Icon: Crown, gradient: 'from-amber-300 via-yellow-400 to-yellow-500', ring: 'ring-amber-400/50', glow: 'shadow-xl shadow-amber-500/20', order: 'md:order-2', elevate: 'md:-translate-y-5 md:scale-[1.05]', avatarBorder: 'border-amber-400/60', label: 'Champion', float: true },
-                    { Icon: Medal, gradient: 'from-slate-200 via-slate-300 to-slate-400', ring: 'ring-slate-300/50', glow: 'shadow-lg shadow-slate-400/20', order: 'md:order-1', elevate: '', avatarBorder: 'border-slate-300/60', label: 'Runner-up', float: false },
-                    { Icon: Award, gradient: 'from-orange-300 via-amber-500 to-amber-600', ring: 'ring-orange-400/50', glow: 'shadow-lg shadow-orange-500/20', order: 'md:order-3', elevate: '', avatarBorder: 'border-orange-400/60', label: 'Third place', float: false },
+                    { Icon: Crown, badge: 'bg-amber-400', ring: 'ring-amber-400', glow: 'shadow-lg', order: 'md:order-2', elevate: 'md:-translate-y-5 md:scale-[1.05]', avatarBorder: 'border-amber-400/60', label: 'Champion', float: true },
+                    { Icon: Medal, badge: 'bg-slate-300', ring: 'ring-slate-300', glow: '', order: 'md:order-1', elevate: '', avatarBorder: 'border-slate-300/60', label: 'Runner-up', float: false },
+                    { Icon: Award, badge: 'bg-amber-600', ring: 'ring-orange-400', glow: '', order: 'md:order-3', elevate: '', avatarBorder: 'border-orange-400/60', label: 'Third place', float: false },
                   ][index];
                   const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
@@ -321,7 +321,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                     >
                       {/* Rank medallion */}
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg ${config.float ? 'animate-float' : ''}`}>
+                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full ${config.badge} flex items-center justify-center shadow-md ${config.float ? 'animate-float' : ''}`}>
                           <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow" aria-hidden="true" />
                         </div>
                       </div>
@@ -332,7 +332,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         </span>
 
                         {/* Avatar */}
-                        <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mb-3 sm:mb-4 border-2 ${config.avatarBorder} overflow-hidden`}>
+                        <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-muted flex items-center justify-center mb-3 sm:mb-4 border-2 ${config.avatarBorder} overflow-hidden`}>
                           {entry.employee?.image_url ? (
                             <img
                               src={entry.employee.image_url}
@@ -412,7 +412,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
           {rest.length > 0 && (
             <section aria-labelledby="all-rankings-heading">
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border border-border">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center border border-border">
                   <Award className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold" id="all-rankings-heading">All Rankings</h3>
@@ -425,7 +425,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                   return (
                     <div
                       key={entry.employee_id}
-                      className="bg-card border border-border rounded-xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+                      className="bg-card border border-border rounded-xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg "
                       style={{ animationDelay: `${Math.min(idx, 12) * 40}ms` }}
                     >
                       <div className="flex items-start sm:items-center gap-3 sm:gap-4">
@@ -438,7 +438,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         
                         {/* Avatar & Info */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-muted/50 to-muted border border-border flex items-center justify-center">
+                          <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted/50 border border-border flex items-center justify-center">
                             {entry.employee?.image_url ? (
                               <img 
                                 src={entry.employee.image_url} 

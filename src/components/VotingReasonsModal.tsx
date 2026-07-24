@@ -31,7 +31,7 @@ export function VotingReasonsModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mb-4 p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex-shrink-0">
+        <div className="mb-4 p-4 rounded-lg bg-primary/10 border border-primary/20 flex-shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Total Points</p>

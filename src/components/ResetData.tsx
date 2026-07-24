@@ -62,10 +62,10 @@ export function ResetData() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-destructive/5">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="max-w-2xl w-full border-destructive/50">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-destructive to-destructive/70 flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-full bg-destructive flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-destructive-foreground" />
           </div>
           <CardTitle className="text-3xl">Reset All Data</CardTitle>

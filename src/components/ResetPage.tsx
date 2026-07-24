@@ -55,7 +55,7 @@ export function ResetPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="max-w-2xl w-full bg-white dark:bg-gray-900 rounded-lg shadow-2xl p-8">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🚨</div>
