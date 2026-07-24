@@ -308,7 +308,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         </div>
         
         {/* Progress indicator - Empty state */}
-        <div className="mb-8 bg-card border border-border rounded-xl p-4 sm:p-6 shadow-lg opacity-60">
+        <div className="mb-8 bg-card border border-border rounded-xl p-4 sm:p-6 opacity-60">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-medium text-muted-foreground">Your selections</span>
             <div className="flex items-center gap-2">
@@ -352,7 +352,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
           <h3 className="text-xl font-semibold mb-2">No Active Election</h3>
           <p className="text-muted-foreground max-w-md mx-auto mb-6">
             {pastElection 
-              ? `The "${pastElection.title}" election has ended. Check the Leaderboard to see the results, or wait for your administrator to create a new election.`
+              ? `The"${pastElection.title}" election has ended. Check the Leaderboard to see the results, or wait for your administrator to create a new election.`
               : 'There are no active elections at this time. Please contact your administrator to create an election and start voting.'}
           </p>
         </div>

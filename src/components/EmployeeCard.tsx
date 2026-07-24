@@ -86,7 +86,7 @@ export function EmployeeCard({
                 aria-label={`Vote ${label} place for ${employee.name}, ${points} points`}
                 className={`h-7 px-2.5 rounded-xl text-xs font-medium transition-colors disabled:opacity-40 disabled:pointer-events-none ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    ? 'bg-primary text-primary-foreground '
                     : 'text-muted-foreground hover:text-foreground hover:bg-background'
                 }`}
               >

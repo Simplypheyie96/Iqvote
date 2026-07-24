@@ -56,7 +56,7 @@ export function ResetPage() {
 
   return (
     <div className="min-h-screen bg-muted flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8">
+      <div className="max-w-2xl w-full bg-white dark:bg-gray-900 rounded-xl p-8">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🚨</div>
           <h1 className="text-red-600 dark:text-red-400 mb-2">Database Reset Tool</h1>

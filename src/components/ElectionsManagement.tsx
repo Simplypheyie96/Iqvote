@@ -120,7 +120,7 @@ export function ElectionsManagement() {
 
     try {
       await api.deleteElection(electionToDelete.id);
-      setSuccess(`Election "${electionToDelete.title}" deleted successfully!`);
+      setSuccess(`Election"${electionToDelete.title}" deleted successfully!`);
       setShowDeleteDialog(false);
       setElectionToDelete(null);
       setDeleteConfirmText('');
@@ -166,7 +166,7 @@ export function ElectionsManagement() {
       await api.updateElectionStatus(electionToUpdate.id, statusAction, newEndTime);
       
       const actionLabel = statusAction === 'close' ? 'closed' : 'reopened';
-      setSuccess(`Election "${electionToUpdate.title}" ${actionLabel} successfully!`);
+      setSuccess(`Election"${electionToUpdate.title}" ${actionLabel} successfully!`);
       setShowStatusDialog(false);
       setElectionToUpdate(null);
       loadData();
@@ -245,7 +245,7 @@ export function ElectionsManagement() {
           return (
             <div
               key={election.id}
-              className="rounded-xl border border-border bg-card/40 p-4 animate-fade-in-up transition-all duration-300 hover:border-primary/30 "
+              className="rounded-xl border border-border bg-card/40 p-4 animate-fade-in-up transition-all duration-300 hover:border-primary/30"
               style={{ animationDelay: `${Math.min(idx, 10) * 40}ms` }}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -459,7 +459,7 @@ export function ElectionsManagement() {
             <Card>
               <CardContent className="py-12">
                 <div className="text-center text-muted-foreground">
-                  {searchQuery ? `No elections match "${searchQuery}"` : 'No elections found'}
+                  {searchQuery ? `No elections match"${searchQuery}"` : 'No elections found'}
                 </div>
               </CardContent>
             </Card>

@@ -42,15 +42,15 @@ export function LeaderboardImport() {
       // Find employee name column (usually first)
       const nameColumnIndex = 0;
       
-      // Find month columns - they typically have "Points" in the name
-      // Format: "January Points", "February Points", etc.
+      // Find month columns - they typically have"Points" in the name
+      // Format:"January Points","February Points", etc.
       const monthColumns: { name: string; index: number; month: string }[] = [];
       
       headers.forEach((header, index) => {
         if (index === 0) return; // Skip name column
         if (header.toLowerCase().includes('total')) return; // Skip total column
         
-        // Extract month name from headers like "January Points", "# May Points", "April Points"
+        // Extract month name from headers like"January Points","# May Points","April Points"
         const match = header.match(/(January|February|March|April|May|June|July|August|September|October|November|December)/i);
         if (match) {
           monthColumns.push({
@@ -62,7 +62,7 @@ export function LeaderboardImport() {
       });
       
       if (monthColumns.length === 0) {
-        setError('No month columns found. Expected format: "Name of Employee, January Points, February Points, ..."');
+        setError('No month columns found. Expected format:"Name of Employee, January Points, February Points, ..."');
         return;
       }
       
@@ -270,7 +270,7 @@ Lope,15,18,8,5,10,91`;
               />
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Expected format: "Name of Employee, January Points, February Points, March Points, ..., Total Points"
+              Expected format:"Name of Employee, January Points, February Points, March Points, ..., Total Points"
             </p>
           </div>
 
@@ -389,7 +389,7 @@ Lope,15,18,8,5,10,91`;
             <li>Click <strong>File → Download → Comma Separated Values (.csv)</strong></li>
             <li>Upload the CSV file here</li>
             <li>Select which months you want to import</li>
-            <li>Click "Import" to create historical elections</li>
+            <li>Click"Import" to create historical elections</li>
           </ol>
           
           <Alert className="mt-4">

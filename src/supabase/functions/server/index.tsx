@@ -268,7 +268,7 @@ async function sendElectionNotificationEmails(election: any) {
     return { sent: 0, skipped: true };
   }
 
-  // Support multiple comma-separated sender emails e.g. "a@gmail.com,b@gmail.com"
+  // Support multiple comma-separated sender emails e.g."a@gmail.com,b@gmail.com"
   const senders = (Deno.env.get('BREVO_FROM_EMAIL') || '')
     .split(',')
     .map((s: string) => s.trim())
@@ -1281,7 +1281,7 @@ app.put('/make-server-e2c9f810/admin/elections/:id/status', async (c) => {
       election.reopened_by = user.id;
       
     } else {
-      return c.json({ error: 'Invalid action. Use "close" or "reopen"' }, 400);
+      return c.json({ error: 'Invalid action. Use"close" or"reopen"' }, 400);
     }
     
     election.updated_at = now.toISOString();
@@ -1305,7 +1305,7 @@ app.put('/make-server-e2c9f810/admin/elections/:id/status', async (c) => {
       }
     });
     
-    console.log(`Election "${election.title}" ${action}d by ${user.email}`);
+    console.log(`Election"${election.title}" ${action}d by ${user.email}`);
     
     return c.json({ election });
   } catch (error) {
@@ -2059,17 +2059,7 @@ app.post('/make-server-e2c9f810/demo/create', async (c) => {
     await kv.set(`election:${currentElectionId}`, currentElection);
     
     // Sample voting reasons
-    const voteReasons = [
-      "Outstanding leadership on the Q4 project. Always goes above and beyond!",
-      "Incredible problem solver and team player. Helped me debug a critical issue.",
-      "Mentored junior developers and created amazing documentation.",
-      "Great communication skills and always willing to help others.",
-      "Innovative thinking led to 30% performance improvement in our app.",
-      "Excellent customer service and positive attitude every day.",
-      "Delivered the mobile redesign ahead of schedule with zero bugs!",
-      "Best onboarding buddy ever! Made me feel welcome from day one.",
-      "Creative solutions to complex problems. A true asset to the team.",
-      "Consistently exceeds expectations and lifts team morale.",
+    const voteReasons = ["Outstanding leadership on the Q4 project. Always goes above and beyond!","Incredible problem solver and team player. Helped me debug a critical issue.","Mentored junior developers and created amazing documentation.","Great communication skills and always willing to help others.","Innovative thinking led to 30% performance improvement in our app.","Excellent customer service and positive attitude every day.","Delivered the mobile redesign ahead of schedule with zero bugs!","Best onboarding buddy ever! Made me feel welcome from day one.","Creative solutions to complex problems. A true asset to the team.","Consistently exceeds expectations and lifts team morale.",
     ];
     
     // Create ballots from 5 employees voting

@@ -323,7 +323,7 @@ export function VoteManagement() {
                   </div>
                 ) : (
                   <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                    No elections match "{electionSearch}"
+                    No elections match"{electionSearch}"
                   </div>
                 )}
               </div>

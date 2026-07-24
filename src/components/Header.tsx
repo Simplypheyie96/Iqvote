@@ -90,13 +90,13 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
             <>
               {/* Desktop Navigation */}
               <div className="hidden lg:flex items-center gap-2">
-                <nav className="flex items-center gap-1 p-1 rounded-xl bg-muted border border-border" role="navigation" aria-label="Main navigation">
+                <nav className="flex items-center gap-1 p-1 rounded-full bg-card border border-border" role="navigation" aria-label="Main navigation">
                   <Button
                     variant="ghost"
                     onClick={() => onNavigate('vote')}
                     aria-current={currentView === 'vote' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-xl aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
+                    className="rounded-full aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
                   >
                     Vote
                   </Button>
@@ -105,7 +105,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     onClick={() => onNavigate('leaderboard')}
                     aria-current={currentView === 'leaderboard' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-xl aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
+                    className="rounded-full aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
                   >
                     Leaderboard
                   </Button>
@@ -114,7 +114,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     onClick={() => onNavigate('profile')}
                     aria-current={currentView === 'profile' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-xl gap-1.5 aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
+                    className="rounded-xl gap-1.5 aria-[current=page]:bg-background aria-[current=page]:text-foreground"
                   >
                     <User className="w-3.5 h-3.5" />
                     Profile
@@ -125,7 +125,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                       onClick={() => onNavigate('admin')}
                       aria-current={currentView === 'admin' ? 'page' : undefined}
                       size="sm"
-                      className="rounded-xl gap-1.5 aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
+                      className="rounded-xl gap-1.5 aria-[current=page]:bg-background aria-[current=page]:text-foreground"
                     >
                       <Shield className="w-3.5 h-3.5" />
                       Admin
@@ -152,7 +152,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                       </Button>
 
                       {bellOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-border bg-card shadow-xl z-50 p-4 origin-top-right animate-scale-in">
+                        <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-border bg-popover shadow-lg z-50 p-4 origin-top-right animate-scale-in">
                           <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Active Election</p>
                           <p className="font-semibold text-sm text-foreground mb-1">{currentElection.title}</p>
                           <p className="text-xs text-muted-foreground mb-1">
@@ -177,7 +177,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     aria-label="Go to your profile"
                     onClick={() => onNavigate('profile')}
                   >
-                    <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20 overflow-hidden flex-shrink-0" aria-hidden="true">
+                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center border border-border overflow-hidden flex-shrink-0" aria-hidden="true">
                       {avatarSrc ? (
                         <img
                           src={avatarSrc}
@@ -186,7 +186,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                           onError={() => setImageError(true)}
                         />
                       ) : (
-                        <span className="text-xs font-bold text-primary">
+                        <span className="text-xs font-semibold text-muted-foreground">
                           {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                         </span>
                       )}
@@ -201,7 +201,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     variant="outline"
                     size="sm"
                     onClick={onSignOut}
-                    className="gap-2 rounded-xl"
+                    className="gap-2 rounded-full"
                     aria-label="Sign out of your account"
                   >
                     <LogOut className="w-4 h-4" aria-hidden="true" />
@@ -236,7 +236,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                 onClick={() => handleNavigate('profile')}
                 aria-label="Go to your profile"
               >
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20 overflow-hidden flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-border overflow-hidden flex-shrink-0">
                   {avatarSrc ? (
                     <img
                       src={avatarSrc}
@@ -245,7 +245,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                       onError={() => setImageError(true)}
                     />
                   ) : (
-                    <span className="text-sm font-bold text-primary">
+                    <span className="text-sm font-semibold text-muted-foreground">
                       {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                     </span>
                   )}

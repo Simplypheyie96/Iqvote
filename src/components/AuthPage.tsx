@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Vote, Trophy, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -110,46 +109,43 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* Left: brand hero panel */}
+    <div className="min-h-screen bg-background grid lg:grid-cols-2 lg:gap-6 lg:p-6">
+      {/* Left: inset brand panel (flat gradient, no shadows) */}
       <div
-        className="relative hidden lg:flex flex-col justify-between p-12 xl:p-16 text-white overflow-hidden lg:border-r border-white/5"
+        className="relative hidden lg:flex flex-col items-center justify-center text-center rounded-xl overflow-hidden text-white p-12"
         style={{
           background:
-            'radial-gradient(130% 90% at 15% 0%, rgba(255,26,136,0.22), transparent 55%), linear-gradient(160deg, #16233f 0%, #0b1220 62%)',
+            'radial-gradient(110% 70% at 50% 0%, rgba(255,26,136,0.25), transparent 58%), linear-gradient(180deg, #1a2947 0%, #0b1220 65%)',
         }}
       >
-        <div className="flex items-center gap-3">
-          <img src={logoImageDark} alt="IQ Vote" className="w-11 h-11 object-contain" />
+        <div className="flex items-center gap-2.5 mb-10">
+          <img src={logoImageDark} alt="IQ Vote" className="w-10 h-10 object-contain" />
           <span className="text-lg font-semibold tracking-tight">IQ Vote</span>
         </div>
 
-        <div>
-          <div className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/80 mb-6">
-            BrainDAO · Employee Recognition
-          </div>
-          <h1 className="text-4xl xl:text-[2.75rem] font-semibold leading-[1.08] tracking-tight mb-5">
-            Recognize the people who move <span className="text-primary">IQ</span> forward.
-          </h1>
-          <p className="text-base text-white/60 max-w-md">
-            Cast your monthly ranked vote for the colleagues doing standout work.
-          </p>
-        </div>
+        <h1 className="text-3xl xl:text-4xl font-semibold leading-tight tracking-tight max-w-md mb-3">
+          Recognize the people who move IQ forward.
+        </h1>
+        <p className="text-white/55 max-w-sm mb-12">
+          Complete these easy steps to cast your monthly vote.
+        </p>
 
-        <div className="grid gap-2.5">
-          {[
-            { Icon: Vote, t: 'Ranked voting', d: 'Pick your top three — 5, 3 and 2 points.' },
-            { Icon: Trophy, t: 'Live leaderboard', d: 'Results update as the team votes.' },
-            { Icon: ShieldCheck, t: 'Private & fair', d: 'One locked ballot, anonymous notes.' },
-          ].map(({ Icon, t, d }) => (
-            <div key={t} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 backdrop-blur-sm">
-              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                <Icon className="w-4 h-4 text-primary" aria-hidden="true" />
-              </div>
-              <div>
-                <div className="text-sm font-medium leading-tight">{t}</div>
-                <div className="text-[13px] text-white/50">{d}</div>
-              </div>
+        <div className="w-full max-w-sm space-y-3 text-left">
+          {['Sign in to your account', 'Rank your top three colleagues', 'Watch the live leaderboard'].map((step, i) => (
+            <div
+              key={step}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3.5 ${
+                i === 0 ? 'bg-white text-slate-900' : 'bg-white/[0.06] border border-white/10 text-white'
+              }`}
+            >
+              <span
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${
+                  i === 0 ? 'bg-slate-900 text-white' : 'bg-white/10 text-white'
+                }`}
+              >
+                {i + 1}
+              </span>
+              <span className="text-sm font-medium">{step}</span>
             </div>
           ))}
         </div>
@@ -164,9 +160,9 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
             <span className="text-lg font-semibold tracking-tight">IQ Vote</span>
           </div>
 
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold tracking-tight">Welcome back</h2>
-            <p className="text-sm text-muted-foreground mt-1">Sign in to cast your vote.</p>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold tracking-tight">Welcome to IQ Vote</h2>
+            <p className="text-sm text-muted-foreground mt-1.5">Sign in or create your account.</p>
           </div>
 
           {externalError && (

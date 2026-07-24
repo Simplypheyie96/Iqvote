@@ -317,7 +317,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                     <div
                       key={entry.employee_id}
                       className={`rounded-xl border p-4 sm:p-5 animate-fade-in-up transition-colors ${config.order} ${config.elevate} ${
-                        config.primary ? 'border-primary bg-primary/[0.05] shadow-sm' : 'border-border bg-card hover:border-primary/30'
+                        config.primary ? 'border-primary bg-primary/[0.05] ' : 'border-border bg-card hover:border-primary/30'
                       }`}
                       style={{ animationDelay: `${index * 80}ms` }}
                     >

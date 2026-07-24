@@ -584,13 +584,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-6 shadow-lg">
+        <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="mb-6 border-green-500/50 bg-green-500/10 shadow-lg">
+        <Alert className="mb-6 border-green-500/50 bg-green-500/10">
           <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
         </Alert>
       )}
@@ -1113,7 +1113,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               <Alert className="mb-6 border-blue-500/50 bg-blue-500/10">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
-                  <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click "Make Employee" to convert a user into a votable employee.
+                  <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click"Make Employee" to convert a user into a votable employee.
                 </AlertDescription>
               </Alert>
 
