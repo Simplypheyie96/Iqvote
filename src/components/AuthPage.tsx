@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Vote, Trophy, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -110,36 +111,44 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* Left: brand panel */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 xl:p-16 bg-[#101d35] text-white lg:border-r border-white/5">
+      {/* Left: brand hero panel */}
+      <div
+        className="relative hidden lg:flex flex-col justify-between p-12 xl:p-16 text-white overflow-hidden lg:border-r border-white/5"
+        style={{
+          background:
+            'radial-gradient(130% 90% at 15% 0%, rgba(255,26,136,0.22), transparent 55%), linear-gradient(160deg, #16233f 0%, #0b1220 62%)',
+        }}
+      >
         <div className="flex items-center gap-3">
           <img src={logoImageDark} alt="IQ Vote" className="w-11 h-11 object-contain" />
           <span className="text-lg font-semibold tracking-tight">IQ Vote</span>
         </div>
 
         <div>
-          <div className="inline-flex items-center rounded-full border border-white/15 px-3 py-1 text-xs font-medium text-white/70 mb-6">
+          <div className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/80 mb-6">
             BrainDAO · Employee Recognition
           </div>
           <h1 className="text-4xl xl:text-[2.75rem] font-semibold leading-[1.08] tracking-tight mb-5">
             Recognize the people who move <span className="text-primary">IQ</span> forward.
           </h1>
-          <p className="text-base text-white/55 max-w-md">
+          <p className="text-base text-white/60 max-w-md">
             Cast your monthly ranked vote for the colleagues doing standout work.
           </p>
         </div>
 
-        <div className="grid gap-3.5">
+        <div className="grid gap-2.5">
           {[
-            { t: 'Ranked voting', d: 'Pick your top three — 5, 3 and 2 points.' },
-            { t: 'Live leaderboard', d: 'Results update as the team votes.' },
-            { t: 'Private & fair', d: 'One locked ballot, anonymous notes.' },
-          ].map((f) => (
-            <div key={f.t} className="flex items-start gap-3">
-              <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" aria-hidden="true" />
+            { Icon: Vote, t: 'Ranked voting', d: 'Pick your top three — 5, 3 and 2 points.' },
+            { Icon: Trophy, t: 'Live leaderboard', d: 'Results update as the team votes.' },
+            { Icon: ShieldCheck, t: 'Private & fair', d: 'One locked ballot, anonymous notes.' },
+          ].map(({ Icon, t, d }) => (
+            <div key={t} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 backdrop-blur-sm">
+              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                <Icon className="w-4 h-4 text-primary" aria-hidden="true" />
+              </div>
               <div>
-                <div className="text-sm font-medium leading-tight">{f.t}</div>
-                <div className="text-sm text-white/45">{f.d}</div>
+                <div className="text-sm font-medium leading-tight">{t}</div>
+                <div className="text-[13px] text-white/50">{d}</div>
               </div>
             </div>
           ))}

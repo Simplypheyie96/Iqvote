@@ -300,13 +300,14 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                 <h3 className="text-lg sm:text-xl font-bold" id="top-performers-heading">Top Performers</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:items-start">
                 {topThree.map((entry, index) => {
                   const config = [
-                    { primary: true, label: 'Champion' },
-                    { primary: false, label: 'Runner-up' },
-                    { primary: false, label: 'Third place' },
+                    { primary: true, label: 'Champion', order: 'md:order-2', elevate: 'md:-translate-y-3', Icon: Crown },
+                    { primary: false, label: 'Runner-up', order: 'md:order-1', elevate: '', Icon: Trophy },
+                    { primary: false, label: 'Third place', order: 'md:order-3', elevate: '', Icon: Trophy },
                   ][index];
+                  const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
                   const messageCount = (entry as any).message_count || 0;
                   const initials = (entry.employee?.name || '?')
@@ -315,8 +316,8 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                   return (
                     <div
                       key={entry.employee_id}
-                      className={`rounded-xl border p-4 sm:p-5 animate-fade-in-up transition-colors ${
-                        config.primary ? 'border-primary bg-primary/[0.05]' : 'border-border bg-card hover:border-primary/30'
+                      className={`rounded-xl border p-4 sm:p-5 animate-fade-in-up transition-colors ${config.order} ${config.elevate} ${
+                        config.primary ? 'border-primary bg-primary/[0.05] shadow-sm' : 'border-border bg-card hover:border-primary/30'
                       }`}
                       style={{ animationDelay: `${index * 80}ms` }}
                     >
@@ -347,26 +348,26 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                             {config.label}{entry.employee?.role ? ` · ${entry.employee.role}` : ''}
                           </div>
                         </div>
-                        <Trophy className={`w-5 h-5 flex-shrink-0 ${config.primary ? 'text-primary' : 'text-muted-foreground/40'}`} aria-hidden="true" />
+                        <Icon className={`w-5 h-5 flex-shrink-0 ${config.primary ? 'text-primary' : 'text-muted-foreground/40'}`} aria-hidden="true" />
                       </div>
 
                       {/* Stat row */}
-                      <div className="grid grid-cols-4 rounded-xl border border-border overflow-hidden bg-muted/20 divide-x divide-border">
-                        <div className="px-2 py-2.5 text-center">
-                          <div className="text-base font-semibold tabular-nums leading-none">{entry.total_points}</div>
-                          <div className="text-[11px] text-muted-foreground mt-1">Points</div>
+                      <div className="grid grid-cols-4 rounded-xl border border-border overflow-hidden divide-x divide-border">
+                        <div className={`px-2 py-3 text-center ${config.primary ? 'bg-primary/10' : 'bg-muted/30'}`}>
+                          <div className={`text-2xl font-bold tabular-nums leading-none ${config.primary ? 'text-primary' : 'text-foreground'}`}>{entry.total_points}</div>
+                          <div className="text-xs text-muted-foreground mt-1.5">Points</div>
                         </div>
-                        <div className="px-2 py-2.5 text-center">
-                          <div className="text-base font-semibold tabular-nums leading-none">{entry.count_first}</div>
-                          <div className="text-[11px] text-muted-foreground mt-1">1st</div>
+                        <div className="px-2 py-3 text-center bg-muted/20">
+                          <div className="text-lg font-semibold tabular-nums leading-none">{entry.count_first}</div>
+                          <div className="text-xs text-muted-foreground mt-1.5">1st</div>
                         </div>
-                        <div className="px-2 py-2.5 text-center">
-                          <div className="text-base font-semibold tabular-nums leading-none">{entry.count_second}</div>
-                          <div className="text-[11px] text-muted-foreground mt-1">2nd</div>
+                        <div className="px-2 py-3 text-center bg-muted/20">
+                          <div className="text-lg font-semibold tabular-nums leading-none">{entry.count_second}</div>
+                          <div className="text-xs text-muted-foreground mt-1.5">2nd</div>
                         </div>
-                        <div className="px-2 py-2.5 text-center">
-                          <div className="text-base font-semibold tabular-nums leading-none">{entry.count_third}</div>
-                          <div className="text-[11px] text-muted-foreground mt-1">3rd</div>
+                        <div className="px-2 py-3 text-center bg-muted/20">
+                          <div className="text-lg font-semibold tabular-nums leading-none">{entry.count_third}</div>
+                          <div className="text-xs text-muted-foreground mt-1.5">3rd</div>
                         </div>
                       </div>
 

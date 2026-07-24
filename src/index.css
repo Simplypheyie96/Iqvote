@@ -180,6 +180,11 @@
   0% { transform: translateX(-120%) skewX(-15deg); }
   60%, 100% { transform: translateX(220%) skewX(-15deg); }
 }
+/* Thematic loader — podium bars rising like a leaderboard */
+@keyframes podium-rise {
+  0%, 100% { transform: scaleY(0.35); opacity: 0.45; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
 
 /* ------------------------------------------------------------------ */
 /*  Reusable helpers                                                    */
