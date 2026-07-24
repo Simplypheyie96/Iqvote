@@ -6,7 +6,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Alert, AlertDescription } from './ui/alert';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { LoadingSpinner } from './LoadingSpinner';
+import { Skeleton } from './ui/skeleton';
 import { projectId } from '../utils/supabase/info';
 import { createClient } from '../utils/supabase/client';
 
@@ -180,8 +180,21 @@ export function SystemActivity() {
             <Eye className="w-5 h-5 text-primary" />
             System Activity Monitor
           </CardTitle>
-          <CardDescription>Loading activity logs...</CardDescription>
+          <CardDescription>Loading activity logs…</CardDescription>
         </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-start gap-3 p-4 rounded-lg border border-border">
+                <Skeleton className="w-9 h-9 rounded-lg flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
       </Card>
     );
   }
@@ -235,7 +248,7 @@ export function SystemActivity() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             <Input
               type="text"
               placeholder="Search activities..."
@@ -247,7 +260,7 @@ export function SystemActivity() {
               value={filterType}
               onValueChange={(value) => setFilterType(value)}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40 flex-shrink-0">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
@@ -264,7 +277,7 @@ export function SystemActivity() {
               value={filterAction}
               onValueChange={(value) => setFilterAction(value)}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40 flex-shrink-0">
                 <SelectValue placeholder="Filter by action" />
               </SelectTrigger>
               <SelectContent>
@@ -302,7 +315,7 @@ export function SystemActivity() {
                   .map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-start gap-3 p-4 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors"
+                      className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-accent/40 transition-colors"
                     >
                       <div className={`p-2 rounded-lg border ${getActivityColor(activity.type)}`}>
                         {getActivityIcon(activity.type)}

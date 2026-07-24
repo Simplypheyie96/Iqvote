@@ -192,23 +192,15 @@ export function ElectionsManagement() {
     switch (status) {
       case 'active':
         return (
-          <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 hover:bg-green-500/20">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
+          <Badge variant="success">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-0.5 animate-pulse"></span>
             Active
           </Badge>
         );
       case 'upcoming':
-        return (
-          <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20">
-            Upcoming
-          </Badge>
-        );
+        return <Badge variant="info">Upcoming</Badge>;
       case 'past':
-        return (
-          <Badge variant="secondary">
-            Completed
-          </Badge>
-        );
+        return <Badge variant="secondary">Completed</Badge>;
     }
   }
 
@@ -247,117 +239,92 @@ export function ElectionsManagement() {
     }
 
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="text-left py-3 px-4 font-semibold text-sm">Election Title</th>
-              <th className="text-left py-3 px-4 font-semibold text-sm">Status</th>
-              <th className="text-left py-3 px-4 font-semibold text-sm">Start Date</th>
-              <th className="text-left py-3 px-4 font-semibold text-sm">End Date</th>
-              <th className="text-left py-3 px-4 font-semibold text-sm">Created</th>
-              <th className="text-left py-3 px-4 font-semibold text-sm">Candidates</th>
-              <th className="text-left py-3 px-4 font-semibold text-sm">Votes</th>
-              <th className="text-right py-3 px-4 font-semibold text-sm">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {elections.map((election) => {
-              const status = getElectionStatus(election);
-              return (
-                <tr 
-                  key={election.id}
-                  className="border-b border-border hover:bg-muted/30 transition-colors"
-                >
-                  <td className="py-4 px-4">
-                    <div className="font-medium">{election.title}</div>
-                  </td>
-                  <td className="py-4 px-4">
+      <div className="space-y-3">
+        {elections.map((election, idx) => {
+          const status = getElectionStatus(election);
+          return (
+            <div
+              key={election.id}
+              className="rounded-xl border border-border bg-card/40 p-4 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+              style={{ animationDelay: `${Math.min(idx, 10) * 40}ms` }}
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                {/* Info */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <h4 className="font-semibold truncate">{election.title}</h4>
                     {getStatusBadge(status)}
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {new Date(election.start_time).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {new Date(election.end_time).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="w-3.5 h-3.5" />
-                      {new Date(election.created_at).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users className="w-3.5 h-3.5" />
-                      {election.eligible_employees?.length || 0}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Vote className="w-3.5 h-3.5" />
-                      {election.voteCount || 0}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {(status === 'active' || status === 'upcoming') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openStatusDialog(election, 'close')}
-                          className="gap-1.5 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400"
-                        >
-                        <X className="w-3 h-3" />
-                          Close
-                        </Button>
-                      )}
-                      {status === 'past' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openStatusDialog(election, 'reopen')}
-                          className="gap-1.5 hover:border-green-500/50 hover:text-green-600 dark:hover:text-green-400"
-                        >
-                          <Play className="w-3 h-3" />
-                          Reopen
-                        </Button>
-                      )}
-                      {status === 'active' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleNotify(election)}
-                          disabled={notifyingId === election.id}
-                          className="gap-1.5 hover:border-primary/50 hover:text-primary"
-                          title="Send reminder email to all users"
-                        >
-                          <Bell className="w-3 h-3" />
-                          {notifyingId === election.id ? 'Sending…' : 'Notify All'}
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openDeleteDialog(election)}
-                        className="gap-1.5 hover:border-destructive/50 hover:text-destructive"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" /> Start {new Date(election.start_time).toLocaleDateString()}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" /> End {new Date(election.end_time).toLocaleDateString()}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" /> Created {new Date(election.created_at).toLocaleDateString()}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5" /> {election.eligible_employees?.length || 0} candidates
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Vote className="w-3.5 h-3.5" /> {election.voteCount || 0} votes
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap lg:justify-end">
+                  {(status === 'active' || status === 'upcoming') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openStatusDialog(election, 'close')}
+                      className="gap-1.5 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400"
+                    >
+                      <X className="w-3 h-3" />
+                      Close
+                    </Button>
+                  )}
+                  {status === 'past' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openStatusDialog(election, 'reopen')}
+                      className="gap-1.5 hover:border-green-500/50 hover:text-green-600 dark:hover:text-green-400"
+                    >
+                      <Play className="w-3 h-3" />
+                      Reopen
+                    </Button>
+                  )}
+                  {status === 'active' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleNotify(election)}
+                      disabled={notifyingId === election.id}
+                      className="gap-1.5 hover:border-primary/50 hover:text-primary"
+                      title="Send reminder email to all users"
+                    >
+                      <Bell className="w-3 h-3" />
+                      {notifyingId === election.id ? 'Sending…' : 'Notify All'}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openDeleteDialog(election)}
+                    className="gap-1.5 hover:border-destructive/50 hover:text-destructive"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }
