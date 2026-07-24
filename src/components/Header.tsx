@@ -69,8 +69,8 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
 
           {user && (
             <>
-              {/* Desktop navigation — plain text pills, evenly spaced */}
-              <nav className="hidden lg:flex items-center gap-1" role="navigation" aria-label="Main navigation">
+              {/* Desktop navigation — boxed tab/pill group with breathing room */}
+              <nav className="hidden lg:flex items-center gap-1 p-1 rounded-full border border-border bg-card" role="navigation" aria-label="Main navigation">
                 {navItems.map(({ key, label }) => (
                   <button
                     key={key}
@@ -140,12 +140,12 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                 </button>
 
                 <button
-                  className="w-9 h-9 rounded-full border border-border bg-card grid place-items-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  className="h-9 rounded-full border border-border bg-card px-4 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                   onClick={onSignOut}
                   aria-label="Sign out of your account"
-                  title="Sign out"
                 >
                   <LogOut className="w-4 h-4" aria-hidden="true" />
+                  <span>Sign Out</span>
                 </button>
               </div>
 

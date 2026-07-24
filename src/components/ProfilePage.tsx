@@ -211,7 +211,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
           <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
+              <div className="w-20 h-20 rounded-full bg-muted border-2 border-border flex items-center justify-center overflow-hidden">
                 {avatarSrc ? (
                   <img
                     src={avatarSrc}
@@ -220,7 +220,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
                     onError={() => setImageError(true)}
                   />
                 ) : (
-                  <span className="text-2xl font-bold text-primary">{initials}</span>
+                  <span className="text-2xl font-semibold text-muted-foreground">{initials}</span>
                 )}
               </div>
             </div>
@@ -398,7 +398,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
             <CardTitle className="text-3xl">{myVotes.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="bg-primary/10 border-primary/20 animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
+        <Card className="bg-muted/30 border-border animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Points Received</CardDescription>
             <CardTitle className="text-3xl text-primary">{totalPointsReceived}</CardTitle>
@@ -484,13 +484,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
                               .map((sel) => (
                                 <div
                                   key={sel.rank}
-                                  className={`p-4 rounded-xl border ${
-                                    sel.rank === 1
-                                      ? 'bg-primary/10 border-primary/20'
-                                      : sel.rank === 2
-                                      ? 'bg-primary/8 border-primary/15'
-                                      : 'bg-muted/30 border-border'
-                                  }`}
+                                  className={`p-4 rounded-xl border bg-muted/30 border-border`}
                                 >
                                   <div className="flex items-center gap-2 mb-2">
                                     <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-xs flex-shrink-0">
@@ -502,10 +496,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
                                   </div>
                                   <p className="font-bold text-lg mb-0.5 truncate">{sel.employee.name}</p>
                                   <p className="text-xs text-muted-foreground mb-2 truncate">{sel.employee.role}</p>
-                                  <Badge
-                                    className={sel.rank === 1 ? 'bg-primary' : sel.rank === 2 ? 'bg-primary/60' : ''}
-                                    variant={sel.rank === 3 ? 'outline' : undefined}
-                                  >
+                                  <Badge variant="outline">
                                     {sel.points} pts
                                   </Badge>
                                 </div>
@@ -565,7 +556,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
                       {expanded && (
                         <CardContent className="pt-4 pb-4">
                           <div className="grid sm:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                            <div className="p-4 rounded-xl bg-muted/30 border border-border">
                               <p className="text-xs text-muted-foreground mb-1">Points Received</p>
                               <p className="text-3xl font-bold text-primary">{vote.total_points}</p>
                             </div>

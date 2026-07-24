@@ -103,9 +103,9 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
 
   function getPointsBadge(points: number) {
     if (points >= 5) {
-      return <Badge className="bg-primary">{points} pts</Badge>;
+      return <Badge variant="outline">{points} pts</Badge>;
     } else if (points >= 3) {
-      return <Badge variant="secondary">{points} pts</Badge>;
+      return <Badge variant="outline">{points} pts</Badge>;
     } else {
       return <Badge variant="outline">{points} pts</Badge>;
     }
@@ -169,7 +169,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
           </CardHeader>
         </Card>
 
-        <Card className="bg-primary/10 border-primary/20 animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
+        <Card className="bg-muted/30 border-border animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Points Received</CardDescription>
             <CardTitle className="text-3xl text-primary">{totalPointsReceived}</CardTitle>
@@ -252,13 +252,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                             .map((selection) => (
                               <div
                                 key={selection.rank}
-                                className={`p-4 rounded-xl border ${
-                                  selection.rank === 1 
-                                    ? 'bg-primary/10 border-primary/20'
-                                    : selection.rank === 2
-                                    ? 'bg-primary/8 border-primary/15'
-                                    : 'bg-muted/30 border-border'
-                                }`}
+                                className={`p-4 rounded-xl border bg-muted/30 border-border`}
                               >
                                 <div className="flex items-center gap-2 mb-2">
                                   <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-xs flex-shrink-0">
@@ -270,13 +264,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                                 </div>
                                 <p className="font-bold text-lg mb-0.5 truncate">{selection.employee.name}</p>
                                 <p className="text-xs text-muted-foreground mb-2 truncate">{selection.employee.role}</p>
-                                <Badge className={
-                                  selection.rank === 1 
-                                    ? 'bg-primary'
-                                    : selection.rank === 2
-                                    ? 'bg-primary/60'
-                                    : ''
-                                } variant={selection.rank === 3 ? 'outline' : undefined}>
+                                <Badge variant="outline">
                                   {selection.points} pts
                                 </Badge>
                               </div>
@@ -345,7 +333,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                     {isExpanded && (
                       <CardContent className="pt-4 pb-4">
                         <div className="grid sm:grid-cols-2 gap-4">
-                          <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                          <div className="p-4 rounded-xl bg-muted/30 border border-border">
                             <p className="text-xs text-muted-foreground mb-1">Points Received</p>
                             <p className="text-3xl font-bold text-primary">{vote.total_points}</p>
                           </div>
