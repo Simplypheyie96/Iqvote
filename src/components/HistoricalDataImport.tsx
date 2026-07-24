@@ -331,7 +331,7 @@ Bob Johnson,bob@example.com,32,1,2,3`;
               {csvPreview.length > 0 && (
                 <div className="space-y-2">
                   <Label>Preview ({csvPreview.length} rows)</Label>
-                  <div className="border border-border rounded-lg overflow-hidden">
+                  <div className="border border-border rounded-xl overflow-hidden">
                     <div className="max-h-64 overflow-auto">
                       <table className="w-full text-sm">
                         <thead className="bg-muted/50 sticky top-0">
@@ -439,7 +439,7 @@ Bob Johnson,bob@example.com,32,1,2,3`;
                 </div>
 
                 {manualEntries.map((entry, index) => (
-                  <div key={index} className="p-4 border border-border rounded-lg space-y-3 bg-card">
+                  <div key={index} className="p-4 border border-border rounded-xl space-y-3 bg-card">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor={`name-${index}`}>Employee Name *</Label>

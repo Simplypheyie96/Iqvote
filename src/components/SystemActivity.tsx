@@ -185,8 +185,8 @@ export function SystemActivity() {
         <CardContent>
           <div className="space-y-3">
             {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-start gap-3 p-4 rounded-lg border border-border">
-                <Skeleton className="w-9 h-9 rounded-lg flex-shrink-0" />
+              <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border">
+                <Skeleton className="w-9 h-9 rounded-xl flex-shrink-0" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-1/3" />
@@ -317,7 +317,7 @@ export function SystemActivity() {
                       key={activity.id}
                       className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-accent/40 transition-colors"
                     >
-                      <div className={`p-2 rounded-lg border ${getActivityColor(activity.type)}`}>
+                      <div className={`p-2 rounded-xl border ${getActivityColor(activity.type)}`}>
                         {getActivityIcon(activity.type)}
                       </div>
                       

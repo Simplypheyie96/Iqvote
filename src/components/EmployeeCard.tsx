@@ -45,7 +45,7 @@ export function EmployeeCard({
       aria-label={`${employee.name}, ${employee.role}`}
     >
       <div
-        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
           isSelectedAny ? 'bg-primary/[0.06]' : 'hover:bg-muted/60'
         }`}
       >
@@ -69,7 +69,7 @@ export function EmployeeCard({
 
         {/* Rank selector — compact segmented control */}
         <div
-          className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5 flex-shrink-0"
+          className="flex items-center gap-0.5 rounded-xl bg-muted p-0.5 flex-shrink-0"
           role="group"
           aria-label={`Vote for ${employee.name}`}
         >
@@ -84,7 +84,7 @@ export function EmployeeCard({
                 title={`${label} place · ${points} points`}
                 aria-pressed={isSelected}
                 aria-label={`Vote ${label} place for ${employee.name}, ${points} points`}
-                className={`h-7 px-2.5 rounded-md text-xs font-medium transition-colors disabled:opacity-40 disabled:pointer-events-none ${
+                className={`h-7 px-2.5 rounded-xl text-xs font-medium transition-colors disabled:opacity-40 disabled:pointer-events-none ${
                   isSelected
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background'

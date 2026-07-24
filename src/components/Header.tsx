@@ -90,13 +90,13 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
             <>
               {/* Desktop Navigation */}
               <div className="hidden lg:flex items-center gap-2">
-                <nav className="flex items-center gap-1 p-1 rounded-lg bg-muted" role="navigation" aria-label="Main navigation">
+                <nav className="flex items-center gap-1 p-1 rounded-xl bg-muted border border-border" role="navigation" aria-label="Main navigation">
                   <Button
                     variant={currentView === 'vote' ? 'default' : 'ghost'}
                     onClick={() => onNavigate('vote')}
                     aria-current={currentView === 'vote' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-md"
+                    className="rounded-xl"
                   >
                     Vote
                   </Button>
@@ -105,7 +105,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     onClick={() => onNavigate('leaderboard')}
                     aria-current={currentView === 'leaderboard' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-md"
+                    className="rounded-xl"
                   >
                     Leaderboard
                   </Button>
@@ -114,7 +114,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     onClick={() => onNavigate('profile')}
                     aria-current={currentView === 'profile' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-md gap-1.5"
+                    className="rounded-xl gap-1.5"
                   >
                     <User className="w-3.5 h-3.5" />
                     Profile
@@ -125,7 +125,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                       onClick={() => onNavigate('admin')}
                       aria-current={currentView === 'admin' ? 'page' : undefined}
                       size="sm"
-                      className="rounded-md gap-1.5"
+                      className="rounded-xl gap-1.5"
                     >
                       <Shield className="w-3.5 h-3.5" />
                       Admin
@@ -138,9 +138,9 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                   {currentElection && (
                     <div ref={bellRef} className="relative">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="rounded-full w-9 h-9"
+                        className="rounded-full w-9 h-9 p-0"
                         onClick={() => setBellOpen(v => !v)}
                         aria-label="Election notification"
                       >
@@ -173,7 +173,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                   <ThemeToggle />
                   
                   <button
-                    className="hidden xl:flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-muted/50 ml-1 hover:bg-muted/80 transition-colors cursor-pointer"
+                    className="hidden xl:flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-border bg-card ml-1 hover:bg-accent transition-colors cursor-pointer"
                     aria-label="Go to your profile"
                     onClick={() => onNavigate('profile')}
                   >
@@ -197,11 +197,11 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     </div>
                   </button>
                   
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={onSignOut} 
-                    className="gap-2 rounded-md"
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onSignOut}
+                    className="gap-2 rounded-xl"
                     aria-label="Sign out of your account"
                   >
                     <LogOut className="w-4 h-4" aria-hidden="true" />
@@ -232,7 +232,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
             <div className="flex flex-col gap-2">
               {/* User Info - clickable to profile */}
               <button
-                className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/50 mb-2 w-full text-left hover:bg-muted/80 transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-xl bg-muted/50 mb-2 w-full text-left hover:bg-muted/80 transition-colors"
                 onClick={() => handleNavigate('profile')}
                 aria-label="Go to your profile"
               >
@@ -258,7 +258,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
 
               {/* Active election banner */}
               {currentElection && (
-                <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 mb-1">
+                <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 mb-1">
                   <p className="text-xs font-semibold text-primary flex items-center gap-1.5 mb-1">
                     <Bell className="w-3 h-3" /> Active Election
                   </p>

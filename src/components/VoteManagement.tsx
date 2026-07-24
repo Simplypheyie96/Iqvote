@@ -274,7 +274,7 @@ export function VoteManagement() {
 
             {/* Compact Results Dropdown */}
             {electionSearch && (
-              <div className="border border-border rounded-lg bg-card max-h-64 overflow-y-auto">
+              <div className="border border-border rounded-xl bg-card max-h-64 overflow-y-auto">
                 {filteredElections.length > 0 ? (
                   <div className="divide-y divide-border">
                     {filteredElections.slice(0, 50).map(election => {
@@ -331,7 +331,7 @@ export function VoteManagement() {
 
             {/* Currently Selected Election */}
             {selectedElectionId && !electionSearch && (
-              <div className="p-4 bg-primary/5 border-2 border-primary rounded-lg">
+              <div className="p-4 bg-primary/5 border-2 border-primary rounded-xl">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-muted-foreground mb-1">Currently Viewing</div>
@@ -551,7 +551,7 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                           isSelected
                             ? 'border-primary bg-primary/10'
                             : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
@@ -591,7 +591,7 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                           isSelected
                             ? 'border-primary bg-primary/10'
                             : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
@@ -630,7 +630,7 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                           isSelected
                             ? 'border-primary bg-primary/10'
                             : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
@@ -677,7 +677,7 @@ export function VoteManagement() {
 
           {ballotToDelete && (
             <div className="space-y-4 overflow-y-auto flex-1 pr-2">
-              <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="p-3 bg-muted/50 rounded-xl">
                 <div className="font-semibold mb-1">{ballotToDelete.voter?.name}</div>
                 <div className="text-sm text-muted-foreground">{ballotToDelete.voter?.email}</div>
               </div>
@@ -686,27 +686,27 @@ export function VoteManagement() {
                 <Label className="mb-3 block">Select reason for deletion *</Label>
                 <RadioGroup value={deleteReasonPreset} onValueChange={setDeleteReasonPreset}>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Duplicate vote" id="duplicate" />
                       <Label htmlFor="duplicate" className="cursor-pointer flex-1">Duplicate vote</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Voter requested removal" id="voter-request" />
                       <Label htmlFor="voter-request" className="cursor-pointer flex-1">Voter requested removal</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Error correction" id="error" />
                       <Label htmlFor="error" className="cursor-pointer flex-1">Error correction</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Policy violation" id="policy" />
                       <Label htmlFor="policy" className="cursor-pointer flex-1">Policy violation</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Invalid submission" id="invalid" />
                       <Label htmlFor="invalid" className="cursor-pointer flex-1">Invalid submission</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="other" id="other" />
                       <Label htmlFor="other" className="cursor-pointer flex-1">Other (specify below)</Label>
                     </div>

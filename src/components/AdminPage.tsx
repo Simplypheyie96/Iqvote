@@ -601,7 +601,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
-              <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center">
                 <Users className="w-4 h-4 text-blue-500" />
               </div>
             </div>
@@ -618,7 +618,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
-              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
                 <Trophy className="w-4 h-4 text-primary" />
               </div>
             </div>
@@ -635,7 +635,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
-              <div className="w-8 h-8 rounded-lg bg-green-500/15 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-green-500/15 flex items-center justify-center">
                 <Activity className="w-4 h-4 text-green-500" />
               </div>
             </div>
@@ -652,7 +652,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
-              <div className="w-8 h-8 rounded-lg bg-purple-500/15 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/15 flex items-center justify-center">
                 <Award className="w-4 h-4 text-purple-500" />
               </div>
             </div>
@@ -770,7 +770,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                       </Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 bg-muted/30 border border-border rounded-lg">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 bg-muted/30 border border-border rounded-xl">
                     {employees.filter(e => e.active).map(employee => (
                       <div key={employee.id} className="flex items-start gap-2">
                         <Checkbox
@@ -979,7 +979,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                       </div>
 
                       {editingEmployee && (
-                        <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-lg border border-border">
+                        <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-xl border border-border">
                           <div className="flex items-center gap-3">
                             <Shield className="w-5 h-5 text-primary" />
                             <div>
@@ -1021,7 +1021,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 {employees.map(employee => (
                   <div
                     key={employee.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
+                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-all"
                   >
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
@@ -1039,7 +1039,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                         <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
                           <span className="truncate">{employee.name}</span>
                           {employee.is_admin && employee.email !== 'ajayifey@gmail.com' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
                               <Shield className="w-3 h-3" />
                               Admin
                             </span>
@@ -1123,7 +1123,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                   return (
                     <div
                       key={user.id}
-                      className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
+                      className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-all"
                     >
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
@@ -1133,13 +1133,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                           <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
                             <span className="truncate">{user.name}</span>
                             {user.is_admin && user.email !== 'ajayifey@gmail.com' && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
                                 <Shield className="w-3 h-3" />
                                 Admin
                               </span>
                             )}
                             {isEmployee && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-xs flex-shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-xs flex-shrink-0">
                                 <Users className="w-3 h-3" />
                                 Employee
                               </span>
@@ -1169,7 +1169,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                             Make Employee
                           </Button>
                         )}
-                        <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 sm:p-0 bg-muted/30 sm:bg-transparent rounded-lg sm:rounded-none border sm:border-0">
+                        <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 sm:p-0 bg-muted/30 sm:bg-transparent rounded-xl sm:rounded-none border sm:border-0">
                           <Label htmlFor={`admin-${user.id}`} className="text-sm cursor-pointer">
                             Admin
                           </Label>
@@ -1319,7 +1319,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="rounded-lg border border-border bg-muted/40 p-4">
+                <div className="rounded-xl border border-border bg-muted/40 p-4">
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-primary font-bold mt-0.5">•</span>
@@ -1349,7 +1349,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                   <Label htmlFor="new-password" className="text-sm font-medium">
                     New Password
                   </Label>
-                  <div className="flex rounded-md border border-border overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+                  <div className="flex rounded-xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
                     <input
                       id="new-password"
                       type="text"

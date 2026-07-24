@@ -479,7 +479,7 @@ export function ElectionsManagement() {
 
           {electionToDelete && (
             <div className="space-y-4">
-              <div className="p-4 bg-muted/50 rounded-lg">
+              <div className="p-4 bg-muted/50 rounded-xl">
                 <div className="font-semibold mb-2">{electionToDelete.title}</div>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <div>Start: {new Date(electionToDelete.start_time).toLocaleDateString()}</div>
@@ -555,7 +555,7 @@ export function ElectionsManagement() {
 
           {electionToUpdate && (
             <div className="space-y-4">
-              <div className="p-4 bg-muted/50 rounded-lg">
+              <div className="p-4 bg-muted/50 rounded-xl">
                 <div className="font-semibold mb-2">{electionToUpdate.title}</div>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <div>Start: {new Date(electionToUpdate.start_time).toLocaleDateString()}</div>

@@ -30,10 +30,10 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className="rounded-full hover:bg-accent relative overflow-hidden"
+      className="rounded-full w-9 h-9 relative overflow-hidden"
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       <Moon
