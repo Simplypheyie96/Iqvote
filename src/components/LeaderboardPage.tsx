@@ -187,8 +187,8 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
       {/* Header with Time Filters */}
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+          <div className="animate-fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
               Leaderboard
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground">
@@ -292,105 +292,109 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
         <div id="leaderboard-content" role="tabpanel" aria-labelledby="leaderboard-title">
           {/* Top 3 Podium */}
           {topThree.length > 0 && (
-            <section className="mb-8 sm:mb-12" aria-labelledby="top-performers-heading">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border border-border">
-                  <Crown className="w-5 h-5 text-foreground" aria-hidden="true" />
+            <section className="mb-8 sm:mb-12 animate-fade-in" aria-labelledby="top-performers-heading">
+              <div className="flex items-center gap-2 mb-8 sm:mb-10">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+                  <Crown className="w-5 h-5 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold" id="top-performers-heading">Top Performers</h3>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 md:items-end">
                 {topThree.map((entry, index) => {
-                  const icons = [Trophy, Medal, Award];
-                  const Icon = icons[index];
-                  const gradients = [
-                    'from-yellow-400 via-yellow-500 to-yellow-600',
-                    'from-slate-300 via-slate-400 to-slate-500',
-                    'from-amber-600 via-orange-600 to-orange-700'
-                  ];
-                  
+                  const config = [
+                    { Icon: Crown, gradient: 'from-amber-300 via-yellow-400 to-yellow-500', ring: 'ring-amber-400/50', glow: 'shadow-xl shadow-amber-500/20', order: 'md:order-2', elevate: 'md:-translate-y-5 md:scale-[1.05]', avatarBorder: 'border-amber-400/60', label: 'Champion', float: true },
+                    { Icon: Medal, gradient: 'from-slate-200 via-slate-300 to-slate-400', ring: 'ring-slate-300/50', glow: 'shadow-lg shadow-slate-400/20', order: 'md:order-1', elevate: '', avatarBorder: 'border-slate-300/60', label: 'Runner-up', float: false },
+                    { Icon: Award, gradient: 'from-orange-300 via-amber-500 to-amber-600', ring: 'ring-orange-400/50', glow: 'shadow-lg shadow-orange-500/20', order: 'md:order-3', elevate: '', avatarBorder: 'border-orange-400/60', label: 'Third place', float: false },
+                  ][index];
+                  const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
-                  
+                  const messageCount = (entry as any).message_count || 0;
+
                   return (
                     <div
                       key={entry.employee_id}
-                      className="relative bg-card border border-border rounded-2xl p-4 sm:p-6 transition-all hover:border-border/80"
+                      className={`relative bg-card border rounded-2xl p-4 sm:p-6 pt-9 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 ${config.order} ${config.elevate} ${
+                        index === 0 ? `border-transparent ring-2 ${config.ring} ${config.glow}` : 'border-border hover:border-primary/30'
+                      }`}
+                      style={{ animationDelay: `${index * 90}ms` }}
                     >
-                      {/* Rank badge */}
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br ${gradients[index]} flex items-center justify-center shadow-md`}>
-                          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                      {/* Rank medallion */}
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg ${config.float ? 'animate-float' : ''}`}>
+                          <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow" aria-hidden="true" />
                         </div>
                       </div>
-                      
-                      <div className="flex flex-col items-center text-center pt-4 sm:pt-6">
+
+                      <div className="flex flex-col items-center text-center pt-3">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                          #{entry.rank} · {config.label}
+                        </span>
+
                         {/* Avatar */}
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mb-3 sm:mb-4 border-2 border-border">
+                        <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mb-3 sm:mb-4 border-2 ${config.avatarBorder} overflow-hidden`}>
                           {entry.employee?.image_url ? (
-                            <img 
-                              src={entry.employee.image_url} 
+                            <img
+                              src={entry.employee.image_url}
                               alt={entry.employee.name}
                               className="w-full h-full rounded-full object-cover"
                             />
                           ) : (
-                            <User className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" />
+                            <User className="w-9 h-9 sm:w-11 sm:h-11 text-muted-foreground" />
                           )}
                         </div>
-                        
+
                         {/* Name & Role */}
-                        <h3 className="mb-1 text-base sm:text-lg">{entry.employee?.name}</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
+                        <h3 className="mb-1 text-base sm:text-lg font-semibold">{entry.employee?.name}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5">
                           {entry.employee?.role}
                         </p>
-                        
+
                         {/* Points breakdown */}
                         <div className="w-full space-y-3">
-                          <div className="bg-muted/50 rounded-lg p-3 sm:p-4 border border-border">
-                            <div className="text-2xl sm:text-3xl mb-1 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                          <div className="bg-muted/50 rounded-xl p-3 sm:p-4 border border-border">
+                            <div className="text-3xl sm:text-4xl font-bold text-gradient-primary leading-none">
                               {entry.total_points}
                             </div>
-                            <div className="text-xs text-muted-foreground">Total Points</div>
+                            <div className="text-xs text-muted-foreground mt-1.5">Total Points</div>
                           </div>
-                          
+
                           <div className="grid grid-cols-3 gap-2">
                             <div className="bg-muted/30 rounded-lg p-2 sm:p-3 border border-border">
-                              <div className="text-base sm:text-lg mb-1">{entry.count_first}</div>
+                              <div className="text-base sm:text-lg font-semibold mb-0.5">{entry.count_first}</div>
                               <div className="text-xs text-muted-foreground">1st</div>
                             </div>
                             <div className="bg-muted/30 rounded-lg p-2 sm:p-3 border border-border">
-                              <div className="text-base sm:text-lg mb-1">{entry.count_second}</div>
+                              <div className="text-base sm:text-lg font-semibold mb-0.5">{entry.count_second}</div>
                               <div className="text-xs text-muted-foreground">2nd</div>
                             </div>
                             <div className="bg-muted/30 rounded-lg p-2 sm:p-3 border border-border">
-                              <div className="text-base sm:text-lg mb-1">{entry.count_third}</div>
+                              <div className="text-base sm:text-lg font-semibold mb-0.5">{entry.count_third}</div>
                               <div className="text-xs text-muted-foreground">3rd</div>
                             </div>
                           </div>
 
-                          {/* Message Button - Always show */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const messageCount = (entry as any).message_count || 0;
-                              if (messageCount > 0) {
+                          {/* Message button — only when there are messages */}
+                          {messageCount > 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
                                 setSelectedEmployee({
                                   name: entry.employee?.name || 'Unknown',
                                   messages: (entry as any).messages || [],
-                                  totalPoints: entry.total_points
+                                  totalPoints: entry.total_points,
                                 });
                                 setReasonsModalOpen(true);
-                              }
-                            }}
-                            className="w-full flex items-center justify-center gap-1.5"
-                            disabled={(entry as any).message_count === 0}
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                            <span className="text-xs sm:text-sm">{(entry as any).message_count || 0} Messages</span>
-                          </Button>
+                              }}
+                              className="w-full flex items-center justify-center gap-1.5"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                              <span className="text-xs sm:text-sm">{messageCount} {messageCount === 1 ? 'Message' : 'Messages'}</span>
+                            </Button>
+                          )}
                         </div>
-                        
+
                         {isCurrentUser && (
                           <div className="mt-3 sm:mt-4 flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 sm:px-3 py-1 rounded-full">
                             <Star className="w-3 h-3 fill-current" />
@@ -415,13 +419,14 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
               </div>
               
               <div className="space-y-3">
-                {rest.map((entry) => {
+                {rest.map((entry, idx) => {
                   const isCurrentUser = entry.employee_id === currentUser.id;
-                  
+
                   return (
                     <div
                       key={entry.employee_id}
-                      className="bg-card border border-border rounded-xl p-4 sm:p-5 transition-all hover:border-border/80"
+                      className="bg-card border border-border rounded-xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+                      style={{ animationDelay: `${Math.min(idx, 12) * 40}ms` }}
                     >
                       <div className="flex items-start sm:items-center gap-3 sm:gap-4">
                         {/* Rank Badge */}
