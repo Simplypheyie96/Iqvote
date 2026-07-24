@@ -1,31 +1,9 @@
-import { useEffect } from 'react';
-
-// Apply theme immediately before React renders
+// IQ Vote ships dark-only — the brand theme. Applied before React renders
+// so there is never a light flash.
 if (typeof window !== 'undefined') {
-  const savedTheme = localStorage.getItem('theme');
-  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  const theme = savedTheme || systemTheme;
-  
-  if (theme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
+  document.documentElement.classList.add('dark');
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    // Apply theme on mount
-    const savedTheme = localStorage.getItem('theme');
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const theme = savedTheme || systemTheme;
-    
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
   return <>{children}</>;
 }

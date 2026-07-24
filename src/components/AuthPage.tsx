@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { createClient } from '../utils/supabase/client';
 import { api } from '../utils/api';
 import { LoadingSpinner } from './LoadingSpinner';
-import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
 
 interface AuthPageProps {
@@ -20,26 +19,6 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState(false);
-
-  // Detect theme changes
-  useEffect(() => {
-    const checkTheme = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    };
-    
-    // Check initial theme
-    checkTheme();
-    
-    // Watch for theme changes
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, { 
-      attributes: true, 
-      attributeFilter: ['class'] 
-    });
-    
-    return () => observer.disconnect();
-  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>, isSignUp: boolean) {
     e.preventDefault();
@@ -156,7 +135,7 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
         <div className="w-full max-w-[400px]">
           {/* Mobile brand */}
           <div className="lg:hidden flex items-center justify-center gap-2.5 mb-8">
-            <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote" className="w-9 h-9 object-contain" />
+            <img src={logoImageDark} alt="IQ Vote" className="w-9 h-9 object-contain" />
             <span className="text-lg font-semibold tracking-tight">IQ Vote</span>
           </div>
 
