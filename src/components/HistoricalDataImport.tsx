@@ -332,7 +332,7 @@ Bob Johnson,bob@example.com,32,1,2,3`;
                 <div className="space-y-2">
                   <Label>Preview ({csvPreview.length} rows)</Label>
                   <div className="border border-border rounded-lg overflow-hidden">
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="max-h-64 overflow-auto">
                       <table className="w-full text-sm">
                         <thead className="bg-muted/50 sticky top-0">
                           <tr>
