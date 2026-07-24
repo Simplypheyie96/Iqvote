@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Trophy, Medal, Award, User, Crown, Star, MessageCircle, Calendar, Download } from 'lucide-react';
+import { Trophy, Award, User, Crown, Star, MessageCircle, Calendar, Download } from 'lucide-react';
 import { Employee, Election, LeaderboardEntry } from '../types';
 import { api } from '../utils/api';
 import { Alert, AlertDescription } from './ui/alert';
@@ -303,36 +303,39 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 md:items-end">
                 {topThree.map((entry, index) => {
                   const config = [
-                    { Icon: Crown, badge: 'bg-amber-400', ring: 'ring-amber-400', glow: 'shadow-lg', order: 'md:order-2', elevate: 'md:-translate-y-5 md:scale-[1.05]', avatarBorder: 'border-amber-400/60', label: 'Champion', float: true },
-                    { Icon: Medal, badge: 'bg-slate-300', ring: 'ring-slate-300', glow: '', order: 'md:order-1', elevate: '', avatarBorder: 'border-slate-300/60', label: 'Runner-up', float: false },
-                    { Icon: Award, badge: 'bg-amber-600', ring: 'ring-orange-400', glow: '', order: 'md:order-3', elevate: '', avatarBorder: 'border-orange-400/60', label: 'Third place', float: false },
+                    { order: 'md:order-2', elevate: 'md:-translate-y-4', primary: true, label: 'Champion' },
+                    { order: 'md:order-1', elevate: '', primary: false, label: 'Runner-up' },
+                    { order: 'md:order-3', elevate: '', primary: false, label: 'Third place' },
                   ][index];
-                  const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
                   const messageCount = (entry as any).message_count || 0;
 
                   return (
                     <div
                       key={entry.employee_id}
-                      className={`relative bg-card border rounded-xl p-4 sm:p-6 pt-9 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 ${config.order} ${config.elevate} ${
-                        index === 0 ? `border-transparent ring-2 ${config.ring} ${config.glow}` : 'border-border hover:border-primary/30'
+                      className={`relative bg-card border rounded-2xl p-5 sm:p-6 pt-9 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 ${config.order} ${config.elevate} ${
+                        config.primary ? 'border-primary/40 ring-1 ring-primary/15 shadow-sm' : 'border-border hover:border-primary/30'
                       }`}
                       style={{ animationDelay: `${index * 90}ms` }}
                     >
-                      {/* Rank medallion */}
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full ${config.badge} flex items-center justify-center shadow-md ${config.float ? 'animate-float' : ''}`}>
-                          <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow" aria-hidden="true" />
+                      {/* Rank badge */}
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold border-4 border-card ${
+                          config.primary ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
+                        }`}>
+                          {entry.rank}
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-center text-center pt-3">
+                      <div className="flex flex-col items-center text-center pt-2">
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                          #{entry.rank} · {config.label}
+                          {config.label}
                         </span>
 
                         {/* Avatar */}
-                        <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-muted flex items-center justify-center mb-3 sm:mb-4 border-2 ${config.avatarBorder} overflow-hidden`}>
+                        <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-muted flex items-center justify-center mb-3 sm:mb-4 border overflow-hidden ${
+                          config.primary ? 'border-primary/40 ring-2 ring-primary/15' : 'border-border'
+                        }`}>
                           {entry.employee?.image_url ? (
                             <img
                               src={entry.employee.image_url}
@@ -353,10 +356,10 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         {/* Points breakdown */}
                         <div className="w-full space-y-3">
                           <div className="bg-muted/50 rounded-xl p-3 sm:p-4 border border-border">
-                            <div className="text-3xl sm:text-4xl font-bold text-gradient-primary leading-none">
+                            <div className="text-3xl sm:text-4xl font-bold text-foreground leading-none tabular-nums">
                               {entry.total_points}
                             </div>
-                            <div className="text-xs text-muted-foreground mt-1.5">Total Points</div>
+                            <div className="text-xs text-muted-foreground mt-1.5">Total points</div>
                           </div>
 
                           <div className="grid grid-cols-3 gap-2">

@@ -470,24 +470,41 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
               <span className="text-xs text-muted-foreground tabular-nums">{selections.size}/3</span>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {[1, 2, 3].map(rank => {
                 const selected = selections.get(rank);
                 const employee = selected ? employees.find(e => e.id === selected) : null;
                 const points = rank === 1 ? 5 : rank === 2 ? 3 : 2;
                 const label = rank === 1 ? '1st' : rank === 2 ? '2nd' : '3rd';
+                const initials = employee
+                  ? employee.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                  : '';
                 return (
                   <div
                     key={rank}
-                    className={`flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
+                    className={`flex items-center gap-2.5 rounded-xl border px-2.5 py-2 transition-colors ${
                       employee ? 'border-border bg-muted/40' : 'border-dashed border-border'
                     }`}
                   >
-                    <span className="text-xs font-medium text-muted-foreground w-6 flex-shrink-0">{label}</span>
-                    <span className={`flex-1 min-w-0 truncate text-sm ${employee ? 'font-medium' : 'text-muted-foreground'}`}>
-                      {employee ? employee.name : 'Empty'}
-                    </span>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">{points} pt</span>
+                    {employee ? (
+                      <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center text-[10px] font-medium text-muted-foreground flex-shrink-0">
+                        {employee.image_url ? (
+                          <img src={employee.image_url} alt={employee.name} className="w-full h-full object-cover" />
+                        ) : (
+                          initials
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full border border-dashed border-border flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">
+                        {rank}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate text-sm ${employee ? 'font-medium' : 'text-muted-foreground'}`}>
+                        {employee ? employee.name : 'Empty'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{label} · {points} pt</div>
+                    </div>
                   </div>
                 );
               })}

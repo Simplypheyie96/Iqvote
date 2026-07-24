@@ -34,7 +34,7 @@
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-display: "Inter", system-ui, -apple-system, sans-serif;
 
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
   /* Motion system -------------------------------------------------- */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -54,26 +54,27 @@
 
 /* Dark mode token overrides */
 .dark {
-  --color-background: #0a0a0a;
-  --color-foreground: #ededed;
-  --color-muted: #171717;
-  --color-muted-foreground: #a1a1a1;
-  --color-popover: #161616;
-  --color-popover-foreground: #ededed;
-  --color-card: #0e0e0e;
-  --color-card-foreground: #ededed;
-  --color-border: #262626;
-  --color-input: #2a2a2a;
-  --color-input-background: #0e0e0e;
+  /* Brand dark theme — deep navy (not black), refined neutrals */
+  --color-background: #0b1220;
+  --color-foreground: #f8fafc;
+  --color-muted: #1a2436;
+  --color-muted-foreground: #94a3b8;
+  --color-popover: #141d2e;
+  --color-popover-foreground: #f8fafc;
+  --color-card: #111a2b;
+  --color-card-foreground: #f8fafc;
+  --color-border: #26324a;
+  --color-input: #2b3852;
+  --color-input-background: #0f1829;
   --color-primary: #ff1a88;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #171717;
-  --color-secondary-foreground: #ededed;
-  --color-accent: #1c1c1c;
-  --color-accent-foreground: #ededed;
+  --color-secondary: #1a2436;
+  --color-secondary-foreground: #f8fafc;
+  --color-accent: #1e2a40;
+  --color-accent-foreground: #f8fafc;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-ring: #d4d4d4;
+  --color-ring: #cbd5e1;
 
   color-scheme: dark;
 }

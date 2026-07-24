@@ -109,18 +109,57 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-10">
-      <div className="w-full max-w-[380px]">
-        {/* Brand + heading */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote" className="w-10 h-10 object-contain mb-5" />
-          <h1 className="text-xl font-semibold tracking-tight">Sign in to IQ Vote</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">
-            Cast your monthly vote for standout colleagues.
-          </p>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
+      {/* Left: brand panel */}
+      <div className="relative hidden lg:flex flex-col justify-between p-12 xl:p-16 bg-[#101d35] text-white lg:border-r border-white/5">
+        <div className="flex items-center gap-3">
+          <img src={logoImageDark} alt="IQ Vote" className="w-11 h-11 object-contain" />
+          <span className="text-lg font-semibold tracking-tight">IQ Vote</span>
         </div>
 
         <div>
+          <div className="inline-flex items-center rounded-full border border-white/15 px-3 py-1 text-xs font-medium text-white/70 mb-6">
+            BrainDAO · Employee Recognition
+          </div>
+          <h1 className="text-4xl xl:text-[2.75rem] font-semibold leading-[1.08] tracking-tight mb-5">
+            Recognize the people who move <span className="text-primary">IQ</span> forward.
+          </h1>
+          <p className="text-base text-white/55 max-w-md">
+            Cast your monthly ranked vote for the colleagues doing standout work.
+          </p>
+        </div>
+
+        <div className="grid gap-3.5">
+          {[
+            { t: 'Ranked voting', d: 'Pick your top three — 5, 3 and 2 points.' },
+            { t: 'Live leaderboard', d: 'Results update as the team votes.' },
+            { t: 'Private & fair', d: 'One locked ballot, anonymous notes.' },
+          ].map((f) => (
+            <div key={f.t} className="flex items-start gap-3">
+              <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" aria-hidden="true" />
+              <div>
+                <div className="text-sm font-medium leading-tight">{f.t}</div>
+                <div className="text-sm text-white/45">{f.d}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right: form */}
+      <div className="flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12">
+        <div className="w-full max-w-[400px]">
+          {/* Mobile brand */}
+          <div className="lg:hidden flex items-center justify-center gap-2.5 mb-8">
+            <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote" className="w-9 h-9 object-contain" />
+            <span className="text-lg font-semibold tracking-tight">IQ Vote</span>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold tracking-tight">Welcome back</h2>
+            <p className="text-sm text-muted-foreground mt-1">Sign in to cast your vote.</p>
+          </div>
+
           {externalError && (
             <Alert variant="destructive" className="mb-6">
               <AlertDescription>{externalError}</AlertDescription>
