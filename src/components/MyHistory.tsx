@@ -152,7 +152,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
           My Voting History
         </h2>
         <p className="text-sm sm:text-base text-muted-foreground">
@@ -162,21 +162,21 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className="border-border">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '0ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Votes Cast</CardDescription>
             <CardTitle className="text-3xl">{totalVotesCast}</CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className="border-border">
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Points Received</CardDescription>
             <CardTitle className="text-3xl text-primary">{totalPointsReceived}</CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className="border-border">
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '160ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Elections Participated</CardDescription>
             <CardTitle className="text-3xl">{myVotes.length}</CardTitle>

@@ -246,7 +246,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
                 {pastElection ? pastElection.title : 'Employee of the Month Voting'}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -388,7 +388,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2" id="voting-title">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2" id="voting-title">
               {election.title}
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground" id="voting-description">

@@ -47,7 +47,6 @@ export function SystemActivity() {
           console.error('Session error in SystemActivity:', sessionError);
           // If it's a refresh token error, clear and return
           if (sessionError.message.includes('Refresh Token')) {
-            console.log('Invalid refresh token detected in SystemActivity');
             await supabase.auth.signOut();
             return;
           }
@@ -75,8 +74,6 @@ export function SystemActivity() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Activity data received:', data);
-        console.log('Number of activities:', data.activities?.length || 0);
         setActivities(data.activities || []);
       } else {
         console.error('Failed to load activities:', response.status, response.statusText);

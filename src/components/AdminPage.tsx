@@ -556,7 +556,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
             Admin Dashboard
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground">
@@ -597,11 +597,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 shadow-lg">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '0ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
-              <Users className="w-4 h-4 text-blue-500" />
+              <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
+                <Users className="w-4 h-4 text-blue-500" />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -612,11 +614,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg">
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
-              <Trophy className="w-4 h-4 text-primary" />
+              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+                <Trophy className="w-4 h-4 text-primary" />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -627,11 +631,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 shadow-lg">
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '160ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
-              <Activity className="w-4 h-4 text-green-500" />
+              <div className="w-8 h-8 rounded-lg bg-green-500/15 flex items-center justify-center">
+                <Activity className="w-4 h-4 text-green-500" />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -642,11 +648,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20 shadow-lg">
+        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '240ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
-              <Award className="w-4 h-4 text-purple-500" />
+              <div className="w-8 h-8 rounded-lg bg-purple-500/15 flex items-center justify-center">
+                <Award className="w-4 h-4 text-purple-500" />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -1247,8 +1255,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
                 {userToDelete?.email === 'ajayifey@gmail.com' && (
                   <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
                     <AlertDescription className="font-semibold">
-                      ⚠️ This is the system owner account. Deleting it is not recommended!
+                      This is the system owner account. Deleting it is not recommended!
                     </AlertDescription>
                   </Alert>
                 )}
@@ -1329,8 +1338,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
                 {userToResetPassword?.email === 'ajayifey@gmail.com' && (
                   <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
                     <AlertDescription className="font-semibold">
-                      ⚠️ This is the system owner account. Resetting the password is not recommended!
+                      This is the system owner account. Resetting the password is not recommended!
                     </AlertDescription>
                   </Alert>
                 )}
