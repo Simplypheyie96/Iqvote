@@ -382,213 +382,137 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2" id="voting-title">
-              {election.title}
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground" id="voting-description">
-              Vote for your colleagues — make every vote count
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-muted/50 border border-border self-start sm:self-auto" role="status" aria-live="polite">
-            <Clock className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
-            <div className="text-sm">
-              <div className="text-xs text-muted-foreground">Time remaining</div>
-              <div className="font-semibold whitespace-nowrap" aria-label={`Time remaining: ${timeRemaining}`}>{timeRemaining}</div>
-            </div>
-          </div>
+      <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight truncate" id="voting-title">
+            {election.title}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1" id="voting-description">
+            Rank your top three colleagues — 1st is worth 5 points, 2nd 3, 3rd 2. Your ballot locks once submitted.
+          </p>
         </div>
-        
-        {success && (
-          <Alert className="border-primary/50 bg-primary/10 shadow-lg " role="status" aria-live="polite">
-            <CheckCircle2 className="h-4 w-4 text-primary" aria-hidden="true" />
-            <AlertDescription className="text-foreground font-medium">{success}</AlertDescription>
-          </Alert>
-        )}
-        
-        {error && (
-          <Alert variant="destructive" className="shadow-lg" role="alert" aria-live="assertive">
-            <AlertCircle className="h-4 w-4" aria-hidden="true" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+
+        <div className="shrink-0 inline-flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-sm" role="status" aria-live="polite">
+          <Clock className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+          <span className="font-medium tabular-nums whitespace-nowrap" aria-label={`Time remaining: ${timeRemaining}`}>{timeRemaining}</span>
+        </div>
       </div>
 
-      {/* Instructions */}
-      <div className="bg-accent border border-border rounded-xl p-6 mb-8" role="region" aria-labelledby="instructions-heading">
-        <div>
-          <h4 className="flex items-center gap-2 mb-3 font-semibold" id="instructions-heading">
-            <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-            </div>
-            How to vote
-          </h4>
-          <ul className="text-sm text-muted-foreground space-y-2 ml-8">
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>Select one employee for each rank: 1st place (5 points), 2nd place (3 points), 3rd place (2 points)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>You must choose three distinct employees</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>You can vote for yourself if you wish</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span><strong>Important:</strong> Once submitted, your vote cannot be changed</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      
-      {/* Validation status */}
-      {validationErrors.length > 0 && !canSubmit() && (
-        <Alert className="mb-6 border-yellow-500/50 bg-yellow-500/10 shadow-lg" role="alert" aria-live="polite">
-          <AlertCircle className="h-4 w-4 text-yellow-500" aria-hidden="true" />
-          <AlertDescription className="text-yellow-600 dark:text-yellow-400 font-medium">
-            {validationErrors.join(' • ')}
-          </AlertDescription>
+      {success && (
+        <Alert className="mb-4" role="status" aria-live="polite">
+          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription className="font-medium">{success}</AlertDescription>
         </Alert>
       )}
-      
-      {/* Progress indicator */}
-      <div className="mb-8 bg-card border border-border rounded-xl p-4 sm:p-6 shadow-lg animate-fade-in-up" role="status" aria-live="polite" aria-label={`Vote progress: ${selections.size} of 3 selections made`}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-muted-foreground">Your selections</span>
-          <div className="flex items-center gap-2">
-            {canSubmit() ? (
-              <span className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Ready to submit
-              </span>
+      {error && (
+        <Alert variant="destructive" className="mb-4" role="alert" aria-live="assertive">
+          <AlertCircle className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid lg:grid-cols-[1fr_320px] gap-6 lg:gap-8 items-start">
+        {/* Left: candidate list */}
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Candidates
+            </h2>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {eligibleEmployees.filter(e => e.active).length}
+            </span>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card divide-y divide-border" role="list" aria-labelledby="voting-title">
+            {eligibleEmployees.filter(e => e.active).length === 0 ? (
+              <div className="text-center py-14 px-4">
+                <h3 className="text-sm font-medium mb-1">No candidates yet</h3>
+                <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                  No employees are eligible for this election yet. Contact an administrator to add them.
+                </p>
+              </div>
             ) : (
-              <span className="text-sm sm:text-base font-semibold text-foreground">{selections.size} <span className="text-muted-foreground font-normal">of 3</span></span>
+              eligibleEmployees.filter(e => e.active).map((employee, idx) => {
+                const selectedRank = getSelectedRank(employee.id);
+                return (
+                  <div key={employee.id} role="listitem" className="px-2 py-1.5">
+                    <EmployeeCard
+                      employee={employee}
+                      index={idx}
+                      selectedRank={selectedRank}
+                      onSelectRank={(rank) => handleSelectRank(employee.id, rank)}
+                      disabled={hasVoted}
+                      reason={selectedRank ? reasons.get(selectedRank) : undefined}
+                      onReasonChange={selectedRank && !hasVoted ? (reason) => {
+                        const newReasons = new Map(reasons);
+                        if (reason.trim()) {
+                          newReasons.set(selectedRank, reason);
+                        } else {
+                          newReasons.delete(selectedRank);
+                        }
+                        setReasons(newReasons);
+                      } : undefined}
+                    />
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
-        {/* Animated progress bar */}
-        <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-4">
-          <div
-            className={`h-full rounded-full transition-all duration-700 ease-out ${canSubmit() ? 'bg-green-500' : 'bg-primary'}`}
-            style={{ width: `${(selections.size / 3) * 100}%` }}
-          />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[1, 2, 3].map(rank => {
-            const selected = selections.get(rank);
-            const employee = selected ? employees.find(e => e.id === selected) : null;
-            const points = rank === 1 ? 5 : rank === 2 ? 3 : 2;
-            const icon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
-            
-            return (
-              <div
-                key={rank}
-                className={`relative p-4 rounded-lg border transition-all duration-300 ${
-                  selected 
-                    ? 'bg-primary/10 border-primary/30 shadow-lg ' 
-                    : 'bg-muted/30 border-border'
-                }`}
-                role="status"
-                aria-label={`${rank}${rank === 1 ? 'st' : rank === 2 ? 'nd' : 'rd'} place: ${employee ? employee.name : 'Not selected'}`}
-              >
-                <div className="flex items-center gap-3">
-                  {/* Employee image or emoji */}
-                  {employee?.image_url ? (
-                    <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 border border-primary/20">
-                      <img 
-                        src={employee.image_url} 
-                        alt={employee.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute -bottom-1 -right-1 text-base sm:text-lg">
-                        {icon}
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-2xl sm:text-2xl flex-shrink-0">{icon}</span>
-                  )}
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {rank}{rank === 1 ? 'st' : rank === 2 ? 'nd' : 'rd'} place
-                    </div>
-                    <div className="text-sm sm:text-sm font-semibold truncate">
-                      {employee ? (
-                        <span className="block truncate">{employee.name}</span>
-                      ) : (
-                        <span className="text-muted-foreground">Not selected</span>
-                      )}
-                    </div>
-                  </div>
-                  {selected && (
-                    <div className="text-xs text-primary font-medium flex-shrink-0">{points} pts</div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Employee list */}
-      <div className="space-y-3 mb-6" role="list" aria-labelledby="voting-title">
-        {eligibleEmployees.filter(e => e.active).length === 0 ? (
-          <div className="text-center py-12 bg-card border border-border rounded-xl">
-            <div className="text-6xl mb-4">📭</div>
-            <h3 className="mb-2">No Employees Available</h3>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto">
-              There are no employees eligible for this election yet. Please contact an administrator to add employees.
+        {/* Right: ballot summary */}
+        <aside className="lg:sticky lg:top-24">
+          <div className="rounded-xl border border-border bg-card p-4" role="status" aria-live="polite" aria-label={`Ballot: ${selections.size} of 3 selected`}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold">Your ballot</h2>
+              <span className="text-xs text-muted-foreground tabular-nums">{selections.size}/3</span>
+            </div>
+
+            <div className="space-y-1.5">
+              {[1, 2, 3].map(rank => {
+                const selected = selections.get(rank);
+                const employee = selected ? employees.find(e => e.id === selected) : null;
+                const points = rank === 1 ? 5 : rank === 2 ? 3 : 2;
+                const label = rank === 1 ? '1st' : rank === 2 ? '2nd' : '3rd';
+                return (
+                  <div
+                    key={rank}
+                    className={`flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
+                      employee ? 'border-border bg-muted/40' : 'border-dashed border-border'
+                    }`}
+                  >
+                    <span className="text-xs font-medium text-muted-foreground w-6 flex-shrink-0">{label}</span>
+                    <span className={`flex-1 min-w-0 truncate text-sm ${employee ? 'font-medium' : 'text-muted-foreground'}`}>
+                      {employee ? employee.name : 'Empty'}
+                    </span>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">{points} pt</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {!hasVoted && (
+              <Button
+                onClick={() => setShowConfirmation(true)}
+                disabled={!canSubmit()}
+                className="w-full mt-4"
+                aria-label="Review and submit your ballot"
+              >
+                Review &amp; submit
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground text-center mt-2.5">
+              {hasVoted
+                ? 'Your ballot is locked.'
+                : canSubmit()
+                ? 'Review it before it locks for good.'
+                : 'Pick 1st, 2nd and 3rd to continue.'}
             </p>
           </div>
-        ) : (
-          eligibleEmployees.filter(e => e.active).map((employee, idx) => {
-            const selectedRank = getSelectedRank(employee.id);
-            return (
-              <div key={employee.id} role="listitem">
-                <EmployeeCard
-                  employee={employee}
-                  index={idx}
-                  selectedRank={selectedRank}
-                  onSelectRank={(rank) => handleSelectRank(employee.id, rank)}
-                  disabled={hasVoted}
-                  reason={selectedRank ? reasons.get(selectedRank) : undefined}
-                  onReasonChange={selectedRank && !hasVoted ? (reason) => {
-                    const newReasons = new Map(reasons);
-                    if (reason.trim()) {
-                      newReasons.set(selectedRank, reason);
-                    } else {
-                      newReasons.delete(selectedRank);
-                    }
-                    setReasons(newReasons);
-                  } : undefined}
-                />
-              </div>
-            );
-          })
-        )}
+        </aside>
       </div>
-
-      {/* Confirmation and submit */}
-      {canSubmit() && !showConfirmation && !hasVoted && (
-        <div className="sticky bottom-6 flex justify-center">
-          <Button
-            size="lg"
-            onClick={() => setShowConfirmation(true)}
-            className="gap-2 shadow-2xl transition-all duration-300 hover:scale-105 px-8"
-            aria-label="Review and submit your ballot"
-          >
-            <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
-            Review & Submit Ballot
-          </Button>
-        </div>
-      )}
 
       <Dialog open={showConfirmation} onOpenChange={(open) => { if (!open) setShowConfirmation(false); }}>
         <DialogContent className="max-w-md">

@@ -1,0 +1,5 @@
+
+# Dev-only screenshot harness (not part of the app)
+/preview.html
+src/_preview.tsx
+node_modules/.vite/

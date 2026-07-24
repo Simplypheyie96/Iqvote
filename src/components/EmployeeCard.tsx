@@ -1,8 +1,6 @@
-import { User, Check, Award, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { Employee } from '../types';
-import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
-import { Label } from './ui/label';
 
 interface EmployeeCardProps {
   employee: Employee;
@@ -16,31 +14,9 @@ interface EmployeeCardProps {
 }
 
 const RANKS = [
-  {
-    rank: 1,
-    label: '1st',
-    points: 5,
-    emoji: '🥇',
-    // Selected-button treatment (metallic gold)
-    selected: 'bg-amber-300 text-amber-950 border-transparent shadow-lg ',
-    ring: 'ring-amber-400/50',
-  },
-  {
-    rank: 2,
-    label: '2nd',
-    points: 3,
-    emoji: '🥈',
-    selected: 'bg-slate-200 text-slate-800 border-transparent shadow-lg ',
-    ring: 'ring-slate-400/50',
-  },
-  {
-    rank: 3,
-    label: '3rd',
-    points: 2,
-    emoji: '🥉',
-    selected: 'bg-orange-300 text-orange-950 border-transparent shadow-lg ',
-    ring: 'ring-orange-400/50',
-  },
+  { rank: 1, label: '1st', points: 5 },
+  { rank: 2, label: '2nd', points: 3 },
+  { rank: 3, label: '3rd', points: 2 },
 ] as const;
 
 export function EmployeeCard({
@@ -52,101 +28,89 @@ export function EmployeeCard({
   onReasonChange,
   index = 0,
 }: EmployeeCardProps) {
-  const activeRank = selectedRank ? RANKS.find((r) => r.rank === selectedRank) : null;
+  const isSelectedAny = selectedRank !== null;
+  const initials = employee.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  const meta = [employee.role, employee.department].filter(Boolean).join(' · ');
 
   return (
     <div
-      className={`group relative bg-card border rounded-xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
-        activeRank
-          ? `border-transparent ring-2 ${activeRank.ring} shadow-lg`
-          : 'border-border hover:border-primary/30'
-      }`}
-      style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}
+      className="animate-fade-in-up"
+      style={{ animationDelay: `${Math.min(index, 12) * 30}ms` }}
       role="article"
       aria-label={`${employee.name}, ${employee.role}`}
     >
-      {/* Selected medal badge */}
-      {activeRank && (
+      <div
+        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+          isSelectedAny ? 'bg-primary/[0.06]' : 'hover:bg-muted/60'
+        }`}
+      >
+        {/* Avatar */}
         <div
-          className={`absolute -top-2.5 -right-2.5 w-9 h-9 rounded-full ${activeRank.selected} flex items-center justify-center text-lg animate-pop border-2 border-background`}
+          className="w-9 h-9 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden flex-shrink-0 text-xs font-medium text-muted-foreground"
           aria-hidden="true"
         >
-          {activeRank.emoji}
-        </div>
-      )}
-
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
-          <div
-            className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 border border-primary/20 shadow-inner overflow-hidden transition-transform duration-300 group-hover:scale-105"
-            aria-hidden="true"
-          >
-            {employee.image_url ? (
-              <img
-                src={employee.image_url}
-                alt={employee.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h3 className="truncate font-semibold text-foreground text-sm sm:text-base">{employee.name}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate flex items-center gap-1.5">
-              <Award className="w-3 h-3 flex-shrink-0" />
-              {employee.role}
-            </p>
-          </div>
+          {employee.image_url ? (
+            <img src={employee.image_url} alt={employee.name} className="w-full h-full object-cover" />
+          ) : (
+            initials
+          )}
         </div>
 
-        <div className="flex gap-2 w-full sm:w-auto" role="group" aria-label={`Vote for ${employee.name}`}>
-          {RANKS.map(({ rank, label, points, selected }) => {
+        {/* Name + role */}
+        <div className="flex-1 min-w-0">
+          <div className="truncate text-sm font-medium text-foreground">{employee.name}</div>
+          <div className="truncate text-xs text-muted-foreground">{meta}</div>
+        </div>
+
+        {/* Rank selector — compact segmented control */}
+        <div
+          className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5 flex-shrink-0"
+          role="group"
+          aria-label={`Vote for ${employee.name}`}
+        >
+          {RANKS.map(({ rank, label, points }) => {
             const isSelected = selectedRank === rank;
-
             return (
-              <Button
+              <button
                 key={rank}
-                variant={isSelected ? 'default' : 'outline'}
-                size="sm"
+                type="button"
                 onClick={() => onSelectRank(rank)}
                 disabled={disabled && !isSelected}
-                className={`flex-1 sm:flex-none sm:min-w-[74px] gap-1.5 transition-all duration-300 ${
-                  isSelected
-                    ? `${selected} scale-[1.03] hover:brightness-105`
-                    : 'hover:border-primary/50 hover:-translate-y-0.5'
-                }`}
-                aria-label={`Vote ${label} place for ${employee.name}, worth ${points} points${isSelected ? ', currently selected' : ''}`}
+                title={`${label} place · ${points} points`}
                 aria-pressed={isSelected}
+                aria-label={`Vote ${label} place for ${employee.name}, ${points} points`}
+                className={`h-7 px-2.5 rounded-md text-xs font-medium transition-colors disabled:opacity-40 disabled:pointer-events-none ${
+                  isSelected
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                }`}
               >
-                {isSelected && <Check className="w-3.5 h-3.5" aria-hidden="true" />}
-                <span className="font-semibold">{label}</span>
-                <span className="text-xs opacity-75">({points}pt)</span>
-              </Button>
+                {label}
+              </button>
             );
           })}
         </div>
       </div>
 
-      {activeRank && onReasonChange && (
-        <div className="mt-4 pt-4 border-t border-border animate-fade-in">
-          <Label htmlFor={`reason-${employee.id}`} className="text-sm text-muted-foreground">
-            Why did you choose this person? (Optional)
-          </Label>
+      {/* Optional anonymous reason */}
+      {isSelectedAny && onReasonChange && (
+        <div className="mt-2 ml-12 mr-1 animate-fade-in">
           <Textarea
             id={`reason-${employee.id}`}
             value={reason || ''}
             onChange={(e) => onReasonChange(e.target.value)}
-            placeholder="Share your reason anonymously (visible to everyone)..."
-            className="mt-1.5 resize-none"
+            placeholder="Add an optional note — shared anonymously…"
+            className="resize-none text-sm"
             rows={2}
           />
-          <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1.5">
-            <Lock className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" aria-hidden="true" />
-            <span>
-              Shared <strong>completely anonymously</strong> on the leaderboard. No one (not even admins) will know who wrote it.
-            </span>
+          <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
+            <Lock className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            Posted anonymously — no one, not even admins, sees who wrote it.
           </p>
         </div>
       )}
