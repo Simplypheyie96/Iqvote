@@ -88,61 +88,16 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   }
 
   return (
-    <div className="min-h-screen bg-background grid lg:grid-cols-2 lg:gap-6 lg:p-6">
-      {/* Left: inset brand panel (flat gradient, no shadows) */}
-      <div
-        className="relative hidden lg:flex flex-col items-center justify-center text-center rounded-xl overflow-hidden text-white p-12"
-        style={{
-          background:
-            'radial-gradient(110% 70% at 50% 0%, rgba(255,26,136,0.25), transparent 58%), linear-gradient(180deg, #1a2947 0%, #0b1220 65%)',
-        }}
-      >
-        <div className="flex items-center gap-2.5 mb-10">
-          <img src={logoImageDark} alt="IQ Vote" className="w-10 h-10 object-contain" />
-          <span className="text-lg font-semibold tracking-tight">IQ Vote</span>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-[380px]">
+        {/* Brand + heading */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <img src={logoImageDark} alt="IQ Vote" className="w-12 h-12 object-contain mb-4" />
+          <h1 className="text-2xl font-semibold tracking-tight">Sign in to IQ Vote</h1>
+          <p className="text-sm text-muted-foreground mt-1.5">
+            Cast your monthly vote for standout colleagues.
+          </p>
         </div>
-
-        <h1 className="text-3xl xl:text-4xl font-semibold leading-tight tracking-tight max-w-md mb-3">
-          Recognize the people who move IQ forward.
-        </h1>
-        <p className="text-white/55 max-w-sm mb-12">
-          Complete these easy steps to cast your monthly vote.
-        </p>
-
-        <div className="w-full max-w-sm space-y-3 text-left">
-          {['Sign in to your account', 'Rank your top three colleagues', 'Watch the live leaderboard'].map((step, i) => (
-            <div
-              key={step}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3.5 ${
-                i === 0 ? 'bg-white text-slate-900' : 'bg-white/[0.06] border border-white/10 text-white'
-              }`}
-            >
-              <span
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${
-                  i === 0 ? 'bg-slate-900 text-white' : 'bg-white/10 text-white'
-                }`}
-              >
-                {i + 1}
-              </span>
-              <span className="text-sm font-medium">{step}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Right: form */}
-      <div className="flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12">
-        <div className="w-full max-w-[400px]">
-          {/* Mobile brand */}
-          <div className="lg:hidden flex items-center justify-center gap-2.5 mb-8">
-            <img src={logoImageDark} alt="IQ Vote" className="w-9 h-9 object-contain" />
-            <span className="text-lg font-semibold tracking-tight">IQ Vote</span>
-          </div>
-
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-semibold tracking-tight">Welcome to IQ Vote</h2>
-            <p className="text-sm text-muted-foreground mt-1.5">Sign in or create your account.</p>
-          </div>
 
           {externalError && (
             <Alert variant="destructive" className="mb-6">
@@ -279,7 +234,6 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
               </form>
             </TabsContent>
           </Tabs>
-        </div>
       </div>
     </div>
   );

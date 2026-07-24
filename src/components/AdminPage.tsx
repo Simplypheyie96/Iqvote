@@ -602,12 +602,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Users className="w-4 h-4 text-muted-foreground" />
+                <Users className="w-4 h-4 text-sky-400" />
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.totalEmployees || 0}</div>
+            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.totalEmployees || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {stats.activeEmployees || 0} active
             </p>
@@ -619,12 +619,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Trophy className="w-4 h-4 text-muted-foreground" />
+                <Trophy className="w-4 h-4 text-primary" />
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.totalVotes || 0}</div>
+            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.totalVotes || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Across all elections
             </p>
@@ -636,12 +636,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Activity className="w-4 h-4 text-muted-foreground" />
+                <Activity className="w-4 h-4 text-emerald-400" />
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.activeElections || 0}</div>
+            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.activeElections || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Currently running
             </p>
@@ -653,12 +653,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Award className="w-4 h-4 text-muted-foreground" />
+                <Award className="w-4 h-4 text-violet-400" />
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.completedElections || 0}</div>
+            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.completedElections || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Past elections
             </p>
