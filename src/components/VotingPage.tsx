@@ -462,18 +462,25 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
       )}
       
       {/* Progress indicator */}
-      <div className="mb-8 bg-card border border-border rounded-xl p-4 sm:p-6 shadow-lg" role="status" aria-live="polite" aria-label={`Vote progress: ${selections.size} of 3 selections made`}>
-        <div className="flex items-center justify-between mb-4">
+      <div className="mb-8 bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-lg animate-fade-in-up" role="status" aria-live="polite" aria-label={`Vote progress: ${selections.size} of 3 selections made`}>
+        <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-muted-foreground">Your selections</span>
           <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-base font-semibold text-foreground">{selections.size} of 3</span>
-            <div className="hidden sm:block w-16 h-2 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500"
-                style={{ width: `${(selections.size / 3) * 100}%` }}
-              />
-            </div>
+            {canSubmit() ? (
+              <span className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Ready to submit
+              </span>
+            ) : (
+              <span className="text-sm sm:text-base font-semibold text-foreground">{selections.size} <span className="text-muted-foreground font-normal">of 3</span></span>
+            )}
           </div>
+        </div>
+        {/* Animated progress bar */}
+        <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-4">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ease-out ${canSubmit() ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-primary to-primary/70'}`}
+            style={{ width: `${(selections.size / 3) * 100}%` }}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[1, 2, 3].map(rank => {
@@ -543,12 +550,13 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
             </p>
           </div>
         ) : (
-          eligibleEmployees.filter(e => e.active).map(employee => {
+          eligibleEmployees.filter(e => e.active).map((employee, idx) => {
             const selectedRank = getSelectedRank(employee.id);
             return (
               <div key={employee.id} role="listitem">
                 <EmployeeCard
                   employee={employee}
+                  index={idx}
                   selectedRank={selectedRank}
                   onSelectRank={(rank) => handleSelectRank(employee.id, rank)}
                   disabled={hasVoted}
@@ -584,39 +592,28 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         </div>
       )}
 
-      {showConfirmation && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 z-50"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-dialog-title"
-          aria-describedby="confirm-dialog-description"
-        >
-          <div className="bg-card border border-border rounded-lg max-w-md w-full p-6">
-            <h3 id="confirm-dialog-title">Confirm Your Ballot</h3>
-            
-            {/* Warning message */}
-            <Alert className="mb-4 border-red-500/50 bg-red-500/10" role="alert">
-              <AlertCircle className="h-4 w-4 text-red-500" aria-hidden="true" />
-              <AlertDescription className="text-red-600 dark:text-red-400" id="confirm-dialog-description">
-                <strong>Warning:</strong> Once submitted, your vote cannot be changed. Please review carefully.
-              </AlertDescription>
-            </Alert>
-            
-            <div className="space-y-3 mb-6" role="list" aria-label="Your ballot selections">
-              {getConfirmationDetails().map(({ rank, employee, points }) => (
-                <div key={rank} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg" role="listitem">
+      <Dialog open={showConfirmation} onOpenChange={(open) => { if (!open) setShowConfirmation(false); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Confirm your ballot</DialogTitle>
+            <DialogDescription>
+              Review your selections carefully — once submitted, your vote is locked and cannot be changed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3" role="list" aria-label="Your ballot selections">
+            {getConfirmationDetails().map(({ rank, employee, points }) => {
+              const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+              return (
+                <div key={rank} className="flex items-center gap-3 p-3 bg-muted/40 rounded-xl border border-border/60" role="listitem">
                   {employee.image_url ? (
-                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-primary/20">
-                      <img 
-                        src={employee.image_url} 
-                        alt={employee.name}
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="relative w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 border border-primary/20">
+                      <img src={employee.image_url} alt={employee.name} className="w-full h-full object-cover" />
+                      <span className="absolute -bottom-1 -right-1 text-base" aria-hidden="true">{medal}</span>
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground shrink-0" aria-hidden="true">
-                      {rank}
+                    <div className="w-11 h-11 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xl flex-shrink-0" aria-hidden="true">
+                      {medal}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -627,68 +624,75 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
                     #{rank} • {points} pts
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="text-sm text-muted-foreground mb-6">
-              Total: {getConfirmationDetails().reduce((sum, d) => sum + d.points, 0)} points distributed
-            </div>
-            
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowConfirmation(false)}
-                disabled={isSubmitting}
-                className="flex-1"
-                aria-label="Go back to edit your selections"
-              >
-                Go Back
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex-1 gap-2"
-                aria-label={isSubmitting ? 'Submitting your ballot' : 'Confirm and submit your ballot'}
-              >
-                {isSubmitting ? (
-                  <>
-                    <LoadingSpinner size="sm" inline />
-                    Submitting...
-                  </>
-                ) : (
-                  'Confirm & Submit'
-                )}
-              </Button>
-            </div>
+              );
+            })}
           </div>
-        </div>
-      )}
-      
-      {/* Success Modal */}
-      {success && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 z-50"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="success-dialog-title"
-          aria-live="polite"
-        >
-          <div className="bg-card border border-border rounded-lg max-w-md w-full p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-              <CheckCircle2 className="w-8 h-8 text-primary" />
-            </div>
-            
-            <h3 id="success-dialog-title">Ballot Submitted!</h3>
-            <p className="text-muted-foreground mb-6">
-              {hasVoted ? 'You have already voted in this election. Your vote has been locked.' : 'Your vote has been recorded successfully and locked. Thank you for participating!'}
-            </p>
-            
-            <Button onClick={() => setSuccess(null)} className="w-full" aria-label="Close success message">
-              Close
+
+          <div className="flex items-center justify-between rounded-xl bg-primary/5 border border-primary/15 px-4 py-2.5 text-sm">
+            <span className="text-muted-foreground">Total points distributed</span>
+            <span className="font-semibold text-primary">
+              {getConfirmationDetails().reduce((sum, d) => sum + d.points, 0)} pts
+            </span>
+          </div>
+
+          <Alert className="border-destructive/40 bg-destructive/5" role="alert">
+            <AlertCircle className="h-4 w-4 text-destructive" aria-hidden="true" />
+            <AlertDescription className="text-destructive">
+              This action is final — your vote cannot be changed after submitting.
+            </AlertDescription>
+          </Alert>
+
+          <DialogFooter className="gap-3 sm:gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmation(false)}
+              disabled={isSubmitting}
+              className="flex-1"
+              aria-label="Go back to edit your selections"
+            >
+              Go Back
             </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-1 gap-2"
+              aria-label={isSubmitting ? 'Submitting your ballot' : 'Confirm and submit your ballot'}
+            >
+              {isSubmitting ? (
+                <>
+                  <LoadingSpinner size="sm" inline />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+                  Confirm &amp; Submit
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={!!success} onOpenChange={(open) => { if (!open) setSuccess(null); }}>
+        <DialogContent className="max-w-md text-center">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center mx-auto animate-pop" aria-hidden="true">
+            <CheckCircle2 className="w-9 h-9 text-primary" />
           </div>
-        </div>
-      )}
+          <DialogHeader>
+            <DialogTitle className="text-xl text-center">Ballot submitted! 🎉</DialogTitle>
+            <DialogDescription className="text-center">
+              {hasVoted
+                ? 'You have already voted in this election. Your vote has been locked.'
+                : 'Your vote has been recorded and locked. Thank you for participating!'}
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setSuccess(null)} className="w-full" aria-label="Close success message">
+            Done
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
