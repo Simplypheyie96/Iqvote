@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LogIn } from 'lucide-react';
+import { LogIn, Trophy, Vote, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -110,26 +110,72 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-gradient-to-br from-primary/5 via-background to-primary/5 overflow-hidden">
-      {/* Ambient animated background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-primary/15 blur-3xl animate-float" />
-        <div className="absolute -bottom-32 -right-24 w-96 h-96 rounded-full bg-primary/10 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 rounded-full bg-purple-500/10 blur-3xl animate-float" style={{ animationDelay: '4s' }} />
+    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
+      {/* ---------- Left: brand panel (desktop) ---------- */}
+      <div className="relative hidden lg:flex flex-col justify-between p-12 xl:p-16 overflow-hidden bg-mesh">
+        <div className="absolute inset-0 bg-grid opacity-[0.4]" aria-hidden="true" />
+        <div className="pointer-events-none absolute -top-32 -left-24 w-96 h-96 rounded-full bg-primary/25 blur-3xl animate-float" aria-hidden="true" />
+        <div className="pointer-events-none absolute bottom-0 right-0 w-[28rem] h-[28rem] rounded-full bg-purple-500/20 blur-3xl animate-float" style={{ animationDelay: '3s' }} aria-hidden="true" />
+
+        {/* Logo lockup */}
+        <div className="relative flex items-center gap-3 animate-fade-in-down">
+          <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-14 h-14 object-contain drop-shadow-lg" />
+          <span className="font-display text-xl font-bold tracking-tight">IQ Vote</span>
+        </div>
+
+        {/* Headline */}
+        <div className="relative animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-6">
+            <Sparkles className="w-3.5 h-3.5" />
+            BrainDAO · Employee Recognition
+          </div>
+          <h1 className="font-display text-4xl xl:text-5xl font-bold leading-[1.1] tracking-tight mb-5">
+            Celebrate the people who move{' '}
+            <span className="text-gradient-primary">IQ</span> forward.
+          </h1>
+          <p className="text-base xl:text-lg text-muted-foreground max-w-md">
+            Cast your monthly ranked vote for the colleagues doing standout work — and watch the leaderboard come alive.
+          </p>
+        </div>
+
+        {/* Feature chips */}
+        <div className="relative grid gap-3 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
+          {[
+            { icon: Vote, title: 'Ranked voting', desc: 'Pick your top 3 — 5, 3 and 2 points.' },
+            { icon: Trophy, title: 'Live leaderboard', desc: 'Results update as the team votes.' },
+            { icon: ShieldCheck, title: 'Private & fair', desc: 'One locked ballot, anonymous reasons.' },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="flex items-center gap-3 rounded-xl glass px-4 py-3">
+              <div className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                <Icon className="w-4.5 h-4.5 text-primary" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold leading-tight">{title}</div>
+                <div className="text-xs text-muted-foreground">{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="relative w-full max-w-md animate-fade-in-up">
-        <div className="bg-card/90 backdrop-blur-xl border border-border/60 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-primary/5">
-          {/* Logo and Title */}
-          <div className="flex flex-col items-center justify-center mb-6">
-            <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-[102px] h-[102px] sm:w-[134px] sm:h-[134px] object-contain mb-[6px] drop-shadow-lg" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-gradient-primary mb-2">
-              IQ Vote
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Vote for your top performers
-            </p>
+      {/* ---------- Right: auth card ---------- */}
+      <div className="relative flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12 overflow-hidden">
+        {/* Mobile ambient background */}
+        <div className="lg:hidden absolute inset-0 bg-mesh opacity-70" aria-hidden="true" />
+
+        <div className="relative w-full max-w-md animate-fade-in-up">
+          {/* Mobile brand header */}
+          <div className="lg:hidden flex flex-col items-center text-center mb-6">
+            <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-20 h-20 object-contain mb-3 drop-shadow-lg" />
+            <h1 className="font-display text-2xl font-bold text-gradient-primary">IQ Vote</h1>
+            <p className="text-sm text-muted-foreground mt-1">Celebrate your top performers</p>
           </div>
+
+          <div className="glass rounded-2xl p-6 sm:p-8 shadow-2xl shadow-primary/10 glow-primary">
+            <div className="hidden lg:block mb-6">
+              <h2 className="font-display text-2xl font-bold tracking-tight mb-1">Welcome back</h2>
+              <p className="text-sm text-muted-foreground">Sign in to cast your vote.</p>
+            </div>
           
           {externalError && (
             <Alert variant="destructive" className="mb-6">
@@ -272,6 +318,7 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
               </form>
             </TabsContent>
           </Tabs>
+          </div>
         </div>
       </div>
     </div>

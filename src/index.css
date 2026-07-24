@@ -31,9 +31,10 @@
   --color-destructive-foreground: #ffffff;
   --color-ring: #ff1a88;
 
-  --font-sans: "Open Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", "Open Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
 
-  --radius: 0.75rem;
+  --radius: 0.9rem;
 
   /* Motion system -------------------------------------------------- */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -215,6 +216,48 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /* Distinctive display type */
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Layered mesh background — the signature ambient surface */
+  .bg-mesh {
+    background-color: var(--color-background);
+    background-image:
+      radial-gradient(at 15% 15%, color-mix(in srgb, var(--color-primary) 22%, transparent) 0px, transparent 45%),
+      radial-gradient(at 85% 10%, color-mix(in srgb, #a855f7 18%, transparent) 0px, transparent 40%),
+      radial-gradient(at 75% 85%, color-mix(in srgb, var(--color-primary) 16%, transparent) 0px, transparent 45%),
+      radial-gradient(at 20% 90%, color-mix(in srgb, #6366f1 14%, transparent) 0px, transparent 40%);
+  }
+
+  /* Subtle grid overlay */
+  .bg-grid {
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-foreground) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-foreground) 6%, transparent) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  /* Frosted glass surface */
+  .glass {
+    background-color: color-mix(in srgb, var(--color-card) 70%, transparent);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid color-mix(in srgb, var(--color-foreground) 10%, transparent);
+  }
+
+  /* Primary glow — for hero elements and focal CTAs */
+  .glow-primary {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent),
+      0 8px 40px -8px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  }
+  .glow-ring {
+    box-shadow: 0 0 60px -12px color-mix(in srgb, var(--color-primary) 60%, transparent);
   }
 
   /* Staggered entrance delays */
