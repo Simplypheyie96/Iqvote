@@ -385,7 +385,7 @@ export function VoteManagement() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
               </CardHeader>
@@ -416,7 +416,7 @@ export function VoteManagement() {
           {/* Active Votes */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CardTitle>Active Votes</CardTitle>
                   <CardDescription>
@@ -425,7 +425,7 @@ export function VoteManagement() {
                 </div>
                 {/* Voter Search */}
                 {activeVotes.length > 0 && (
-                  <div className="relative w-72">
+                  <div className="relative w-full sm:w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     <Input
                       placeholder="Search by name or email..."
@@ -448,8 +448,9 @@ export function VoteManagement() {
                 <div className="space-y-3">
                   {filteredActiveVotes.map((ballot, idx) => (
                     <div
-                      key={idx}
-                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg hover:border-primary/30 transition-all"
+                      key={ballot.voter?.id || ballot.voter?.email || idx}
+                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl animate-fade-in-up hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+                      style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -494,8 +495,8 @@ export function VoteManagement() {
                 <div className="space-y-3">
                   {filteredRevokedVotes.map((ballot, idx) => (
                     <div
-                      key={idx}
-                      className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg"
+                      key={ballot.voter?.id || ballot.voter?.email || idx}
+                      className="p-4 bg-destructive/5 border border-destructive/20 rounded-xl"
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <div className="font-semibold text-muted-foreground">{ballot.voter?.name || 'Unknown Voter'}</div>
