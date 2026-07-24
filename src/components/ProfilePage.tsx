@@ -398,7 +398,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
             <CardTitle className="text-3xl">{myVotes.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="bg-muted/30 border-border animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Points Received</CardDescription>
             <CardTitle className="text-3xl text-primary">{totalPointsReceived}</CardTitle>
@@ -442,7 +442,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
           {/* My Votes */}
           <TabsContent value="my-votes" className="space-y-4 mt-6">
             {myVotes.length === 0 ? (
-              <Card className="border-border">
+              <Card className="border-border bg-transparent">
                 <CardContent className="pt-12 pb-12 text-center">
                   <Eye className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                   <p className="text-muted-foreground">You haven't cast any votes yet.</p>
@@ -453,7 +453,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
                 {myVotes.map((vote) => {
                   const expanded = expandedVotes.has(vote.election.id);
                   return (
-                    <Card key={vote.election.id} className="overflow-hidden border-border">
+                    <Card key={vote.election.id} className="overflow-hidden border-border bg-transparent">
                       <div
                         className="p-4 cursor-pointer hover:bg-muted/30 transition-colors border-b border-border"
                         onClick={() => toggleVote(vote.election.id)}
@@ -521,7 +521,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
           {/* Votes Received */}
           <TabsContent value="received" className="space-y-4 mt-6">
             {receivedVotes.length === 0 ? (
-              <Card className="border-border">
+              <Card className="border-border bg-transparent">
                 <CardContent className="pt-12 pb-12 text-center">
                   <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                   <p className="text-muted-foreground">You haven't received any votes yet.</p>
@@ -532,7 +532,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
                 {receivedVotes.map((vote) => {
                   const expanded = expandedReceived.has(vote.election.id);
                   return (
-                    <Card key={vote.election.id} className="overflow-hidden border-border">
+                    <Card key={vote.election.id} className="overflow-hidden border-border bg-transparent">
                       <div
                         className="p-4 cursor-pointer hover:bg-muted/30 transition-colors border-b border-border"
                         onClick={() => toggleReceived(vote.election.id)}

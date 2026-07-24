@@ -303,9 +303,9 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:items-start">
                 {topThree.map((entry, index) => {
                   const config = [
-                    { primary: true, label: 'Champion', order: 'md:order-2', elevate: 'md:-translate-y-3', Icon: Crown },
-                    { primary: false, label: 'Runner-up', order: 'md:order-1', elevate: '', Icon: Trophy },
-                    { primary: false, label: 'Third place', order: 'md:order-3', elevate: '', Icon: Trophy },
+                    { primary: true, label: 'Champion', order: 'md:order-2', elevate: 'md:-translate-y-3', Icon: Crown, iconColor: 'text-amber-400' },
+                    { primary: false, label: 'Runner-up', order: 'md:order-1', elevate: '', Icon: Trophy, iconColor: 'text-slate-300' },
+                    { primary: false, label: 'Third place', order: 'md:order-3', elevate: '', Icon: Trophy, iconColor: 'text-amber-600' },
                   ][index];
                   const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
@@ -348,7 +348,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                             {config.label}{entry.employee?.role ? ` · ${entry.employee.role}` : ''}
                           </div>
                         </div>
-                        <Icon className={`w-5 h-5 flex-shrink-0 ${config.primary ? 'text-primary' : 'text-muted-foreground/40'}`} aria-hidden="true" />
+                        <Icon className={`w-5 h-5 flex-shrink-0 ${config.iconColor}`} aria-hidden="true" />
                       </div>
 
                       {/* Stat row */}
