@@ -470,7 +470,16 @@ export default function App() {
   return (
     <ThemeProvider>
       <Toaster position="top-center" />
-      <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="relative min-h-screen bg-background overflow-x-hidden">
+        {/* Ambient page backdrop — subtle depth on every screen */}
+        <div
+          className="pointer-events-none fixed inset-0 -z-10"
+          aria-hidden="true"
+          style={{
+            backgroundImage:
+              'radial-gradient(60rem 40rem at 100% -10%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 60%), radial-gradient(50rem 40rem at -10% 0%, color-mix(in srgb, #8b5cf6 7%, transparent), transparent 55%)',
+          }}
+        />
         <Header
           user={currentUser}
           employees={employees}
