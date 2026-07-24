@@ -56,7 +56,7 @@ export function EmployeeCard({
 
   return (
     <div
-      className={`group relative bg-card border rounded-2xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
+      className={`group relative bg-card border rounded-xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
         activeRank
           ? `border-transparent ring-2 ${activeRank.ring} shadow-lg`
           : 'border-border hover:border-primary/30'

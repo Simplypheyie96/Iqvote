@@ -314,7 +314,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                   return (
                     <div
                       key={entry.employee_id}
-                      className={`relative bg-card border rounded-2xl p-4 sm:p-6 pt-9 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 ${config.order} ${config.elevate} ${
+                      className={`relative bg-card border rounded-xl p-4 sm:p-6 pt-9 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 ${config.order} ${config.elevate} ${
                         index === 0 ? `border-transparent ring-2 ${config.ring} ${config.glow}` : 'border-border hover:border-primary/30'
                       }`}
                       style={{ animationDelay: `${index * 90}ms` }}

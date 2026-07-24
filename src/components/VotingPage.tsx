@@ -460,7 +460,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
       )}
       
       {/* Progress indicator */}
-      <div className="mb-8 bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-lg animate-fade-in-up" role="status" aria-live="polite" aria-label={`Vote progress: ${selections.size} of 3 selections made`}>
+      <div className="mb-8 bg-card border border-border rounded-xl p-4 sm:p-6 shadow-lg animate-fade-in-up" role="status" aria-live="polite" aria-label={`Vote progress: ${selections.size} of 3 selections made`}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-muted-foreground">Your selections</span>
           <div className="flex items-center gap-2">

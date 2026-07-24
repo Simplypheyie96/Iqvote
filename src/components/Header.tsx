@@ -90,13 +90,13 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
             <>
               {/* Desktop Navigation */}
               <div className="hidden lg:flex items-center gap-2">
-                <nav className="flex items-center gap-1 p-1 rounded-full bg-muted/50" role="navigation" aria-label="Main navigation">
+                <nav className="flex items-center gap-1 p-1 rounded-lg bg-muted" role="navigation" aria-label="Main navigation">
                   <Button
                     variant={currentView === 'vote' ? 'default' : 'ghost'}
                     onClick={() => onNavigate('vote')}
                     aria-current={currentView === 'vote' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-full"
+                    className="rounded-md"
                   >
                     Vote
                   </Button>
@@ -105,7 +105,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     onClick={() => onNavigate('leaderboard')}
                     aria-current={currentView === 'leaderboard' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-full"
+                    className="rounded-md"
                   >
                     Leaderboard
                   </Button>
@@ -114,7 +114,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     onClick={() => onNavigate('profile')}
                     aria-current={currentView === 'profile' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-full gap-1.5"
+                    className="rounded-md gap-1.5"
                   >
                     <User className="w-3.5 h-3.5" />
                     Profile
@@ -125,7 +125,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                       onClick={() => onNavigate('admin')}
                       aria-current={currentView === 'admin' ? 'page' : undefined}
                       size="sm"
-                      className="rounded-full gap-1.5"
+                      className="rounded-md gap-1.5"
                     >
                       <Shield className="w-3.5 h-3.5" />
                       Admin
@@ -201,7 +201,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                     variant="ghost" 
                     size="sm" 
                     onClick={onSignOut} 
-                    className="gap-2 rounded-full"
+                    className="gap-2 rounded-md"
                     aria-label="Sign out of your account"
                   >
                     <LogOut className="w-4 h-4" aria-hidden="true" />

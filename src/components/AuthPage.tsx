@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { LogIn, Trophy, Vote, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -110,65 +109,18 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* ---------- Left: solid brand panel (desktop) ---------- */}
-      <div className="hidden lg:flex flex-col justify-between p-12 xl:p-16 bg-slate-900 text-white">
-        {/* Logo lockup */}
-        <div className="flex items-center gap-3">
-          <img src={logoImageDark} alt="IQ Vote Logo" className="w-12 h-12 object-contain" />
-          <span className="font-display text-xl font-bold tracking-tight">IQ Vote</span>
-        </div>
-
-        {/* Headline */}
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs font-medium text-white/80 mb-8">
-            BrainDAO · Employee Recognition
-          </div>
-          <h1 className="font-display text-4xl xl:text-5xl font-bold leading-[1.1] tracking-tight mb-5">
-            Recognize the people who move{' '}
-            <span className="text-primary">IQ</span> forward.
-          </h1>
-          <p className="text-base xl:text-lg text-white/60 max-w-md">
-            Cast your monthly ranked vote for the colleagues doing standout work.
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-10">
+      <div className="w-full max-w-[380px]">
+        {/* Brand + heading */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote" className="w-10 h-10 object-contain mb-5" />
+          <h1 className="text-xl font-semibold tracking-tight">Sign in to IQ Vote</h1>
+          <p className="text-sm text-muted-foreground mt-1.5">
+            Cast your monthly vote for standout colleagues.
           </p>
         </div>
 
-        {/* Feature list */}
-        <div className="grid gap-4">
-          {[
-            { icon: Vote, title: 'Ranked voting', desc: 'Pick your top 3 — 5, 3 and 2 points.' },
-            { icon: Trophy, title: 'Live leaderboard', desc: 'Results update as the team votes.' },
-            { icon: ShieldCheck, title: 'Private & fair', desc: 'One locked ballot, anonymous reasons.' },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold leading-tight">{title}</div>
-                <div className="text-sm text-white/50">{desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ---------- Right: auth card ---------- */}
-      <div className="flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12">
-        <div className="w-full max-w-md">
-          {/* Mobile brand header */}
-          <div className="lg:hidden flex flex-col items-center text-center mb-8">
-            <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-16 h-16 object-contain mb-3" />
-            <h1 className="font-display text-2xl font-bold">IQ Vote</h1>
-            <p className="text-sm text-muted-foreground mt-1">Recognize your top performers</p>
-          </div>
-
-          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
-            <div className="hidden lg:block mb-6">
-              <h2 className="font-display text-2xl font-bold tracking-tight mb-1">Welcome back</h2>
-              <p className="text-sm text-muted-foreground">Sign in to cast your vote.</p>
-            </div>
-          
+        <div>
           {externalError && (
             <Alert variant="destructive" className="mb-6">
               <AlertDescription>{externalError}</AlertDescription>
@@ -220,21 +172,18 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
                   />
                 </div>
                 
-                <Button type="submit" className="w-full gap-2" disabled={loading}>
+                <Button type="submit" className="w-full mt-1" disabled={loading}>
                   {loading ? (
                     <>
                       <LoadingSpinner size="sm" inline />
-                      Signing In...
+                      Signing in…
                     </>
                   ) : (
-                    <>
-                      <LogIn className="w-4 h-4" />
-                      Sign In
-                    </>
+                    'Sign in'
                   )}
                 </Button>
 
-                <p className="text-center text-sm text-muted-foreground">
+                <p className="text-center text-sm text-muted-foreground pt-1">
                   Forgot your password? Contact your admin to reset it.
                 </p>
               </form>
@@ -294,23 +243,19 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
                   </p>
                 </div>
                 
-                <Button type="submit" className="w-full gap-2" disabled={loading}>
+                <Button type="submit" className="w-full mt-1" disabled={loading}>
                   {loading ? (
                     <>
                       <LoadingSpinner size="sm" inline />
-                      Creating Account...
+                      Creating account…
                     </>
                   ) : (
-                    <>
-                      <LogIn className="w-4 h-4" />
-                      Create Account
-                    </>
+                    'Create account'
                   )}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
-          </div>
         </div>
       </div>
     </div>

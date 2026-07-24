@@ -89,7 +89,7 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-background">
       <div className="w-full max-w-md">
-        <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+        <div className="bg-card border border-border rounded-xl p-6 sm:p-8">
           <div className="flex flex-col items-center justify-center mb-6">
             <img
               src={isDark ? logoImageDark : logoImageLight}
