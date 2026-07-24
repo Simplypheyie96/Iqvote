@@ -68,19 +68,23 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            className="flex items-center gap-2 sm:gap-3 group"
+            onClick={() => user && onNavigate('vote')}
+            aria-label="IQ Vote home"
+          >
             <div className="w-12 h-12 flex items-center justify-center">
-              <img 
-                src={isDark ? logoImageDark : logoImageLight} 
-                alt="IQ Vote Logo" 
-                className="w-12 h-12 object-contain" 
-                aria-hidden="true" 
+              <img
+                src={isDark ? logoImageDark : logoImageLight}
+                alt="IQ Vote Logo"
+                className="w-12 h-12 object-contain transition-transform duration-300 group-hover:scale-110"
+                aria-hidden="true"
               />
             </div>
             <h1 className="text-lg font-semibold text-foreground">
               IQ Vote
             </h1>
-          </div>
+          </button>
           
           {user && (
             <>
@@ -148,7 +152,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                       </Button>
 
                       {bellOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-border bg-card shadow-lg z-50 p-4">
+                        <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-border bg-card shadow-xl z-50 p-4 origin-top-right animate-scale-in">
                           <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Active Election</p>
                           <p className="font-semibold text-sm text-foreground mb-1">{currentElection.title}</p>
                           <p className="text-xs text-muted-foreground mb-1">
