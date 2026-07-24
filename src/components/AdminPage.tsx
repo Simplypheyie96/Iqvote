@@ -597,12 +597,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-        <Card className="bg-blue-500/10 border-blue-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '0ms' }}>
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '0ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
-              <div className="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center">
-                <Users className="w-4 h-4 text-blue-500" />
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                <Users className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
           </CardHeader>
@@ -614,12 +614,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-primary/10 border-primary/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '80ms' }}>
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
-              <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
-                <Trophy className="w-4 h-4 text-primary" />
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                <Trophy className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
           </CardHeader>
@@ -631,12 +631,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-green-500/10 border-green-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '160ms' }}>
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '160ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
-              <div className="w-8 h-8 rounded-xl bg-green-500/15 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-green-500" />
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                <Activity className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
           </CardHeader>
@@ -648,12 +648,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-purple-500/10 border-purple-500/20 shadow-lg animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ animationDelay: '240ms' }}>
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '240ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
-              <div className="w-8 h-8 rounded-xl bg-purple-500/15 flex items-center justify-center">
-                <Award className="w-4 h-4 text-purple-500" />
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                <Award className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
           </CardHeader>
@@ -805,7 +805,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 </div>
 
                 <Alert className="border-blue-500/50 bg-blue-500/10">
-                  <Users className="h-4 w-4 text-blue-500" />
+                  <Users className="h-4 w-4 text-muted-foreground" />
                   <AlertDescription className="text-blue-600 dark:text-blue-400 text-xs">
                     <strong>Important:</strong> ALL registered users (including admins) can vote in this election. The employees selected above are candidates who can RECEIVE votes. This separation allows executives and managers to participate in voting without being candidates themselves.
                   </AlertDescription>
@@ -1111,7 +1111,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             </CardHeader>
             <CardContent>
               <Alert className="mb-6 border-blue-500/50 bg-blue-500/10">
-                <Users className="h-4 w-4 text-blue-500" />
+                <Users className="h-4 w-4 text-muted-foreground" />
                 <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
                   <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click "Make Employee" to convert a user into a votable employee.
                 </AlertDescription>

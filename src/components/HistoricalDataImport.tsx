@@ -241,7 +241,7 @@ Bob Johnson,bob@example.com,32,1,2,3`;
 
       {success && (
         <Alert className="border-green-500/50 bg-green-500/10">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
         </Alert>
       )}

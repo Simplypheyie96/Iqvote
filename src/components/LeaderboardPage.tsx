@@ -353,8 +353,8 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
 
                       {/* Stat row */}
                       <div className="grid grid-cols-4 rounded-xl border border-border overflow-hidden divide-x divide-border">
-                        <div className={`px-2 py-3 text-center ${config.primary ? 'bg-primary/10' : 'bg-muted/30'}`}>
-                          <div className={`text-2xl font-bold tabular-nums leading-none ${config.primary ? 'text-primary' : 'text-foreground'}`}>{entry.total_points}</div>
+                        <div className="px-2 py-3 text-center bg-muted/30">
+                          <div className="text-2xl font-bold tabular-nums leading-none text-foreground">{entry.total_points}</div>
                           <div className="text-xs text-muted-foreground mt-1.5">Points</div>
                         </div>
                         <div className="px-2 py-3 text-center bg-muted/20">
@@ -406,14 +406,14 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                 <h3 className="text-lg sm:text-xl font-bold" id="all-rankings-heading">All Rankings</h3>
               </div>
               
-              <div className="space-y-3">
+              <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
                 {rest.map((entry, idx) => {
                   const isCurrentUser = entry.employee_id === currentUser.id;
 
                   return (
                     <div
                       key={entry.employee_id}
-                      className="bg-card border border-border rounded-xl p-4 sm:p-5 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg "
+                      className="px-4 sm:px-6 py-4 sm:py-5 animate-fade-in-up transition-colors hover:bg-muted/40"
                       style={{ animationDelay: `${Math.min(idx, 12) * 40}ms` }}
                     >
                       <div className="flex items-start sm:items-center gap-3 sm:gap-4">

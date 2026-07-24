@@ -154,7 +154,7 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
 
   function getRankBadge(rank: number) {
     const configs: Record<number, { label: string; color: string }> = {
-      1: { label: '1st Place', color: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30' },
+      1: { label: '1st Place', color: 'text-muted-foreground bg-yellow-500/10 border-yellow-500/30' },
       2: { label: '2nd Place', color: 'text-gray-400 bg-gray-400/10 border-gray-400/30' },
       3: { label: '3rd Place', color: 'text-amber-600 bg-amber-600/10 border-amber-600/30' },
     };
@@ -392,19 +392,19 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className="bg-blue-500/10 border-blue-500/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '0ms' }}>
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '0ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Votes Cast</CardDescription>
             <CardTitle className="text-3xl">{myVotes.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="bg-primary/10 border-primary/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '80ms' }}>
+        <Card className="bg-primary/10 border-primary/20 animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Points Received</CardDescription>
             <CardTitle className="text-3xl text-primary">{totalPointsReceived}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="bg-green-500/10 border-green-500/20 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ animationDelay: '160ms' }}>
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '160ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Elections Participated</CardDescription>
             <CardTitle className="text-3xl">{receivedVotes.length}</CardTitle>

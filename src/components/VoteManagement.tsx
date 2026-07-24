@@ -240,7 +240,7 @@ export function VoteManagement() {
 
       {success && (
         <Alert className="border-green-500/50 bg-green-500/10">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
         </Alert>
       )}
@@ -254,7 +254,7 @@ export function VoteManagement() {
         <CardContent className="space-y-4">
           {/* Privacy Notice */}
           <Alert className="border-blue-500/50 bg-blue-500/10">
-            <AlertCircle className="h-4 w-4 text-blue-500" />
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
             <AlertDescription className="text-blue-600 dark:text-blue-400">
               <strong>Privacy Protection:</strong> Vote choices are kept confidential. You can see who has voted and delete votes if needed, but the specific candidates each person voted for remain private.
             </AlertDescription>
@@ -394,7 +394,7 @@ export function VoteManagement() {
               </CardContent>
             </Card>
 
-            <Card className="bg-green-500/10 border-green-500/20">
+            <Card className="">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Active Votes</CardTitle>
               </CardHeader>
@@ -403,7 +403,7 @@ export function VoteManagement() {
               </CardContent>
             </Card>
 
-            <Card className="bg-red-500/10 border-red-500/20">
+            <Card className="">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Deleted Votes</CardTitle>
               </CardHeader>
@@ -449,7 +449,7 @@ export function VoteManagement() {
                   {filteredActiveVotes.map((ballot, idx) => (
                     <div
                       key={ballot.voter?.id || ballot.voter?.email || idx}
-                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl animate-fade-in-up hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl animate-fade-in-up hover:border-primary/30 transition-all duration-300"
                       style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
                     >
                       <div className="flex-1 min-w-0">
@@ -728,7 +728,7 @@ export function VoteManagement() {
               </div>
 
               <Alert className="border-red-500/50 bg-red-500/10">
-                <AlertCircle className="h-4 w-4 text-red-500" />
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 <AlertDescription className="text-red-600 dark:text-red-400">
                   <strong>Warning:</strong> This action will permanently delete the vote and update the leaderboard. This cannot be undone.
                 </AlertDescription>

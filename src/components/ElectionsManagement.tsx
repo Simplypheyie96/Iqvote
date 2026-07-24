@@ -245,7 +245,7 @@ export function ElectionsManagement() {
           return (
             <div
               key={election.id}
-              className="rounded-xl border border-border bg-card/40 p-4 animate-fade-in-up transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg "
+              className="rounded-xl border border-border bg-card/40 p-4 animate-fade-in-up transition-all duration-300 hover:border-primary/30 "
               style={{ animationDelay: `${Math.min(idx, 10) * 40}ms` }}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -340,7 +340,7 @@ export function ElectionsManagement() {
 
       {success && (
         <Alert className="border-green-500/50 bg-green-500/10">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
         </Alert>
       )}
@@ -362,7 +362,7 @@ export function ElectionsManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-green-500/10 border-green-500/20">
+        <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
           </CardHeader>
@@ -371,7 +371,7 @@ export function ElectionsManagement() {
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-500/10 border-blue-500/20">
+        <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Elections</CardTitle>
           </CardHeader>
@@ -566,7 +566,7 @@ export function ElectionsManagement() {
 
               {statusAction === 'close' ? (
                 <Alert className="border-amber-500/50 bg-amber-500/10">
-                  <AlertCircle className="h-4 w-4 text-amber-500" />
+                  <AlertCircle className="h-4 w-4 text-muted-foreground" />
                   <AlertDescription className="text-amber-700 dark:text-amber-300">
                     <strong>Note:</strong> Closing this election will:
                     <ul className="list-disc list-inside mt-2 space-y-1">
@@ -579,7 +579,7 @@ export function ElectionsManagement() {
               ) : (
                 <div className="space-y-3">
                   <Alert className="border-green-500/50 bg-green-500/10">
-                    <AlertCircle className="h-4 w-4 text-green-500" />
+                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
                     <AlertDescription className="text-green-700 dark:text-green-300">
                       Reopening will allow voters to cast new votes. Previously cast votes remain intact.
                     </AlertDescription>

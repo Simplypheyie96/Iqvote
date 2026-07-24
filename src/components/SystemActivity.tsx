@@ -100,11 +100,11 @@ export function SystemActivity() {
 
   const getActivityColor = (type: string) => {
     switch (type) {
-      case 'auth': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'vote': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'admin': return 'bg-red-500/10 text-red-500 border-red-500/20';
-      case 'election': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
-      case 'employee': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+      case 'auth': return 'bg-blue-500/10 text-muted-foreground border-blue-500/20';
+      case 'vote': return 'bg-green-500/10 text-muted-foreground border-green-500/20';
+      case 'admin': return 'bg-red-500/10 text-muted-foreground border-red-500/20';
+      case 'election': return 'bg-purple-500/10 text-muted-foreground border-purple-500/20';
+      case 'employee': return 'bg-orange-500/10 text-muted-foreground border-orange-500/20';
       default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
     }
   };
@@ -202,7 +202,7 @@ export function SystemActivity() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-blue-500/10 border-blue-500/20">
+        <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Activities</CardTitle>
           </CardHeader>
@@ -212,7 +212,7 @@ export function SystemActivity() {
           </CardContent>
         </Card>
 
-        <Card className="bg-green-500/10 border-green-500/20">
+        <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Recent Votes</CardTitle>
           </CardHeader>
@@ -224,7 +224,7 @@ export function SystemActivity() {
           </CardContent>
         </Card>
 
-        <Card className="bg-red-500/10 border-red-500/20">
+        <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Admin Actions</CardTitle>
           </CardHeader>

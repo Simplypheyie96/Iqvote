@@ -77,7 +77,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
               <img
                 src={isDark ? logoImageDark : logoImageLight}
                 alt="IQ Vote Logo"
-                className="w-12 h-12 object-contain transition-transform duration-300 group-hover:scale-110"
+                className="w-12 h-12 object-contain transition-transform duration-300"
                 aria-hidden="true"
               />
             </div>
@@ -92,40 +92,40 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
               <div className="hidden lg:flex items-center gap-2">
                 <nav className="flex items-center gap-1 p-1 rounded-xl bg-muted border border-border" role="navigation" aria-label="Main navigation">
                   <Button
-                    variant={currentView === 'vote' ? 'default' : 'ghost'}
+                    variant="ghost"
                     onClick={() => onNavigate('vote')}
                     aria-current={currentView === 'vote' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-xl"
+                    className="rounded-xl aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
                   >
                     Vote
                   </Button>
                   <Button
-                    variant={currentView === 'leaderboard' ? 'default' : 'ghost'}
+                    variant="ghost"
                     onClick={() => onNavigate('leaderboard')}
                     aria-current={currentView === 'leaderboard' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-xl"
+                    className="rounded-xl aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
                   >
                     Leaderboard
                   </Button>
                   <Button
-                    variant={currentView === 'profile' ? 'default' : 'ghost'}
+                    variant="ghost"
                     onClick={() => onNavigate('profile')}
                     aria-current={currentView === 'profile' ? 'page' : undefined}
                     size="sm"
-                    className="rounded-xl gap-1.5"
+                    className="rounded-xl gap-1.5 aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
                   >
                     <User className="w-3.5 h-3.5" />
                     Profile
                   </Button>
                   {user?.is_admin && (
                     <Button
-                      variant={currentView === 'admin' ? 'default' : 'ghost'}
+                      variant="ghost"
                       onClick={() => onNavigate('admin')}
                       aria-current={currentView === 'admin' ? 'page' : undefined}
                       size="sm"
-                      className="rounded-xl gap-1.5"
+                      className="rounded-xl gap-1.5 aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
                     >
                       <Shield className="w-3.5 h-3.5" />
                       Admin
@@ -274,21 +274,21 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
 
               {/* Navigation */}
               <Button
-                variant={currentView === 'vote' ? 'default' : 'ghost'}
+                variant="ghost"
                 onClick={() => handleNavigate('vote')}
                 className="justify-start"
               >
                 Vote
               </Button>
               <Button
-                variant={currentView === 'leaderboard' ? 'default' : 'ghost'}
+                variant="ghost"
                 onClick={() => handleNavigate('leaderboard')}
                 className="justify-start"
               >
                 Leaderboard
               </Button>
               <Button
-                variant={currentView === 'profile' ? 'default' : 'ghost'}
+                variant="ghost"
                 onClick={() => handleNavigate('profile')}
                 className="justify-start gap-2"
               >
@@ -297,7 +297,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
               </Button>
               {user.is_admin && (
                 <Button
-                  variant={currentView === 'admin' ? 'default' : 'ghost'}
+                  variant="ghost"
                   onClick={() => handleNavigate('admin')}
                   className="justify-start"
                 >
