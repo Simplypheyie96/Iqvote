@@ -300,13 +300,13 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                 <h3 className="text-lg sm:text-xl font-bold" id="top-performers-heading">Top Performers</h3>
               </div>
 
-              {/* Podium — each winner stands on a platform sized to their rank */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 md:items-end">
+              {/* Podium — solid blocks with a lit top face, joined into one structure */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:items-end">
                 {topThree.map((entry, index) => {
                   const config = [
-                    { primary: true,  label: 'Champion',    order: 'md:order-2', Icon: Crown,  iconColor: 'text-amber-400',  plinth: 'md:pb-16', avatar: 'w-20 h-20 sm:w-24 sm:h-24' },
-                    { primary: false, label: 'Runner-up',   order: 'md:order-1', Icon: Trophy, iconColor: 'text-slate-300',  plinth: 'md:pb-9',  avatar: 'w-16 h-16 sm:w-20 sm:h-20' },
-                    { primary: false, label: 'Third place', order: 'md:order-3', Icon: Trophy, iconColor: 'text-amber-600',  plinth: 'md:pb-5',  avatar: 'w-16 h-16 sm:w-20 sm:h-20' },
+                    { primary: true,  label: 'Champion',    order: 'md:order-2', Icon: Crown,  iconColor: 'text-amber-400',  plinth: 'md:pb-20', avatar: 'w-20 h-20 sm:w-24 sm:h-24', edge: '' },
+                    { primary: false, label: 'Runner-up',   order: 'md:order-1', Icon: Trophy, iconColor: 'text-slate-300',  plinth: 'md:pb-10', avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tl-xl' },
+                    { primary: false, label: 'Third place', order: 'md:order-3', Icon: Trophy, iconColor: 'text-amber-600',  plinth: 'md:pb-4',  avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tr-xl' },
                   ][index];
                   const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
@@ -350,12 +350,25 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         )}
                       </div>
 
-                      {/* Platform */}
-                      <div
-                        className={`w-full rounded-xl border px-4 pt-5 pb-6 flex flex-col items-center md:rounded-b-none md:border-b-0 ${config.plinth} ${
-                          config.primary ? 'border-primary bg-primary/[0.06]' : 'border-border bg-card'
-                        }`}
-                      >
+                      {/* Platform — a solid block: lit top face + front face */}
+                      <div className="w-full">
+                        {/* Top face (desktop only) — trapezoid reads as the block's
+                            upper surface seen in perspective */}
+                        <div
+                          className={`hidden md:block h-6 ${
+                            config.primary ? 'bg-primary/25' : 'bg-muted'
+                          }`}
+                          style={{ clipPath: 'polygon(7% 0, 93% 0, 100% 100%, 0 100%)' }}
+                          aria-hidden="true"
+                        />
+                        {/* Front face */}
+                        <div
+                          className={`w-full rounded-xl md:rounded-none border md:border-b-0 px-4 pt-5 pb-6 flex flex-col items-center ${config.edge} ${config.plinth} ${
+                            config.primary
+                              ? 'border-primary/60 bg-primary/[0.07] md:border-t-0'
+                              : 'border-border bg-card md:border-t-0'
+                          }`}
+                        >
                         <Icon className={`w-6 h-6 ${config.iconColor}`} aria-hidden="true" />
                         <span className="mt-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                           {config.label}
@@ -397,6 +410,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                             <span className="text-sm">{messageCount} {messageCount === 1 ? 'message' : 'messages'}</span>
                           </Button>
                         )}
+                        </div>
                       </div>
                     </div>
                   );
