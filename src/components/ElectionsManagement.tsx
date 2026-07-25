@@ -120,7 +120,7 @@ export function ElectionsManagement() {
 
     try {
       await api.deleteElection(electionToDelete.id);
-      setSuccess(`Election"${electionToDelete.title}" deleted successfully!`);
+      setSuccess(`Election "${electionToDelete.title}" deleted successfully!`);
       setShowDeleteDialog(false);
       setElectionToDelete(null);
       setDeleteConfirmText('');
@@ -166,7 +166,7 @@ export function ElectionsManagement() {
       await api.updateElectionStatus(electionToUpdate.id, statusAction, newEndTime);
       
       const actionLabel = statusAction === 'close' ? 'closed' : 'reopened';
-      setSuccess(`Election"${electionToUpdate.title}" ${actionLabel} successfully!`);
+      setSuccess(`Election "${electionToUpdate.title}" ${actionLabel} successfully!`);
       setShowStatusDialog(false);
       setElectionToUpdate(null);
       loadData();
@@ -459,7 +459,7 @@ export function ElectionsManagement() {
             <Card>
               <CardContent className="py-12">
                 <div className="text-center text-muted-foreground">
-                  {searchQuery ? `No elections match"${searchQuery}"` : 'No elections found'}
+                  {searchQuery ? `No elections match "${searchQuery}"` : 'No elections found'}
                 </div>
               </CardContent>
             </Card>

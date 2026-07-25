@@ -352,7 +352,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
           <h3 className="text-xl font-semibold mb-2">No Active Election</h3>
           <p className="text-muted-foreground max-w-md mx-auto mb-6">
             {pastElection 
-              ? `The"${pastElection.title}" election has ended. Check the Leaderboard to see the results, or wait for your administrator to create a new election.`
+              ? `The "${pastElection.title}" election has ended. Check the Leaderboard to see the results, or wait for your administrator to create a new election.`
               : 'There are no active elections at this time. Please contact your administrator to create an election and start voting.'}
           </p>
         </div>

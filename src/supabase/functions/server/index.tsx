@@ -268,7 +268,7 @@ async function sendElectionNotificationEmails(election: any) {
     return { sent: 0, skipped: true };
   }
 
-  // Support multiple comma-separated sender emails e.g."a@gmail.com,b@gmail.com"
+  // Support multiple comma-separated sender emails e.g. "a@gmail.com,b@gmail.com"
   const senders = (Deno.env.get('BREVO_FROM_EMAIL') || '')
     .split(',')
     .map((s: string) => s.trim())
@@ -1295,7 +1295,7 @@ app.put('/make-server-e2c9f810/admin/elections/:id/status', async (c) => {
       election.reopened_by = user.id;
       
     } else {
-      return c.json({ error: 'Invalid action. Use"close" or"reopen"' }, 400);
+      return c.json({ error: 'Invalid action. Use "close" or "reopen"' }, 400);
     }
     
     election.updated_at = now.toISOString();
@@ -1319,7 +1319,7 @@ app.put('/make-server-e2c9f810/admin/elections/:id/status', async (c) => {
       }
     });
     
-    console.log(`Election"${election.title}" ${action}d by ${user.email}`);
+    console.log(`Election "${election.title}" ${action}d by ${user.email}`);
     
     return c.json({ election });
   } catch (error) {

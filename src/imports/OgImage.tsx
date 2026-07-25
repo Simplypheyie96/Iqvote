@@ -66,7 +66,7 @@ export default function OgImage() {
           position: 'absolute',
           top: '490px',
           left: '445px',
-          fontFamily:"'Syne', 'Arial Black', sans-serif",
+          fontFamily: "'Syne', 'Arial Black', sans-serif",
           fontWeight: 700,
           fontSize: '80px',
           color: '#000000',

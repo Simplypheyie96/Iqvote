@@ -152,19 +152,19 @@ export function SystemActivity() {
         }
         return `User account deleted for ${user}`;
       case 'vote_cast':
-        return `${user} submitted a vote in"${activity.details?.election_title || 'election'}"`;
+        return `${user} submitted a vote in "${activity.details?.election_title || 'election'}"`;
       case 'vote_revoked':
         return `Vote revoked for ${user} by admin`;
       case 'election_created':
-        return `${user} created election"${activity.details?.title || 'Unknown'}"`;
+        return `${user} created election "${activity.details?.title || 'Unknown'}"`;
       case 'election_updated':
-        return `${user} updated election"${activity.details?.title || 'Unknown'}"`;
+        return `${user} updated election "${activity.details?.title || 'Unknown'}"`;
       case 'employee_created':
-        return `${user} added employee"${activity.details?.employee_name || 'Unknown'}"`;
+        return `${user} added employee "${activity.details?.employee_name || 'Unknown'}"`;
       case 'employee_updated':
-        return `${user} updated employee"${activity.details?.employee_name || 'Unknown'}"`;
+        return `${user} updated employee "${activity.details?.employee_name || 'Unknown'}"`;
       case 'employee_deleted':
-        return `${user} removed employee"${activity.details?.employee_name || 'Unknown'}"`;
+        return `${user} removed employee "${activity.details?.employee_name || 'Unknown'}"`;
       case 'historical_import':
         return `${user} imported ${activity.details?.entries_count || 0} historical records`;
       default:
@@ -268,8 +268,8 @@ export function SystemActivity() {
                 <SelectItem value="auth">Auth</SelectItem>
                 <SelectItem value="vote">Vote</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="election">Election</SelectItem>
-                <SelectItem value="employee">Employee</SelectItem>
+                <SelectItem value="election ">Election</SelectItem>
+                <SelectItem value="employee ">Employee</SelectItem>
                 <SelectItem value="system">System</SelectItem>
               </SelectContent>
             </Select>

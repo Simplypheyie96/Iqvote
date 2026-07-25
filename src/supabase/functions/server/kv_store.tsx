@@ -10,7 +10,7 @@ CREATE TABLE kv_store_e2c9f810 (
 // View at https://supabase.com/dashboard/project/xgecjoivqzmqrgffchnn/database/tables
 
 // This file provides a simple key-value interface for storing Figma Make data. It should be adequate for most small-scale use cases.
-import { createClient } from"jsr:@supabase/supabase-js@2.49.8";
+import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 
 // Reuse a single client across calls. Creating one per operation adds
 // setup cost to every read/write and prevents connection reuse.
@@ -87,7 +87,7 @@ export const mdel = async (keys: string[]): Promise<void> => {
 // Search for key-value pairs by prefix.
 export const getByPrefix = async (prefix: string): Promise<any[]> => {
   const supabase = client()
-  const { data, error } = await supabase.from("kv_store_e2c9f810").select("key, value").like("key", prefix +"%");
+  const { data, error } = await supabase.from("kv_store_e2c9f810").select("key, value").like("key", prefix + "%");
   if (error) {
     throw new Error(error.message);
   }
@@ -101,7 +101,7 @@ export const getByPrefixWithKeys = async (
   prefix: string,
 ): Promise<{ key: string; value: any }[]> => {
   const supabase = client()
-  const { data, error } = await supabase.from("kv_store_e2c9f810").select("key, value").like("key", prefix +"%");
+  const { data, error } = await supabase.from("kv_store_e2c9f810").select("key, value").like("key", prefix + "%");
   if (error) {
     throw new Error(error.message);
   }

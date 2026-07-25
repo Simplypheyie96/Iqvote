@@ -1113,7 +1113,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               <Alert className="mb-6 border-blue-500/50 bg-blue-500/10">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
-                  <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click"Make Employee" to convert a user into a votable employee.
+                  <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click "Make Employee" to convert a user into a votable employee.
                 </AlertDescription>
               </Alert>
 

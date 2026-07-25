@@ -224,7 +224,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-semibold text-sm sm:text-base truncate">{vote.election.title}</h3>
-                            <Badge variant={vote.ballot.revoked ?"destructive" :"outline"} className="text-xs">
+                            <Badge variant={vote.ballot.revoked ? "destructive" : "outline"} className="text-xs">
                               {vote.ballot.revoked ? 'Revoked' : 'Counted'}
                             </Badge>
                           </div>

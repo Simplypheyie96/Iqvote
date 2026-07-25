@@ -54,7 +54,7 @@ export function HistoricalDataImport() {
       // Parse header - first column should be employee name, rest are month columns
       const headers = lines[0].split(',').map(h => h.trim());
       
-      // First column is employee name, last might be"Total Points", everything else is a month
+      // First column is employee name, last might be "Total Points", everything else is a month
       const employeeNameColumn = headers[0];
       const monthColumns = headers.slice(1).filter(h => 
         !h.toLowerCase().includes('total') && 
@@ -139,7 +139,7 @@ export function HistoricalDataImport() {
         entries
       });
 
-      setSuccess(`Successfully imported ${entries.length} entries for"${electionTitle}"!`);
+      setSuccess(`Successfully imported ${entries.length} entries for "${electionTitle}"!`);
       setCsvFile(null);
       setCsvPreview([]);
       setElectionTitle('');
@@ -199,7 +199,7 @@ export function HistoricalDataImport() {
         entries: validEntries
       });
 
-      setSuccess(`Successfully imported ${validEntries.length} entries for"${electionTitle}"!`);
+      setSuccess(`Successfully imported ${validEntries.length} entries for "${electionTitle}"!`);
       setElectionTitle('');
       setElectionDate('');
       setManualEntries([
