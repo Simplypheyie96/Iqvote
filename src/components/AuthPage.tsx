@@ -89,16 +89,18 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-[380px]">
-        {/* Brand + heading */}
-        <div className="flex flex-col items-center text-center mb-8">
+      <div className="w-full max-w-[400px]">
+        {/* Brand */}
+        <div className="flex flex-col items-center text-center mb-6">
           <img src={logoImageDark} alt="IQ Vote" className="w-12 h-12 object-contain mb-4" />
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in to IQ Vote</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Welcome to IQ Vote</h1>
           <p className="text-sm text-muted-foreground mt-1.5">
             Cast your monthly vote for standout colleagues.
           </p>
         </div>
 
+        {/* Card */}
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-7">
           {externalError && (
             <Alert variant="destructive" className="mb-6">
               <AlertDescription>{externalError}</AlertDescription>
@@ -118,8 +120,8 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
           )}
           
           {/* Sign In / Sign Up Tabs */}
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="w-full mb-6">
+          <Tabs defaultValue="signin" className="w-full gap-5">
+            <TabsList className="w-full">
               <TabsTrigger value="signin" className="flex-1">Sign In</TabsTrigger>
               <TabsTrigger value="signup" className="flex-1">Sign Up</TabsTrigger>
             </TabsList>
@@ -234,6 +236,11 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
               </form>
             </TabsContent>
           </Tabs>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          BrainDAO · Employee Recognition
+        </p>
       </div>
     </div>
   );
