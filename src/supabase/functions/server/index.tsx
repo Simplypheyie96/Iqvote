@@ -977,12 +977,26 @@ app.get('/make-server-e2c9f810/leaderboard/aggregated', async (c) => {
     // Get all messages across filtered elections
     const aggregatedMessages = new Map<string, {count: number, messages: string[]}>();
     
-    // Fetch all ballots ONCE upfront (instead of per-election to avoid N+1 timeout)
-    const allBallots = await kv.getByPrefix('ballot:');
-    
+    // Fetch all ballots AND all tallies ONCE upfront (one round-trip each)
+    // instead of one tally query per election.
+    const [allBallots, allTallyRows] = await Promise.all([
+      kv.getByPrefix('ballot:'),
+      kv.getByPrefixWithKeys('tally:'),
+    ]);
+
+    // Group tallies by election id, parsed from the key `tally:<electionId>:<employeeId>`
+    const talliesByElection = new Map<string, any[]>();
+    for (const row of allTallyRows) {
+      const electionId = row.key.split(':')[1];
+      if (!electionId) continue;
+      const list = talliesByElection.get(electionId);
+      if (list) list.push(row.value);
+      else talliesByElection.set(electionId, [row.value]);
+    }
+
     for (const election of filteredElections) {
-      const tallies = await kv.getByPrefix(`tally:${election.id}:`);
-      
+      const tallies = talliesByElection.get(election.id) ?? [];
+
       // Filter ballots for this election from the pre-fetched set
       const electionBallots = allBallots.filter(b => 
         b.election_id === election.id && !b.revoked
@@ -1690,13 +1704,25 @@ app.get('/make-server-e2c9f810/admin/export/all-data', async (c) => {
       return c.json({ error: 'Admin access required' }, 403);
     }
     
-    // Fetch all data in parallel where possible
-    const [allElections, allEmployees, allBallots, allUsers] = await Promise.all([
+    // Fetch all data in parallel — including every tally in one round-trip
+    // so the per-election loop below needs no further queries.
+    const [allElections, allEmployees, allBallots, allUsers, allTallyRows] = await Promise.all([
       kv.getByPrefix('election:'),
       kv.getByPrefix('employee:'),
       kv.getByPrefix('ballot:'),
       kv.getByPrefix('user:'),
+      kv.getByPrefixWithKeys('tally:'),
     ]);
+
+    // Group tallies by election id, parsed from `tally:<electionId>:<employeeId>`
+    const talliesByElection = new Map<string, any[]>();
+    for (const row of allTallyRows) {
+      const eid = row.key.split(':')[1];
+      if (!eid) continue;
+      const list = talliesByElection.get(eid);
+      if (list) list.push(row.value);
+      else talliesByElection.set(eid, [row.value]);
+    }
     
     // Sort elections by start_time descending
     const sortedElections = allElections.sort((a: any, b: any) =>
@@ -1718,8 +1744,8 @@ app.get('/make-server-e2c9f810/admin/export/all-data', async (c) => {
     // For each election, gather tallies + ballot metadata
     const electionDetails = [];
     for (const election of sortedElections) {
-      const tallies = await kv.getByPrefix(`tally:${election.id}:`);
-      
+      const tallies = talliesByElection.get(election.id) ?? [];
+
       const electionBallots = allBallots.filter((b: any) => b.election_id === election.id);
       const activeBallots = electionBallots.filter((b: any) => !b.revoked);
       const revokedBallots = electionBallots.filter((b: any) => b.revoked);
@@ -2357,15 +2383,26 @@ app.get('/make-server-e2c9f810/my-received-votes', async (c) => {
       return c.json({ votes: [] });
     }
 
-    const [allElections, allBallots] = await Promise.all([
+    const [allElections, allBallots, allTallyRows] = await Promise.all([
       kv.getByPrefix('election:'),
       kv.getByPrefix('ballot:'),
+      kv.getByPrefixWithKeys('tally:'),
     ]);
+
+    // Group every tally by election once, rather than querying per election.
+    const talliesByElection = new Map<string, any[]>();
+    for (const row of allTallyRows) {
+      const eid = row.key.split(':')[1];
+      if (!eid) continue;
+      const list = talliesByElection.get(eid);
+      if (list) list.push(row.value);
+      else talliesByElection.set(eid, [row.value]);
+    }
 
     const votes: any[] = [];
 
-    await Promise.all(allElections.map(async (election: any) => {
-      const electionTallies = await kv.getByPrefix(`tally:${election.id}:`);
+    allElections.forEach((election: any) => {
+      const electionTallies = talliesByElection.get(election.id) ?? [];
       const myTally = electionTallies.find((t: any) => t.employee_id === user.id);
 
       if (myTally && myTally.total_points > 0) {
@@ -2388,7 +2425,7 @@ app.get('/make-server-e2c9f810/my-received-votes', async (c) => {
           total_participants: electionBallots.length
         });
       }
-    }));
+    });
 
     votes.sort((a: any, b: any) => new Date(b.election.end_time).getTime() - new Date(a.election.end_time).getTime());
 

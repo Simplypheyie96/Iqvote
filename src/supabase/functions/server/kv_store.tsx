@@ -12,10 +12,18 @@ CREATE TABLE kv_store_e2c9f810 (
 // This file provides a simple key-value interface for storing Figma Make data. It should be adequate for most small-scale use cases.
 import { createClient } from"jsr:@supabase/supabase-js@2.49.8";
 
-const client = () => createClient(
-  Deno.env.get("SUPABASE_URL"),
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
-);
+// Reuse a single client across calls. Creating one per operation adds
+// setup cost to every read/write and prevents connection reuse.
+let _client: ReturnType<typeof createClient> | null = null;
+const client = () => {
+  if (!_client) {
+    _client = createClient(
+      Deno.env.get("SUPABASE_URL"),
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+    );
+  }
+  return _client;
+};
 
 // Set stores a key-value pair in the database.
 export const set = async (key: string, value: any): Promise<void> => {
@@ -84,4 +92,18 @@ export const getByPrefix = async (prefix: string): Promise<any[]> => {
     throw new Error(error.message);
   }
   return data?.map((d) => d.value) ?? [];
+};
+
+// Same as getByPrefix but keeps the key alongside each value. Lets callers
+// fetch a whole namespace in one round-trip and group in memory instead of
+// issuing one query per id.
+export const getByPrefixWithKeys = async (
+  prefix: string,
+): Promise<{ key: string; value: any }[]> => {
+  const supabase = client()
+  const { data, error } = await supabase.from("kv_store_e2c9f810").select("key, value").like("key", prefix +"%");
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data ?? [];
 };
