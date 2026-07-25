@@ -37,20 +37,30 @@ IQ Vote powers BrainDAO's internal monthly recognition elections. Team members c
 # Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env.local
-# Fill in your Supabase URL, anon key, and Brevo API key
-
 # Run the development server
 npm run dev
 ```
 
+Supabase connection details live in `src/utils/supabase/info.tsx`; server-side
+secrets are set on the Edge Function, not in a local env file.
+
+## Documentation
+
+| Doc | Covers |
+|---|---|
+| [docs/setup.md](docs/setup.md) | Standing up an instance, admin and voter guides, local dev |
+| [docs/architecture.md](docs/architecture.md) | Voters vs. candidates, storage layout, query patterns |
+| [docs/voting-rules.md](docs/voting-rules.md) | Scoring, tiebreaks, the privacy contract |
+| [docs/operations.md](docs/operations.md) | Database reset, deploying, shipping during a live election |
+| [docs/og-image.md](docs/og-image.md) | Regenerating the social preview image |
+
 ## Tech Stack
 
-- **Framework** — Next.js (App Router)
-- **Database** — Supabase (PostgreSQL)
+- **Framework** — React 18 + Vite
+- **Styling** — Tailwind CSS v4
+- **Backend** — Supabase (Edge Function + Postgres KV store)
 - **Email** — Brevo (transactional emails)
-- **Hosting** — Vercel
+- **Hosting** — Vercel (frontend only — the Edge Function deploys separately)
 
 ## License
 
