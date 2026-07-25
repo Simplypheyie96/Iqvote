@@ -56,22 +56,22 @@
 .dark {
   /* Brand dark theme — deep navy (not black), refined neutrals */
   --color-background: #0b1220;
-  --color-foreground: #f8fafc;
+  --color-foreground: #edeef0;
   --color-muted: #1a2436;
-  --color-muted-foreground: #94a3b8;
+  --color-muted-foreground: #a8adb6;
   --color-popover: #141d2e;
-  --color-popover-foreground: #f8fafc;
+  --color-popover-foreground: #edeef0;
   --color-card: #111a2b;
-  --color-card-foreground: #f8fafc;
+  --color-card-foreground: #edeef0;
   --color-border: #26324a;
   --color-input: #2b3852;
   --color-input-background: #0f1829;
   --color-primary: #ff1a88;
   --color-primary-foreground: #ffffff;
   --color-secondary: #1a2436;
-  --color-secondary-foreground: #f8fafc;
+  --color-secondary-foreground: #edeef0;
   --color-accent: #1e2a40;
-  --color-accent-foreground: #f8fafc;
+  --color-accent-foreground: #edeef0;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
   --color-ring: #cbd5e1;
@@ -119,6 +119,22 @@
   ::selection {
     background-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
     color: var(--color-foreground);
+  }
+
+  /* Browsers repaint autofilled inputs with their own background, which on a
+     dark theme shows up as an off, washed-out blue. Force our own surface. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--color-foreground);
+    -webkit-box-shadow: 0 0 0 1000px var(--color-input-background) inset;
+    box-shadow: 0 0 0 1000px var(--color-input-background) inset;
+    caret-color: var(--color-foreground);
+    /* Defeat the browser's delayed re-paint of the autofill background */
+    transition: background-color 600000s 0s, color 600000s 0s;
   }
 
   /* Scrollbar */
