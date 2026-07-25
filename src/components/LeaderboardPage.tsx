@@ -388,13 +388,13 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         {/* Inner surfaces derive from the foreground token rather
                             than a fixed white, so they tint with whatever block
                             they sit in and survive light mode. */}
-                        <div className="mt-4 w-full grid grid-cols-3 rounded-xl border border-inset-line divide-x divide-inset-line overflow-hidden">
+                        <div className="mt-4 w-full grid grid-cols-3 rounded-xl border border-sunken-line divide-x divide-sunken-line overflow-hidden">
                           {[
                             { n: entry.count_first, l: '1st' },
                             { n: entry.count_second, l: '2nd' },
                             { n: entry.count_third, l: '3rd' },
                           ].map(({ n, l }) => (
-                            <div key={l} className="px-1 py-2 text-center bg-inset">
+                            <div key={l} className="px-1 py-2 text-center bg-sunken">
                               <div className="text-sm font-semibold tabular-nums leading-none">{n}</div>
                               <div className="text-[11px] text-muted-foreground mt-1">{l}</div>
                             </div>
@@ -423,7 +423,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                             });
                             setReasonsModalOpen(true);
                           }}
-                          className="w-full mt-3 gap-1.5 bg-inset border-inset-line hover:bg-inset-strong disabled:opacity-60"
+                          className="w-full mt-3 gap-1.5 bg-sunken border-sunken-line hover:bg-sunken-strong disabled:opacity-60"
                         >
                           <MessageCircle className="w-4 h-4" aria-hidden="true" />
                           <span className="text-sm">

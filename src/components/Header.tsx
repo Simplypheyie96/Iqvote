@@ -139,10 +139,13 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
             {user && (
               <>
                 {/* Desktop navigation — segmented control. The track is inset,
-                    the selected tab is a raised surface with a pink hairline,
-                    so the current page reads at a glance. */}
+                    the selected tab is a raised surface. Selection is carried
+                    by four neutral signals at once (surface, hairline, text
+                    colour, weight) rather than an accent outline: the light
+                    pink is 2.85:1 on white, so as a border it would be
+                    decoration that some people simply can't see. */}
                 <nav
-                  className="hidden lg:flex items-center gap-1 p-1 rounded-full bg-muted/70 ring-1 ring-inset ring-border/60"
+                  className="hidden lg:flex items-center gap-1 p-1 rounded-full bg-muted/70 inset-ring-1 inset-ring-border/60"
                   role="navigation"
                   aria-label="Main navigation"
                 >
@@ -155,7 +158,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                         aria-current={active ? 'page' : undefined}
                         className={`h-9 px-4 rounded-full text-sm transition-[background-color,color,box-shadow] duration-300 ${FLUID} ${
                           active
-                            ? 'bg-background text-foreground font-semibold ring-1 ring-inset ring-primary/30 shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                            ? 'bg-background text-foreground font-semibold inset-ring-1 inset-ring-border shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
                             : 'text-muted-foreground font-medium hover:text-foreground'
                         }`}
                       >
@@ -262,9 +265,9 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
           <div className="px-5 pt-6 pb-12 flex flex-col gap-8">
             {/* Who you are. Nested enclosure so it reads as the one object
                 on the sheet rather than another row in a list. */}
-            <div className="animate-menu-row rounded-[1.75rem] bg-muted p-1.5 ring-1 ring-inset ring-border/70">
+            <div className="animate-menu-row rounded-[1.75rem] bg-muted p-1.5 inset-ring-1 inset-ring-border/70">
               <button
-                className={`group w-full flex items-center gap-4 rounded-[1.375rem] bg-background px-4 py-4 text-left ring-1 ring-inset ring-border/60 transition-colors duration-300 ${FLUID} hover:bg-accent`}
+                className={`group w-full flex items-center gap-4 rounded-[1.375rem] bg-background px-4 py-4 text-left inset-ring-1 inset-ring-border/60 transition-colors duration-300 ${FLUID} hover:bg-accent`}
                 onClick={() => handleNavigate('profile')}
                 aria-label="Go to your profile"
               >
@@ -327,7 +330,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                       aria-current={active ? 'page' : undefined}
                       className={`h-14 rounded-2xl px-4 flex items-center gap-3 text-left text-[15px] transition-colors duration-300 ${FLUID} ${
                         active
-                          ? 'bg-card font-semibold text-foreground ring-1 ring-inset ring-border'
+                          ? 'bg-card font-semibold text-foreground inset-ring-1 inset-ring-border'
                           : 'font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                       }`}
                     >

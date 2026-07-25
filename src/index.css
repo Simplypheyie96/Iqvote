@@ -168,13 +168,17 @@
   --color-input-background: var(--input-background);
   --color-ring: var(--ring);
 
-  /* Inset surfaces — for panels nested inside an already-tinted block (the
+  /* Sunken surfaces — for panels nested inside an already-tinted block (the
      podium stat grid, for example). Derived from the foreground so they pick
      up the parent's hue instead of forcing a fixed white, which vanished
-     entirely on a light canvas. */
-  --color-inset: color-mix(in srgb, var(--foreground) 4%, transparent);
-  --color-inset-strong: color-mix(in srgb, var(--foreground) 8%, transparent);
-  --color-inset-line: color-mix(in srgb, var(--foreground) 10%, transparent);
+     entirely on a light canvas.
+
+     Named "sunken", not "inset": a `--color-inset` token makes Tailwind read
+     `ring-inset` as ring-<color:inset> and silently repaint every inset
+     hairline in the app at 4% foreground. */
+  --color-sunken: color-mix(in srgb, var(--foreground) 4%, transparent);
+  --color-sunken-strong: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --color-sunken-line: color-mix(in srgb, var(--foreground) 10%, transparent);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
