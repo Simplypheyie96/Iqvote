@@ -300,12 +300,13 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                 <h3 className="text-lg sm:text-xl font-bold" id="top-performers-heading">Top Performers</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:items-start">
+              {/* Podium — solid blocks with a lit top face, joined into one structure */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:items-end">
                 {topThree.map((entry, index) => {
                   const config = [
-                    { primary: true, label: 'Champion', order: 'md:order-2', elevate: 'md:-translate-y-3', Icon: Crown, iconColor: 'text-amber-400' },
-                    { primary: false, label: 'Runner-up', order: 'md:order-1', elevate: '', Icon: Trophy, iconColor: 'text-slate-300' },
-                    { primary: false, label: 'Third place', order: 'md:order-3', elevate: '', Icon: Trophy, iconColor: 'text-amber-600' },
+                    { primary: true,  label: 'Champion',    order: 'md:order-2', Icon: Crown,  iconColor: 'text-amber-300',  badge: 'bg-amber-400/15 border-amber-400/40',  plinth: 'md:pb-20', avatar: 'w-20 h-20 sm:w-24 sm:h-24', edge: '' },
+                    { primary: false, label: 'Runner-up',   order: 'md:order-1', Icon: Trophy, iconColor: 'text-slate-200',  badge: 'bg-slate-300/15 border-slate-300/40',  plinth: 'md:pb-10', avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tl-xl' },
+                    { primary: false, label: 'Third place', order: 'md:order-3', Icon: Trophy, iconColor: 'text-orange-300', badge: 'bg-orange-400/15 border-orange-400/40', plinth: 'md:pb-4',  avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tr-xl' },
                   ][index];
                   const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
@@ -316,83 +317,114 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                   return (
                     <div
                       key={entry.employee_id}
-                      className={`rounded-xl border p-4 sm:p-5 animate-fade-in-up transition-colors ${config.order} ${config.elevate} ${
-                        config.primary ? 'border-primary bg-primary/[0.05] ' : 'border-border bg-card hover:border-primary/30'
-                      }`}
-                      style={{ animationDelay: `${index * 80}ms` }}
+                      className={`flex flex-col items-center animate-fade-in-up ${config.order}`}
+                      style={{ animationDelay: `${index * 90}ms` }}
                     >
-                      {/* Header */}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="relative flex-shrink-0">
-                          <div className="w-12 h-12 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center text-sm font-medium text-muted-foreground">
+                      {/* Person — stands above the platform */}
+                      <div className="flex flex-col items-center text-center px-2 pb-4">
+                        <div className="relative">
+                          <div className={`${config.avatar} rounded-full bg-muted border overflow-hidden flex items-center justify-center text-lg font-medium text-muted-foreground ${
+                            config.primary ? 'border-primary' : 'border-border'
+                          }`}>
                             {entry.employee?.image_url ? (
                               <img src={entry.employee.image_url} alt={entry.employee.name} className="w-full h-full object-cover" />
                             ) : (
                               initials
                             )}
                           </div>
-                          <span className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold border-2 border-card ${
-                            config.primary ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground border-background'
+                          <span className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold border-2 border-background ${
+                            config.primary ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
                           }`}>
                             {entry.rank}
                           </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold truncate">{entry.employee?.name}</span>
-                            {isCurrentUser && (
-                              <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full flex-shrink-0">You</span>
-                            )}
-                          </div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {config.label}{entry.employee?.role ? ` · ${entry.employee.role}` : ''}
-                          </div>
+
+                        <div className="mt-3 flex items-center gap-1.5">
+                          <span className="font-semibold truncate max-w-[12rem]">{entry.employee?.name}</span>
+                          {isCurrentUser && (
+                            <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full flex-shrink-0">You</span>
+                          )}
                         </div>
-                        <Icon className={`w-5 h-5 flex-shrink-0 ${config.iconColor}`} aria-hidden="true" />
+                        {entry.employee?.role && (
+                          <p className="text-xs text-muted-foreground truncate max-w-[12rem]">{entry.employee.role}</p>
+                        )}
                       </div>
 
-                      {/* Stat row */}
-                      <div className="grid grid-cols-4 rounded-xl border border-border overflow-hidden divide-x divide-border">
-                        <div className="px-2 py-3 text-center bg-muted/30">
-                          <div className="text-2xl font-bold tabular-nums leading-none text-foreground">{entry.total_points}</div>
+                      {/* Platform — a solid block: lit top face + front face.
+                          The top face is a real bordered element rotated in 3D
+                          (not clip-path), so the outline wraps the whole shape. */}
+                      <div className="w-full">
+                        {/* Top face (desktop only) */}
+                        <div
+                          className={`hidden md:block h-11 border border-b-0 ${config.edge} ${
+                            config.primary
+                              ? 'border-primary/60 bg-primary/[0.16]'
+                              : 'border-border bg-muted'
+                          }`}
+                          style={{ transform: 'perspective(420px) rotateX(58deg)', transformOrigin: 'bottom center' }}
+                          aria-hidden="true"
+                        />
+                        {/* Front face */}
+                        <div
+                          className={`w-full rounded-xl md:rounded-none border md:border-b-0 md:border-t-0 px-4 pt-5 pb-6 flex flex-col items-center ${config.plinth} ${
+                            config.primary
+                              ? 'border-primary/60 bg-primary/[0.11]'
+                              : 'border-border bg-card'
+                          }`}
+                        >
+                        {/* Award badge */}
+                        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${config.badge}`}>
+                          <Icon className={`w-6 h-6 ${config.iconColor}`} aria-hidden="true" />
+                        </div>
+                        <span className="mt-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          {config.label}
+                        </span>
+
+                        <div className="mt-4 text-center">
+                          <div className="text-3xl sm:text-4xl font-bold tabular-nums leading-none">{entry.total_points}</div>
                           <div className="text-xs text-muted-foreground mt-1.5">Points</div>
                         </div>
-                        <div className="px-2 py-3 text-center bg-muted/20">
-                          <div className="text-lg font-semibold tabular-nums leading-none">{entry.count_first}</div>
-                          <div className="text-xs text-muted-foreground mt-1.5">1st</div>
+
+                        {/* Inner surfaces use neutral alpha, not a fixed hue, so they
+                            tint with whatever block they sit in (pink or navy). */}
+                        <div className="mt-4 w-full grid grid-cols-3 rounded-xl border border-white/10 divide-x divide-white/10 overflow-hidden">
+                          {[
+                            { n: entry.count_first, l: '1st' },
+                            { n: entry.count_second, l: '2nd' },
+                            { n: entry.count_third, l: '3rd' },
+                          ].map(({ n, l }) => (
+                            <div key={l} className="px-1 py-2 text-center bg-white/[0.03]">
+                              <div className="text-sm font-semibold tabular-nums leading-none">{n}</div>
+                              <div className="text-[11px] text-muted-foreground mt-1">{l}</div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="px-2 py-3 text-center bg-muted/20">
-                          <div className="text-lg font-semibold tabular-nums leading-none">{entry.count_second}</div>
-                          <div className="text-xs text-muted-foreground mt-1.5">2nd</div>
-                        </div>
-                        <div className="px-2 py-3 text-center bg-muted/20">
-                          <div className="text-lg font-semibold tabular-nums leading-none">{entry.count_third}</div>
-                          <div className="text-xs text-muted-foreground mt-1.5">3rd</div>
+
+                        {messageCount > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedEmployee({
+                                name: entry.employee?.name || 'Unknown',
+                                messages: (entry as any).messages || [],
+                                totalPoints: entry.total_points,
+                              });
+                              setReasonsModalOpen(true);
+                            }}
+                            className="w-full mt-3 gap-1.5 bg-white/[0.03] border-white/10 hover:bg-white/[0.08]"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            <span className="text-sm">{messageCount} {messageCount === 1 ? 'message' : 'messages'}</span>
+                          </Button>
+                        )}
                         </div>
                       </div>
-
-                      {/* Messages */}
-                      {messageCount > 0 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedEmployee({
-                              name: entry.employee?.name || 'Unknown',
-                              messages: (entry as any).messages || [],
-                              totalPoints: entry.total_points,
-                            });
-                            setReasonsModalOpen(true);
-                          }}
-                          className="w-full mt-3 gap-1.5"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                          <span className="text-sm">{messageCount} {messageCount === 1 ? 'message' : 'messages'}</span>
-                        </Button>
-                      )}
                     </div>
                   );
                 })}</div>
+              {/* Podium floor */}
+              <div className="hidden md:block h-px bg-border" aria-hidden="true" />
             </section>
           )}
 
