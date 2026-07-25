@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { createClient } from '../utils/supabase/client';
 import { api } from '../utils/api';
 import { LoadingSpinner } from './LoadingSpinner';
+import { useTheme } from './ThemeProvider';
+import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
 
 interface AuthPageProps {
@@ -16,6 +18,8 @@ interface AuthPageProps {
 }
 
 export function AuthPage({ onSignIn, error: externalError, showResetOption = false }: AuthPageProps) {
+  const { resolvedTheme } = useTheme();
+  const logoImage = resolvedTheme === 'dark' ? logoImageDark : logoImageLight;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -92,7 +96,7 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="flex flex-col items-center text-center mb-6">
-          <img src={logoImageDark} alt="IQ Vote" className="w-12 h-12 object-contain mb-4" />
+          <img src={logoImage} alt="IQ Vote" className="w-12 h-12 object-contain mb-4" />
           <h1 className="text-2xl font-semibold tracking-tight">Welcome to IQ Vote</h1>
           <p className="text-sm text-muted-foreground mt-1.5">
             Cast your monthly vote for standout colleagues.
