@@ -350,23 +350,26 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         )}
                       </div>
 
-                      {/* Platform — a solid block: lit top face + front face */}
+                      {/* Platform — a solid block: lit top face + front face.
+                          The top face is a real bordered element rotated in 3D
+                          (not clip-path), so the outline wraps the whole shape. */}
                       <div className="w-full">
-                        {/* Top face (desktop only) — trapezoid reads as the block's
-                            upper surface seen in perspective */}
+                        {/* Top face (desktop only) */}
                         <div
-                          className={`hidden md:block h-6 ${
-                            config.primary ? 'bg-primary/25' : 'bg-muted'
+                          className={`hidden md:block h-11 border border-b-0 ${config.edge} ${
+                            config.primary
+                              ? 'border-primary/60 bg-primary/[0.16]'
+                              : 'border-border bg-muted'
                           }`}
-                          style={{ clipPath: 'polygon(7% 0, 93% 0, 100% 100%, 0 100%)' }}
+                          style={{ transform: 'perspective(420px) rotateX(58deg)', transformOrigin: 'bottom center' }}
                           aria-hidden="true"
                         />
                         {/* Front face */}
                         <div
-                          className={`w-full rounded-xl md:rounded-none border md:border-b-0 px-4 pt-5 pb-6 flex flex-col items-center ${config.edge} ${config.plinth} ${
+                          className={`w-full rounded-xl md:rounded-none border md:border-b-0 md:border-t-0 px-4 pt-5 pb-6 flex flex-col items-center ${config.plinth} ${
                             config.primary
-                              ? 'border-primary/60 bg-primary/[0.07] md:border-t-0'
-                              : 'border-border bg-card md:border-t-0'
+                              ? 'border-primary/60 bg-primary/[0.11]'
+                              : 'border-border bg-card'
                           }`}
                         >
                         {/* Award badge */}
