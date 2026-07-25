@@ -456,9 +456,17 @@
   }
 
   /* The separator. One hairline, drawn from the foreground so it works in
-     both themes, and nothing else. */
+     both themes, and nothing else — a second line or a bevel here is what
+     makes a bar look moulded instead of transparent.
+
+     Two weights: the soft one holds the edge at rest, when the bar is
+     transparent and would otherwise bleed into the page; the full one takes
+     over once the glass engages and there is real content to separate from. */
+  .hairline-soft {
+    box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-foreground) 11%, transparent);
+  }
   .glass-hairline {
-    box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-foreground) 9%, transparent);
+    box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-foreground) 18%, transparent);
   }
 
   /* Without backdrop-filter, fall back to opaque. A see-through bar with

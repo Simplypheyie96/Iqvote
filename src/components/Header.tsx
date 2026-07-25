@@ -120,7 +120,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
 
       <header
         className={`sticky top-0 z-50 transition-[background-color,box-shadow] duration-500 ${FLUID} ${
-          scrolled || isMobileMenuOpen ? 'glass-bar glass-hairline' : 'bg-transparent'
+          scrolled || isMobileMenuOpen ? 'glass-bar glass-hairline' : 'bg-transparent hairline-soft'
         }`}
         role="banner"
       >
