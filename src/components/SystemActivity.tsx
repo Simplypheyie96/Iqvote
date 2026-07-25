@@ -6,7 +6,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Alert, AlertDescription } from './ui/alert';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { LoadingSpinner } from './LoadingSpinner';
+import { Skeleton } from './ui/skeleton';
 import { projectId } from '../utils/supabase/info';
 import { createClient } from '../utils/supabase/client';
 
@@ -47,7 +47,6 @@ export function SystemActivity() {
           console.error('Session error in SystemActivity:', sessionError);
           // If it's a refresh token error, clear and return
           if (sessionError.message.includes('Refresh Token')) {
-            console.log('Invalid refresh token detected in SystemActivity');
             await supabase.auth.signOut();
             return;
           }
@@ -75,8 +74,6 @@ export function SystemActivity() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Activity data received:', data);
-        console.log('Number of activities:', data.activities?.length || 0);
         setActivities(data.activities || []);
       } else {
         console.error('Failed to load activities:', response.status, response.statusText);
@@ -103,11 +100,11 @@ export function SystemActivity() {
 
   const getActivityColor = (type: string) => {
     switch (type) {
-      case 'auth': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'vote': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'admin': return 'bg-red-500/10 text-red-500 border-red-500/20';
-      case 'election': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
-      case 'employee': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+      case 'auth': return 'bg-blue-500/10 text-muted-foreground border-blue-500/20';
+      case 'vote': return 'bg-green-500/10 text-muted-foreground border-green-500/20';
+      case 'admin': return 'bg-red-500/10 text-muted-foreground border-red-500/20';
+      case 'election': return 'bg-purple-500/10 text-muted-foreground border-purple-500/20';
+      case 'employee': return 'bg-orange-500/10 text-muted-foreground border-orange-500/20';
       default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
     }
   };
@@ -183,8 +180,21 @@ export function SystemActivity() {
             <Eye className="w-5 h-5 text-primary" />
             System Activity Monitor
           </CardTitle>
-          <CardDescription>Loading activity logs...</CardDescription>
+          <CardDescription>Loading activity logs…</CardDescription>
         </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border">
+                <Skeleton className="w-9 h-9 rounded-xl flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
       </Card>
     );
   }
@@ -192,7 +202,7 @@ export function SystemActivity() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+        <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Activities</CardTitle>
           </CardHeader>
@@ -202,7 +212,7 @@ export function SystemActivity() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+        <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Recent Votes</CardTitle>
           </CardHeader>
@@ -214,7 +224,7 @@ export function SystemActivity() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
+        <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Admin Actions</CardTitle>
           </CardHeader>
@@ -238,7 +248,7 @@ export function SystemActivity() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             <Input
               type="text"
               placeholder="Search activities..."
@@ -250,7 +260,7 @@ export function SystemActivity() {
               value={filterType}
               onValueChange={(value) => setFilterType(value)}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40 flex-shrink-0">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
@@ -258,8 +268,8 @@ export function SystemActivity() {
                 <SelectItem value="auth">Auth</SelectItem>
                 <SelectItem value="vote">Vote</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="election">Election</SelectItem>
-                <SelectItem value="employee">Employee</SelectItem>
+                <SelectItem value="election ">Election</SelectItem>
+                <SelectItem value="employee ">Employee</SelectItem>
                 <SelectItem value="system">System</SelectItem>
               </SelectContent>
             </Select>
@@ -267,7 +277,7 @@ export function SystemActivity() {
               value={filterAction}
               onValueChange={(value) => setFilterAction(value)}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40 flex-shrink-0">
                 <SelectValue placeholder="Filter by action" />
               </SelectTrigger>
               <SelectContent>
@@ -305,9 +315,9 @@ export function SystemActivity() {
                   .map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-start gap-3 p-4 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors"
+                      className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-accent/40 transition-colors"
                     >
-                      <div className={`p-2 rounded-lg border ${getActivityColor(activity.type)}`}>
+                      <div className={`p-2 rounded-xl border ${getActivityColor(activity.type)}`}>
                         {getActivityIcon(activity.type)}
                       </div>
                       

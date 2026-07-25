@@ -31,7 +31,7 @@ export function VotingReasonsModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mb-4 p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex-shrink-0">
+        <div className="mb-4 p-4 rounded-xl bg-primary/10 border border-primary/20 flex-shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Total Points</p>
@@ -55,7 +55,7 @@ export function VotingReasonsModal({
               messages.map((message, index) => (
                 <div
                   key={index}
-                  className="p-4 rounded-lg bg-muted/50 border border-border hover:border-primary/30 transition-colors"
+                  className="p-4 rounded-xl bg-muted/50 border border-border hover:border-primary/30 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <Badge variant="outline" className="mt-0.5 flex-shrink-0">
@@ -69,7 +69,7 @@ export function VotingReasonsModal({
           </div>
         </div>
 
-        <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex-shrink-0">
+        <div className="mt-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 flex-shrink-0">
           <p className="text-xs text-blue-600 dark:text-blue-400 flex items-start gap-2">
             <MessageCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span>

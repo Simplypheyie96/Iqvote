@@ -43,10 +43,10 @@ export function DemoSetup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="max-w-2xl w-full">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center mx-auto mb-4">
             <Rocket className="w-8 h-8 text-primary-foreground" />
           </div>
           <CardTitle className="text-3xl">IQ Vote Demo Setup</CardTitle>
@@ -59,7 +59,7 @@ export function DemoSetup() {
           {!success ? (
             <>
               <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                <div className="p-4 rounded-xl bg-muted/50 border border-border">
                   <h4 className="font-semibold mb-2">What will be created:</h4>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
@@ -133,7 +133,7 @@ export function DemoSetup() {
               </Alert>
 
               <div className="space-y-4">
-                <div className="p-5 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <div className="p-5 rounded-xl bg-primary/10 border border-primary/20">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     👑 Admin Account
                   </h4>
@@ -149,7 +149,7 @@ export function DemoSetup() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30 border border-border">
+                <div className="p-5 rounded-xl bg-muted/50 border border-border">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     👤 Employee Account
                   </h4>
@@ -166,7 +166,7 @@ export function DemoSetup() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                 <p className="text-sm text-blue-600 dark:text-blue-400">
                   <strong>Next step:</strong> Close this window and sign in with one of the accounts above to explore all features!
                 </p>

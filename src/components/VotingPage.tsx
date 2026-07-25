@@ -246,7 +246,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
                 {pastElection ? pastElection.title : 'Employee of the Month Voting'}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -255,7 +255,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
             </div>
             
             {pastElection && (
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-muted/50 border border-border self-start sm:self-auto">
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-muted/50 border border-border self-start sm:self-auto">
                 <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <div className="text-sm">
                   <div className="text-xs text-muted-foreground">Election ended</div>
@@ -278,11 +278,10 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         </div>
 
         {/* Instructions */}
-        <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-xl p-6 mb-8 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
-          <div className="relative">
+        <div className="bg-accent border border-border rounded-xl p-6 mb-8">
+          <div>
             <h4 className="flex items-center gap-2 mb-3 font-semibold">
-              <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-xl bg-primary/20 flex items-center justify-center">
                 <CheckCircle2 className="w-4 h-4 text-primary" />
               </div>
               How to vote
@@ -309,13 +308,13 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
         </div>
         
         {/* Progress indicator - Empty state */}
-        <div className="mb-8 bg-card border border-border rounded-xl p-4 sm:p-6 shadow-lg opacity-60">
+        <div className="mb-8 bg-card border border-border rounded-xl p-4 sm:p-6 opacity-60">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-medium text-muted-foreground">Your selections</span>
             <div className="flex items-center gap-2">
               <span className="text-sm sm:text-base font-semibold text-foreground">0 of 3</span>
               <div className="hidden sm:block w-16 h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500" style={{ width: '0%' }} />
+                <div className="h-full bg-primary transition-all duration-500" style={{ width: '0%' }} />
               </div>
             </div>
           </div>
@@ -326,7 +325,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
               return (
                 <div
                   key={rank}
-                  className="relative p-4 rounded-lg border bg-muted/30 border-border"
+                  className="relative p-4 rounded-xl border bg-muted/30 border-border"
                 >
                   <div className="flex items-center sm:flex-col sm:text-center gap-3 sm:gap-2">
                     <span className="text-2xl opacity-50 flex-shrink-0">{icon}</span>
@@ -347,7 +346,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
 
         {/* Empty employee list */}
         <div className="text-center py-16 bg-card border border-border rounded-xl">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
             <Clock className="w-10 h-10 text-muted-foreground opacity-40" />
           </div>
           <h3 className="text-xl font-semibold mb-2">No Active Election</h3>
@@ -383,240 +382,177 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2" id="voting-title">
-              {election.title}
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground" id="voting-description">
-              Vote for your colleagues — make every vote count
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-muted/50 border border-border self-start sm:self-auto" role="status" aria-live="polite">
-            <Clock className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
-            <div className="text-sm">
-              <div className="text-xs text-muted-foreground">Time remaining</div>
-              <div className="font-semibold whitespace-nowrap" aria-label={`Time remaining: ${timeRemaining}`}>{timeRemaining}</div>
-            </div>
-          </div>
+      <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight truncate" id="voting-title">
+            {election.title}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1" id="voting-description">
+            Rank your top three colleagues — 1st is worth 5 points, 2nd 3, 3rd 2. Your ballot locks once submitted.
+          </p>
         </div>
-        
-        {success && (
-          <Alert className="border-primary/50 bg-gradient-to-r from-primary/10 to-primary/5 shadow-lg shadow-primary/10" role="status" aria-live="polite">
-            <CheckCircle2 className="h-4 w-4 text-primary" aria-hidden="true" />
-            <AlertDescription className="text-foreground font-medium">{success}</AlertDescription>
-          </Alert>
-        )}
-        
-        {error && (
-          <Alert variant="destructive" className="shadow-lg" role="alert" aria-live="assertive">
-            <AlertCircle className="h-4 w-4" aria-hidden="true" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+
+        <div className="shrink-0 inline-flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-1.5 text-sm" role="status" aria-live="polite">
+          <Clock className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+          <span className="font-medium tabular-nums whitespace-nowrap" aria-label={`Time remaining: ${timeRemaining}`}>{timeRemaining}</span>
+        </div>
       </div>
 
-      {/* Instructions */}
-      <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-xl p-6 mb-8 overflow-hidden" role="region" aria-labelledby="instructions-heading">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
-        <div className="relative">
-          <h4 className="flex items-center gap-2 mb-3 font-semibold" id="instructions-heading">
-            <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-            </div>
-            How to vote
-          </h4>
-          <ul className="text-sm text-muted-foreground space-y-2 ml-8">
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>Select one employee for each rank: 1st place (5 points), 2nd place (3 points), 3rd place (2 points)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>You must choose three distinct employees</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>You can vote for yourself if you wish</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span><strong>Important:</strong> Once submitted, your vote cannot be changed</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      
-      {/* Validation status */}
-      {validationErrors.length > 0 && !canSubmit() && (
-        <Alert className="mb-6 border-yellow-500/50 bg-yellow-500/10 shadow-lg" role="alert" aria-live="polite">
-          <AlertCircle className="h-4 w-4 text-yellow-500" aria-hidden="true" />
-          <AlertDescription className="text-yellow-600 dark:text-yellow-400 font-medium">
-            {validationErrors.join(' • ')}
-          </AlertDescription>
+      {success && (
+        <Alert className="mb-4" role="status" aria-live="polite">
+          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription className="font-medium">{success}</AlertDescription>
         </Alert>
       )}
-      
-      {/* Progress indicator */}
-      <div className="mb-8 bg-card border border-border rounded-xl p-4 sm:p-6 shadow-lg" role="status" aria-live="polite" aria-label={`Vote progress: ${selections.size} of 3 selections made`}>
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-medium text-muted-foreground">Your selections</span>
-          <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-base font-semibold text-foreground">{selections.size} of 3</span>
-            <div className="hidden sm:block w-16 h-2 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500"
-                style={{ width: `${(selections.size / 3) * 100}%` }}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[1, 2, 3].map(rank => {
-            const selected = selections.get(rank);
-            const employee = selected ? employees.find(e => e.id === selected) : null;
-            const points = rank === 1 ? 5 : rank === 2 ? 3 : 2;
-            const icon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
-            
-            return (
-              <div
-                key={rank}
-                className={`relative p-4 rounded-lg border transition-all duration-300 ${
-                  selected 
-                    ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 shadow-lg shadow-primary/10' 
-                    : 'bg-muted/30 border-border'
-                }`}
-                role="status"
-                aria-label={`${rank}${rank === 1 ? 'st' : rank === 2 ? 'nd' : 'rd'} place: ${employee ? employee.name : 'Not selected'}`}
-              >
-                <div className="flex items-center gap-3">
-                  {/* Employee image or emoji */}
-                  {employee?.image_url ? (
-                    <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 border border-primary/20">
-                      <img 
-                        src={employee.image_url} 
-                        alt={employee.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute -bottom-1 -right-1 text-base sm:text-lg">
-                        {icon}
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-2xl sm:text-2xl flex-shrink-0">{icon}</span>
-                  )}
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {rank}{rank === 1 ? 'st' : rank === 2 ? 'nd' : 'rd'} place
-                    </div>
-                    <div className="text-sm sm:text-sm font-semibold truncate">
-                      {employee ? (
-                        <span className="block truncate">{employee.name}</span>
-                      ) : (
-                        <span className="text-muted-foreground">Not selected</span>
-                      )}
-                    </div>
-                  </div>
-                  {selected && (
-                    <div className="text-xs text-primary font-medium flex-shrink-0">{points} pts</div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Employee list */}
-      <div className="space-y-3 mb-6" role="list" aria-labelledby="voting-title">
-        {eligibleEmployees.filter(e => e.active).length === 0 ? (
-          <div className="text-center py-12 bg-card border border-border rounded-xl">
-            <div className="text-6xl mb-4">📭</div>
-            <h3 className="mb-2">No Employees Available</h3>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto">
-              There are no employees eligible for this election yet. Please contact an administrator to add employees.
-            </p>
-          </div>
-        ) : (
-          eligibleEmployees.filter(e => e.active).map(employee => {
-            const selectedRank = getSelectedRank(employee.id);
-            return (
-              <div key={employee.id} role="listitem">
-                <EmployeeCard
-                  employee={employee}
-                  selectedRank={selectedRank}
-                  onSelectRank={(rank) => handleSelectRank(employee.id, rank)}
-                  disabled={hasVoted}
-                  reason={selectedRank ? reasons.get(selectedRank) : undefined}
-                  onReasonChange={selectedRank && !hasVoted ? (reason) => {
-                    const newReasons = new Map(reasons);
-                    if (reason.trim()) {
-                      newReasons.set(selectedRank, reason);
-                    } else {
-                      newReasons.delete(selectedRank);
-                    }
-                    setReasons(newReasons);
-                  } : undefined}
-                />
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      {/* Confirmation and submit */}
-      {canSubmit() && !showConfirmation && !hasVoted && (
-        <div className="sticky bottom-6 flex justify-center">
-          <Button
-            size="lg"
-            onClick={() => setShowConfirmation(true)}
-            className="gap-2 shadow-2xl shadow-primary/30 hover:shadow-primary/40 transition-all duration-300 hover:scale-105 px-8"
-            aria-label="Review and submit your ballot"
-          >
-            <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
-            Review & Submit Ballot
-          </Button>
-        </div>
+      {error && (
+        <Alert variant="destructive" className="mb-4" role="alert" aria-live="assertive">
+          <AlertCircle className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      {showConfirmation && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 z-50"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-dialog-title"
-          aria-describedby="confirm-dialog-description"
-        >
-          <div className="bg-card border border-border rounded-lg max-w-md w-full p-6">
-            <h3 id="confirm-dialog-title">Confirm Your Ballot</h3>
-            
-            {/* Warning message */}
-            <Alert className="mb-4 border-red-500/50 bg-red-500/10" role="alert">
-              <AlertCircle className="h-4 w-4 text-red-500" aria-hidden="true" />
-              <AlertDescription className="text-red-600 dark:text-red-400" id="confirm-dialog-description">
-                <strong>Warning:</strong> Once submitted, your vote cannot be changed. Please review carefully.
-              </AlertDescription>
-            </Alert>
-            
-            <div className="space-y-3 mb-6" role="list" aria-label="Your ballot selections">
-              {getConfirmationDetails().map(({ rank, employee, points }) => (
-                <div key={rank} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg" role="listitem">
+      <div className="grid lg:grid-cols-[1fr_320px] gap-6 lg:gap-8 items-start">
+        {/* Left: candidate list */}
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Candidates
+            </h2>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {eligibleEmployees.filter(e => e.active).length}
+            </span>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card divide-y divide-border" role="list" aria-labelledby="voting-title">
+            {eligibleEmployees.filter(e => e.active).length === 0 ? (
+              <div className="text-center py-14 px-4">
+                <h3 className="text-sm font-medium mb-1">No candidates yet</h3>
+                <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                  No employees are eligible for this election yet. Contact an administrator to add them.
+                </p>
+              </div>
+            ) : (
+              eligibleEmployees.filter(e => e.active).map((employee, idx) => {
+                const selectedRank = getSelectedRank(employee.id);
+                return (
+                  <div key={employee.id} role="listitem" className="px-2 py-1.5">
+                    <EmployeeCard
+                      employee={employee}
+                      index={idx}
+                      selectedRank={selectedRank}
+                      onSelectRank={(rank) => handleSelectRank(employee.id, rank)}
+                      disabled={hasVoted}
+                      reason={selectedRank ? reasons.get(selectedRank) : undefined}
+                      onReasonChange={selectedRank && !hasVoted ? (reason) => {
+                        const newReasons = new Map(reasons);
+                        if (reason.trim()) {
+                          newReasons.set(selectedRank, reason);
+                        } else {
+                          newReasons.delete(selectedRank);
+                        }
+                        setReasons(newReasons);
+                      } : undefined}
+                    />
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Right: ballot summary */}
+        <aside className="lg:sticky lg:top-24">
+          <div className="rounded-xl border border-border bg-card p-4" role="status" aria-live="polite" aria-label={`Ballot: ${selections.size} of 3 selected`}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold">Your ballot</h2>
+              <span className="text-xs text-muted-foreground tabular-nums">{selections.size}/3</span>
+            </div>
+
+            <div className="space-y-2">
+              {[1, 2, 3].map(rank => {
+                const selected = selections.get(rank);
+                const employee = selected ? employees.find(e => e.id === selected) : null;
+                const points = rank === 1 ? 5 : rank === 2 ? 3 : 2;
+                const label = rank === 1 ? '1st' : rank === 2 ? '2nd' : '3rd';
+                const initials = employee
+                  ? employee.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                  : '';
+                return (
+                  <div
+                    key={rank}
+                    className={`flex items-center gap-2.5 rounded-xl border px-2.5 py-2 transition-colors ${
+                      employee ? 'border-border bg-muted/40' : 'border-dashed border-border'
+                    }`}
+                  >
+                    {employee ? (
+                      <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center text-[10px] font-medium text-muted-foreground flex-shrink-0">
+                        {employee.image_url ? (
+                          <img src={employee.image_url} alt={employee.name} className="w-full h-full object-cover" />
+                        ) : (
+                          initials
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full border border-dashed border-border flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">
+                        {rank}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate text-sm ${employee ? 'font-medium' : 'text-muted-foreground'}`}>
+                        {employee ? employee.name : 'Empty'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{label} · {points} pt</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {!hasVoted && (
+              <Button
+                onClick={() => setShowConfirmation(true)}
+                disabled={!canSubmit()}
+                className="w-full mt-4"
+                aria-label="Review and submit your ballot"
+              >
+                Review &amp; submit
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground text-center mt-2.5">
+              {hasVoted
+                ? 'Your ballot is locked.'
+                : canSubmit()
+                ? 'Review it before it locks for good.'
+                : 'Pick 1st, 2nd and 3rd to continue.'}
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <Dialog open={showConfirmation} onOpenChange={(open) => { if (!open) setShowConfirmation(false); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Confirm your ballot</DialogTitle>
+            <DialogDescription>
+              Review your selections carefully — once submitted, your vote is locked and cannot be changed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3" role="list" aria-label="Your ballot selections">
+            {getConfirmationDetails().map(({ rank, employee, points }) => {
+              const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+              return (
+                <div key={rank} className="flex items-center gap-3 p-3 bg-muted/40 rounded-xl border border-border/60" role="listitem">
                   {employee.image_url ? (
-                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-primary/20">
-                      <img 
-                        src={employee.image_url} 
-                        alt={employee.name}
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="relative w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 border border-primary/20">
+                      <img src={employee.image_url} alt={employee.name} className="w-full h-full object-cover" />
+                      <span className="absolute -bottom-1 -right-1 text-base" aria-hidden="true">{medal}</span>
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground shrink-0" aria-hidden="true">
-                      {rank}
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xl flex-shrink-0" aria-hidden="true">
+                      {medal}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -627,68 +563,75 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
                     #{rank} • {points} pts
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="text-sm text-muted-foreground mb-6">
-              Total: {getConfirmationDetails().reduce((sum, d) => sum + d.points, 0)} points distributed
-            </div>
-            
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowConfirmation(false)}
-                disabled={isSubmitting}
-                className="flex-1"
-                aria-label="Go back to edit your selections"
-              >
-                Go Back
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex-1 gap-2"
-                aria-label={isSubmitting ? 'Submitting your ballot' : 'Confirm and submit your ballot'}
-              >
-                {isSubmitting ? (
-                  <>
-                    <LoadingSpinner size="sm" inline />
-                    Submitting...
-                  </>
-                ) : (
-                  'Confirm & Submit'
-                )}
-              </Button>
-            </div>
+              );
+            })}
           </div>
-        </div>
-      )}
-      
-      {/* Success Modal */}
-      {success && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 z-50"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="success-dialog-title"
-          aria-live="polite"
-        >
-          <div className="bg-card border border-border rounded-lg max-w-md w-full p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-              <CheckCircle2 className="w-8 h-8 text-primary" />
-            </div>
-            
-            <h3 id="success-dialog-title">Ballot Submitted!</h3>
-            <p className="text-muted-foreground mb-6">
-              {hasVoted ? 'You have already voted in this election. Your vote has been locked.' : 'Your vote has been recorded successfully and locked. Thank you for participating!'}
-            </p>
-            
-            <Button onClick={() => setSuccess(null)} className="w-full" aria-label="Close success message">
-              Close
+
+          <div className="flex items-center justify-between rounded-xl bg-primary/5 border border-primary/15 px-4 py-2.5 text-sm">
+            <span className="text-muted-foreground">Total points distributed</span>
+            <span className="font-semibold text-primary">
+              {getConfirmationDetails().reduce((sum, d) => sum + d.points, 0)} pts
+            </span>
+          </div>
+
+          <Alert className="border-destructive/40 bg-destructive/5" role="alert">
+            <AlertCircle className="h-4 w-4 text-destructive" aria-hidden="true" />
+            <AlertDescription className="text-destructive">
+              This action is final — your vote cannot be changed after submitting.
+            </AlertDescription>
+          </Alert>
+
+          <DialogFooter className="gap-3 sm:gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmation(false)}
+              disabled={isSubmitting}
+              className="flex-1"
+              aria-label="Go back to edit your selections"
+            >
+              Go Back
             </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-1 gap-2"
+              aria-label={isSubmitting ? 'Submitting your ballot' : 'Confirm and submit your ballot'}
+            >
+              {isSubmitting ? (
+                <>
+                  <LoadingSpinner size="sm" inline />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+                  Confirm &amp; Submit
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={!!success} onOpenChange={(open) => { if (!open) setSuccess(null); }}>
+        <DialogContent className="max-w-md text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/20 border border-primary/20 flex items-center justify-center mx-auto animate-pop" aria-hidden="true">
+            <CheckCircle2 className="w-9 h-9 text-primary" />
           </div>
-        </div>
-      )}
+          <DialogHeader>
+            <DialogTitle className="text-xl text-center">Ballot submitted! 🎉</DialogTitle>
+            <DialogDescription className="text-center">
+              {hasVoted
+                ? 'You have already voted in this election. Your vote has been locked.'
+                : 'Your vote has been recorded and locked. Thank you for participating!'}
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setSuccess(null)} className="w-full" aria-label="Close success message">
+            Done
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

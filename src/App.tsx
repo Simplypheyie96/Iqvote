@@ -470,7 +470,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <Toaster position="top-center" />
-      <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="relative min-h-screen bg-background overflow-x-hidden">
         <Header
           user={currentUser}
           employees={employees}

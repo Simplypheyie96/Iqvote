@@ -16,47 +16,32 @@ export function ThemeToggle() {
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
-    
-    console.log('=== THEME TOGGLE DEBUG ===');
-    console.log('Current theme:', theme);
-    console.log('New theme:', newTheme);
-    console.log('Root element:', document.documentElement);
-    console.log('Current classes:', document.documentElement.className);
-    
-    // Update state
+
     setTheme(newTheme);
-    
-    // Save to localStorage
     localStorage.setItem('theme', newTheme);
-    console.log('Saved to localStorage:', localStorage.getItem('theme'));
-    
-    // Apply to DOM
+
     const root = document.documentElement;
     if (newTheme === 'dark') {
       root.classList.add('dark');
-      console.log('Added dark class');
     } else {
       root.classList.remove('dark');
-      console.log('Removed dark class');
     }
-    
-    console.log('Classes after toggle:', document.documentElement.className);
-    console.log('=== END DEBUG ===');
   };
 
   return (
     <Button
-      variant="ghost"
-      size="sm"
+      variant="outline"
+      size="icon"
       onClick={toggleTheme}
-      className="gap-2 hover:bg-accent"
+      className="rounded-full w-9 h-9 relative overflow-hidden"
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
-      {theme === 'light' ? (
-        <Moon className="w-4 h-4" />
-      ) : (
-        <Sun className="w-4 h-4" />
-      )}
+      <Moon
+        className={`w-4 h-4 absolute transition-all duration-300 ${theme === 'light' ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`}
+      />
+      <Sun
+        className={`w-4 h-4 absolute transition-all duration-300 ${theme === 'dark' ? 'rotate-0 scale-100 opacity-100' : 'rotate-90 scale-0 opacity-0'}`}
+      />
     </Button>
   );
 }

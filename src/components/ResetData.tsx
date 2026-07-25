@@ -62,10 +62,10 @@ export function ResetData() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-destructive/5">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="max-w-2xl w-full border-destructive/50">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-destructive to-destructive/70 flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-full bg-destructive flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-destructive-foreground" />
           </div>
           <CardTitle className="text-3xl">Reset All Data</CardTitle>
@@ -91,7 +91,7 @@ export function ResetData() {
                 </AlertDescription>
               </Alert>
 
-              <div className="p-4 rounded-lg bg-muted/50 border border-border">
+              <div className="p-4 rounded-xl bg-muted/50 border border-border">
                 <h4 className="font-semibold mb-2">What happens after reset:</h4>
                 <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
                   <li>All data will be cleared from the database</li>
@@ -111,7 +111,7 @@ export function ResetData() {
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   placeholder="Type RESET here"
-                  className="w-full px-3 py-2 rounded-md border border-input bg-background"
+                  className="w-full px-3 py-2 rounded-xl border border-input bg-background"
                 />
               </div>
 
@@ -150,7 +150,7 @@ export function ResetData() {
                 </AlertDescription>
               </Alert>
 
-              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                 <p className="text-sm text-blue-600 dark:text-blue-400">
                   <strong>Redirecting in 3 seconds...</strong>
                   <br />

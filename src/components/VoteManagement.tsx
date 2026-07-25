@@ -240,7 +240,7 @@ export function VoteManagement() {
 
       {success && (
         <Alert className="border-green-500/50 bg-green-500/10">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
         </Alert>
       )}
@@ -254,7 +254,7 @@ export function VoteManagement() {
         <CardContent className="space-y-4">
           {/* Privacy Notice */}
           <Alert className="border-blue-500/50 bg-blue-500/10">
-            <AlertCircle className="h-4 w-4 text-blue-500" />
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
             <AlertDescription className="text-blue-600 dark:text-blue-400">
               <strong>Privacy Protection:</strong> Vote choices are kept confidential. You can see who has voted and delete votes if needed, but the specific candidates each person voted for remain private.
             </AlertDescription>
@@ -274,7 +274,7 @@ export function VoteManagement() {
 
             {/* Compact Results Dropdown */}
             {electionSearch && (
-              <div className="border border-border rounded-lg bg-card max-h-64 overflow-y-auto">
+              <div className="border border-border rounded-xl bg-card max-h-64 overflow-y-auto">
                 {filteredElections.length > 0 ? (
                   <div className="divide-y divide-border">
                     {filteredElections.slice(0, 50).map(election => {
@@ -331,7 +331,7 @@ export function VoteManagement() {
 
             {/* Currently Selected Election */}
             {selectedElectionId && !electionSearch && (
-              <div className="p-4 bg-primary/5 border-2 border-primary rounded-lg">
+              <div className="p-4 bg-primary/5 border-2 border-primary rounded-xl">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-muted-foreground mb-1">Currently Viewing</div>
@@ -385,7 +385,7 @@ export function VoteManagement() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
+            <Card className="bg-primary/10 border-primary/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
               </CardHeader>
@@ -394,7 +394,7 @@ export function VoteManagement() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+            <Card className="">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Active Votes</CardTitle>
               </CardHeader>
@@ -403,7 +403,7 @@ export function VoteManagement() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
+            <Card className="">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Deleted Votes</CardTitle>
               </CardHeader>
@@ -416,7 +416,7 @@ export function VoteManagement() {
           {/* Active Votes */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CardTitle>Active Votes</CardTitle>
                   <CardDescription>
@@ -425,7 +425,7 @@ export function VoteManagement() {
                 </div>
                 {/* Voter Search */}
                 {activeVotes.length > 0 && (
-                  <div className="relative w-72">
+                  <div className="relative w-full sm:w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     <Input
                       placeholder="Search by name or email..."
@@ -448,8 +448,9 @@ export function VoteManagement() {
                 <div className="space-y-3">
                   {filteredActiveVotes.map((ballot, idx) => (
                     <div
-                      key={idx}
-                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg hover:border-primary/30 transition-all"
+                      key={ballot.voter?.id || ballot.voter?.email || idx}
+                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl animate-fade-in-up hover:border-primary/30 transition-all duration-300"
+                      style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -494,8 +495,8 @@ export function VoteManagement() {
                 <div className="space-y-3">
                   {filteredRevokedVotes.map((ballot, idx) => (
                     <div
-                      key={idx}
-                      className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg"
+                      key={ballot.voter?.id || ballot.voter?.email || idx}
+                      className="p-4 bg-destructive/5 border border-destructive/20 rounded-xl"
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <div className="font-semibold text-muted-foreground">{ballot.voter?.name || 'Unknown Voter'}</div>
@@ -550,7 +551,7 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                           isSelected
                             ? 'border-primary bg-primary/10'
                             : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
@@ -590,7 +591,7 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                           isSelected
                             ? 'border-primary bg-primary/10'
                             : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
@@ -629,7 +630,7 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                           isSelected
                             ? 'border-primary bg-primary/10'
                             : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
@@ -676,7 +677,7 @@ export function VoteManagement() {
 
           {ballotToDelete && (
             <div className="space-y-4 overflow-y-auto flex-1 pr-2">
-              <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="p-3 bg-muted/50 rounded-xl">
                 <div className="font-semibold mb-1">{ballotToDelete.voter?.name}</div>
                 <div className="text-sm text-muted-foreground">{ballotToDelete.voter?.email}</div>
               </div>
@@ -685,27 +686,27 @@ export function VoteManagement() {
                 <Label className="mb-3 block">Select reason for deletion *</Label>
                 <RadioGroup value={deleteReasonPreset} onValueChange={setDeleteReasonPreset}>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Duplicate vote" id="duplicate" />
                       <Label htmlFor="duplicate" className="cursor-pointer flex-1">Duplicate vote</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Voter requested removal" id="voter-request" />
                       <Label htmlFor="voter-request" className="cursor-pointer flex-1">Voter requested removal</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Error correction" id="error" />
                       <Label htmlFor="error" className="cursor-pointer flex-1">Error correction</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Policy violation" id="policy" />
                       <Label htmlFor="policy" className="cursor-pointer flex-1">Policy violation</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="Invalid submission" id="invalid" />
                       <Label htmlFor="invalid" className="cursor-pointer flex-1">Invalid submission</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
                       <RadioGroupItem value="other" id="other" />
                       <Label htmlFor="other" className="cursor-pointer flex-1">Other (specify below)</Label>
                     </div>
@@ -727,7 +728,7 @@ export function VoteManagement() {
               </div>
 
               <Alert className="border-red-500/50 bg-red-500/10">
-                <AlertCircle className="h-4 w-4 text-red-500" />
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 <AlertDescription className="text-red-600 dark:text-red-400">
                   <strong>Warning:</strong> This action will permanently delete the vote and update the leaderboard. This cannot be undone.
                 </AlertDescription>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -87,16 +87,16 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-gradient-to-br from-primary/5 via-background to-primary/5">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-background">
       <div className="w-full max-w-md">
-        <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+        <div className="bg-card border border-border rounded-xl p-6 sm:p-8">
           <div className="flex flex-col items-center justify-center mb-6">
             <img
               src={isDark ? logoImageDark : logoImageLight}
               alt="IQ Vote Logo"
               className="w-[102px] h-[102px] sm:w-[134px] sm:h-[134px] object-contain mb-[6px]"
             />
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
               Set New Password
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground text-center">
@@ -112,8 +112,9 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
 
           {success ? (
             <Alert className="mb-6 border-green-500/50 bg-green-500/10">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
               <AlertDescription className="text-green-600 dark:text-green-400">
-                ✅ Password updated! Signing you in…
+                Password updated! Signing you in…
               </AlertDescription>
             </Alert>
           ) : !sessionReady ? (

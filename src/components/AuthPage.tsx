@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { LogIn } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -8,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { createClient } from '../utils/supabase/client';
 import { api } from '../utils/api';
 import { LoadingSpinner } from './LoadingSpinner';
-import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
 
 interface AuthPageProps {
@@ -21,26 +19,6 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState(false);
-
-  // Detect theme changes
-  useEffect(() => {
-    const checkTheme = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    };
-    
-    // Check initial theme
-    checkTheme();
-    
-    // Watch for theme changes
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, { 
-      attributes: true, 
-      attributeFilter: ['class'] 
-    });
-    
-    return () => observer.disconnect();
-  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>, isSignUp: boolean) {
     e.preventDefault();
@@ -110,20 +88,19 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-gradient-to-br from-primary/5 via-background to-primary/5">
-      <div className="w-full max-w-md">
-        <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
-          {/* Logo and Title */}
-          <div className="flex flex-col items-center justify-center mb-6">
-            <img src={isDark ? logoImageDark : logoImageLight} alt="IQ Vote Logo" className="w-[102px] h-[102px] sm:w-[134px] sm:h-[134px] object-contain mb-[6px]" />
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
-              IQ Vote
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Vote for your top performers
-            </p>
-          </div>
-          
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-[400px]">
+        {/* Brand */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <img src={logoImageDark} alt="IQ Vote" className="w-12 h-12 object-contain mb-4" />
+          <h1 className="text-2xl font-semibold tracking-tight">Welcome to IQ Vote</h1>
+          <p className="text-sm text-muted-foreground mt-1.5">
+            Cast your monthly vote for standout colleagues.
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-7">
           {externalError && (
             <Alert variant="destructive" className="mb-6">
               <AlertDescription>{externalError}</AlertDescription>
@@ -143,8 +120,8 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
           )}
           
           {/* Sign In / Sign Up Tabs */}
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="w-full mb-6">
+          <Tabs defaultValue="signin" className="w-full gap-5">
+            <TabsList className="w-full">
               <TabsTrigger value="signin" className="flex-1">Sign In</TabsTrigger>
               <TabsTrigger value="signup" className="flex-1">Sign Up</TabsTrigger>
             </TabsList>
@@ -175,21 +152,18 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
                   />
                 </div>
                 
-                <Button type="submit" className="w-full gap-2" disabled={loading}>
+                <Button type="submit" className="w-full mt-1" disabled={loading}>
                   {loading ? (
                     <>
                       <LoadingSpinner size="sm" inline />
-                      Signing In...
+                      Signing in…
                     </>
                   ) : (
-                    <>
-                      <LogIn className="w-4 h-4" />
-                      Sign In
-                    </>
+                    'Sign in'
                   )}
                 </Button>
 
-                <p className="text-center text-sm text-muted-foreground">
+                <p className="text-center text-sm text-muted-foreground pt-1">
                   Forgot your password? Contact your admin to reset it.
                 </p>
               </form>
@@ -249,23 +223,24 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
                   </p>
                 </div>
                 
-                <Button type="submit" className="w-full gap-2" disabled={loading}>
+                <Button type="submit" className="w-full mt-1" disabled={loading}>
                   {loading ? (
                     <>
                       <LoadingSpinner size="sm" inline />
-                      Creating Account...
+                      Creating account…
                     </>
                   ) : (
-                    <>
-                      <LogIn className="w-4 h-4" />
-                      Create Account
-                    </>
+                    'Create account'
                   )}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
         </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          BrainDAO · Employee Recognition
+        </p>
       </div>
     </div>
   );

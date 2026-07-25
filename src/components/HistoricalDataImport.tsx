@@ -241,12 +241,12 @@ Bob Johnson,bob@example.com,32,1,2,3`;
 
       {success && (
         <Alert className="border-green-500/50 bg-green-500/10">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
         </Alert>
       )}
 
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+      <Card className="border-primary/20 bg-primary/5">
         <CardHeader className="pb-6">
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
@@ -331,8 +331,8 @@ Bob Johnson,bob@example.com,32,1,2,3`;
               {csvPreview.length > 0 && (
                 <div className="space-y-2">
                   <Label>Preview ({csvPreview.length} rows)</Label>
-                  <div className="border border-border rounded-lg overflow-hidden">
-                    <div className="max-h-64 overflow-y-auto">
+                  <div className="border border-border rounded-xl overflow-hidden">
+                    <div className="max-h-64 overflow-auto">
                       <table className="w-full text-sm">
                         <thead className="bg-muted/50 sticky top-0">
                           <tr>
@@ -439,7 +439,7 @@ Bob Johnson,bob@example.com,32,1,2,3`;
                 </div>
 
                 {manualEntries.map((entry, index) => (
-                  <div key={index} className="p-4 border border-border rounded-lg space-y-3 bg-card">
+                  <div key={index} className="p-4 border border-border rounded-xl space-y-3 bg-card">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor={`name-${index}`}>Employee Name *</Label>

@@ -80,7 +80,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
 
   function getRankBadge(rank: number) {
     const rankConfig = {
-      1: { icon: Trophy, label: '1st Place', color: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30' },
+      1: { icon: Trophy, label: '1st Place', color: 'text-muted-foreground bg-yellow-500/10 border-yellow-500/30' },
       2: { icon: User, label: '2nd Place', color: 'text-gray-400 bg-gray-400/10 border-gray-400/30' },
       3: { icon: User, label: '3rd Place', color: 'text-amber-600 bg-amber-600/10 border-amber-600/30' }
     };
@@ -103,9 +103,9 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
 
   function getPointsBadge(points: number) {
     if (points >= 5) {
-      return <Badge className="bg-gradient-to-r from-primary to-primary/70">{points} pts</Badge>;
+      return <Badge variant="outline">{points} pts</Badge>;
     } else if (points >= 3) {
-      return <Badge variant="secondary">{points} pts</Badge>;
+      return <Badge variant="outline">{points} pts</Badge>;
     } else {
       return <Badge variant="outline">{points} pts</Badge>;
     }
@@ -152,7 +152,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
           My Voting History
         </h2>
         <p className="text-sm sm:text-base text-muted-foreground">
@@ -162,21 +162,21 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className="border-border">
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '0ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Votes Cast</CardDescription>
             <CardTitle className="text-3xl">{totalVotesCast}</CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className="border-border">
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Points Received</CardDescription>
             <CardTitle className="text-3xl text-primary">{totalPointsReceived}</CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className="border-border">
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '160ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Elections Participated</CardDescription>
             <CardTitle className="text-3xl">{myVotes.length}</CardTitle>
@@ -202,7 +202,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
         {/* My Votes Tab */}
         <TabsContent value="my-votes" className="space-y-4 mt-6">
           {myVotes.length === 0 ? (
-            <Card className="border-border">
+            <Card className="border-border bg-transparent">
               <CardContent className="pt-12 pb-12 text-center">
                 <Eye className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                 <p className="text-muted-foreground">You haven't cast any votes yet.</p>
@@ -214,7 +214,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                 const isExpanded = expandedVotes.has(vote.election.id);
                 
                 return (
-                  <Card key={vote.election.id} className="overflow-hidden border-border">
+                  <Card key={vote.election.id} className="overflow-hidden border-border bg-transparent">
                     {/* Compact header - always visible */}
                     <div 
                       className="p-4 cursor-pointer hover:bg-muted/30 transition-colors border-b border-border"
@@ -252,13 +252,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                             .map((selection) => (
                               <div
                                 key={selection.rank}
-                                className={`p-4 rounded-xl border ${
-                                  selection.rank === 1 
-                                    ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20'
-                                    : selection.rank === 2
-                                    ? 'bg-gradient-to-br from-primary/8 to-primary/3 border-primary/15'
-                                    : 'bg-muted/30 border-border'
-                                }`}
+                                className={`p-4 rounded-xl border bg-muted/30 border-border`}
                               >
                                 <div className="flex items-center gap-2 mb-2">
                                   <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-xs flex-shrink-0">
@@ -270,13 +264,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                                 </div>
                                 <p className="font-bold text-lg mb-0.5 truncate">{selection.employee.name}</p>
                                 <p className="text-xs text-muted-foreground mb-2 truncate">{selection.employee.role}</p>
-                                <Badge className={
-                                  selection.rank === 1 
-                                    ? 'bg-gradient-to-r from-primary to-primary/70'
-                                    : selection.rank === 2
-                                    ? 'bg-primary/60'
-                                    : ''
-                                } variant={selection.rank === 3 ? 'outline' : undefined}>
+                                <Badge variant="outline">
                                   {selection.points} pts
                                 </Badge>
                               </div>
@@ -302,7 +290,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
         {/* Votes Received Tab */}
         <TabsContent value="received" className="space-y-4 mt-6">
           {receivedVotes.length === 0 ? (
-            <Card className="border-border">
+            <Card className="border-border bg-transparent">
               <CardContent className="pt-12 pb-12 text-center">
                 <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                 <p className="text-muted-foreground">You haven't received any votes yet.</p>
@@ -314,7 +302,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                 const isExpanded = expandedReceivedVotes.has(vote.election.id);
                 
                 return (
-                  <Card key={vote.election.id} className="overflow-hidden border-border">
+                  <Card key={vote.election.id} className="overflow-hidden border-border bg-transparent">
                     {/* Compact header - always visible */}
                     <div 
                       className="p-4 cursor-pointer hover:bg-muted/30 transition-colors border-b border-border"
@@ -345,7 +333,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                     {isExpanded && (
                       <CardContent className="pt-4 pb-4">
                         <div className="grid sm:grid-cols-2 gap-4">
-                          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                          <div className="p-4 rounded-xl bg-muted/30 border border-border">
                             <p className="text-xs text-muted-foreground mb-1">Points Received</p>
                             <p className="text-3xl font-bold text-primary">{vote.total_points}</p>
                           </div>

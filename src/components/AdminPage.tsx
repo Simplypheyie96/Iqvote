@@ -556,7 +556,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent mb-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
             Admin Dashboard
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground">
@@ -584,73 +584,81 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-6 shadow-lg">
+        <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="mb-6 border-green-500/50 bg-green-500/10 shadow-lg">
+        <Alert className="mb-6 border-green-500/50 bg-green-500/10">
           <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
         </Alert>
       )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 shadow-lg">
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '0ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
-              <Users className="w-4 h-4 text-blue-500" />
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                <Users className="w-4 h-4 text-sky-400" />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.totalEmployees || 0}</div>
+            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.totalEmployees || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {stats.activeEmployees || 0} active
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg">
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
-              <Trophy className="w-4 h-4 text-primary" />
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                <Trophy className="w-4 h-4 text-primary" />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.totalVotes || 0}</div>
+            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.totalVotes || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Across all elections
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 shadow-lg">
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '160ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
-              <Activity className="w-4 h-4 text-green-500" />
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                <Activity className="w-4 h-4 text-emerald-400" />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.activeElections || 0}</div>
+            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.activeElections || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Currently running
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20 shadow-lg">
+        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '240ms' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
-              <Award className="w-4 h-4 text-purple-500" />
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                <Award className="w-4 h-4 text-violet-400" />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.completedElections || 0}</div>
+            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.completedElections || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Past elections
             </p>
@@ -762,7 +770,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                       </Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 bg-muted/30 border border-border rounded-lg">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 bg-muted/30 border border-border rounded-xl">
                     {employees.filter(e => e.active).map(employee => (
                       <div key={employee.id} className="flex items-start gap-2">
                         <Checkbox
@@ -797,7 +805,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 </div>
 
                 <Alert className="border-blue-500/50 bg-blue-500/10">
-                  <Users className="h-4 w-4 text-blue-500" />
+                  <Users className="h-4 w-4 text-muted-foreground" />
                   <AlertDescription className="text-blue-600 dark:text-blue-400 text-xs">
                     <strong>Important:</strong> ALL registered users (including admins) can vote in this election. The employees selected above are candidates who can RECEIVE votes. This separation allows executives and managers to participate in voting without being candidates themselves.
                   </AlertDescription>
@@ -971,7 +979,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                       </div>
 
                       {editingEmployee && (
-                        <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-lg border border-border">
+                        <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-xl border border-border">
                           <div className="flex items-center gap-3">
                             <Shield className="w-5 h-5 text-primary" />
                             <div>
@@ -1013,10 +1021,10 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 {employees.map(employee => (
                   <div
                     key={employee.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
+                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-all"
                   >
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20">
+                      <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
                         {employee.image_url ? (
                           <img 
                             src={employee.image_url} 
@@ -1031,7 +1039,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                         <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
                           <span className="truncate">{employee.name}</span>
                           {employee.is_admin && employee.email !== 'ajayifey@gmail.com' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
                               <Shield className="w-3 h-3" />
                               Admin
                             </span>
@@ -1103,7 +1111,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             </CardHeader>
             <CardContent>
               <Alert className="mb-6 border-blue-500/50 bg-blue-500/10">
-                <Users className="h-4 w-4 text-blue-500" />
+                <Users className="h-4 w-4 text-muted-foreground" />
                 <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
                   <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click "Make Employee" to convert a user into a votable employee.
                 </AlertDescription>
@@ -1115,23 +1123,23 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                   return (
                     <div
                       key={user.id}
-                      className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
+                      className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-all"
                     >
                       <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20">
+                        <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
                           <Users className="w-6 h-6 text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
                             <span className="truncate">{user.name}</span>
                             {user.is_admin && user.email !== 'ajayifey@gmail.com' && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
                                 <Shield className="w-3 h-3" />
                                 Admin
                               </span>
                             )}
                             {isEmployee && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-xs flex-shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-xs flex-shrink-0">
                                 <Users className="w-3 h-3" />
                                 Employee
                               </span>
@@ -1161,7 +1169,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                             Make Employee
                           </Button>
                         )}
-                        <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 sm:p-0 bg-muted/30 sm:bg-transparent rounded-lg sm:rounded-none border sm:border-0">
+                        <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 sm:p-0 bg-muted/30 sm:bg-transparent rounded-xl sm:rounded-none border sm:border-0">
                           <Label htmlFor={`admin-${user.id}`} className="text-sm cursor-pointer">
                             Admin
                           </Label>
@@ -1247,8 +1255,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
                 {userToDelete?.email === 'ajayifey@gmail.com' && (
                   <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
                     <AlertDescription className="font-semibold">
-                      ⚠️ This is the system owner account. Deleting it is not recommended!
+                      This is the system owner account. Deleting it is not recommended!
                     </AlertDescription>
                   </Alert>
                 )}
@@ -1310,7 +1319,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="rounded-lg border border-border bg-muted/40 p-4">
+                <div className="rounded-xl border border-border bg-muted/40 p-4">
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-primary font-bold mt-0.5">•</span>
@@ -1329,8 +1338,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
                 {userToResetPassword?.email === 'ajayifey@gmail.com' && (
                   <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
                     <AlertDescription className="font-semibold">
-                      ⚠️ This is the system owner account. Resetting the password is not recommended!
+                      This is the system owner account. Resetting the password is not recommended!
                     </AlertDescription>
                   </Alert>
                 )}
@@ -1339,7 +1349,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                   <Label htmlFor="new-password" className="text-sm font-medium">
                     New Password
                   </Label>
-                  <div className="flex rounded-md border border-border overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+                  <div className="flex rounded-xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
                     <input
                       id="new-password"
                       type="text"
