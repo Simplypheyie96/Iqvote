@@ -239,13 +239,13 @@ export function ElectionsManagement() {
     }
 
     return (
-      <div className="space-y-3">
+      <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
         {elections.map((election, idx) => {
           const status = getElectionStatus(election);
           return (
             <div
               key={election.id}
-              className="rounded-xl border border-border bg-card/40 p-4 animate-fade-in-up transition-all duration-300 hover:border-primary/30"
+              className="px-4 py-4 animate-fade-in-up transition-colors hover:bg-white/[0.02]"
               style={{ animationDelay: `${Math.min(idx, 10) * 40}ms` }}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -345,49 +345,23 @@ export function ElectionsManagement() {
         </Alert>
       )}
 
-      {/* Search Bar */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder="Search elections by title or date..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400">{activeElections.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Elections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{upcomingElections.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Past Elections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{pastElections.length}</div>
-          </CardContent>
-        </Card>
+      {/* Search + counts. The dashboard above already carries the big stat
+          tiles, so these are a caption, not a second row of cards. */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search elections by title or date..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <span><span className="text-foreground font-medium">{activeElections.length}</span> active</span>
+          <span><span className="text-foreground font-medium">{upcomingElections.length}</span> upcoming</span>
+          <span><span className="text-foreground font-medium">{pastElections.length}</span> past</span>
+        </div>
       </div>
 
       {loading && elections.length === 0 ? (
@@ -423,7 +397,7 @@ export function ElectionsManagement() {
           {upcomingElections.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-blue-600 dark:text-blue-400">Upcoming Elections</CardTitle>
+                <CardTitle>Upcoming Elections</CardTitle>
                 <CardDescription>
                   Elections that haven't started yet
                 </CardDescription>

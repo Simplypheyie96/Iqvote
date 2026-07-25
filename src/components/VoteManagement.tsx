@@ -253,12 +253,11 @@ export function VoteManagement() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Privacy Notice */}
-          <Alert className="border-blue-500/50 bg-blue-500/10">
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            <AlertDescription className="text-blue-600 dark:text-blue-400">
-              <strong>Privacy Protection:</strong> Vote choices are kept confidential. You can see who has voted and delete votes if needed, but the specific candidates each person voted for remain private.
-            </AlertDescription>
-          </Alert>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            <span className="text-foreground">Vote choices are confidential.</span> You can see who
+            has voted and delete votes if needed, but the specific candidates each person voted for
+            remain private.
+          </p>
 
           {/* Search/Select Combo */}
           <div className="space-y-3">
@@ -331,7 +330,7 @@ export function VoteManagement() {
 
             {/* Currently Selected Election */}
             {selectedElectionId && !electionSearch && (
-              <div className="p-4 bg-primary/5 border-2 border-primary rounded-xl">
+              <div className="p-4 bg-muted/40 border border-border rounded-xl">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-muted-foreground mb-1">Currently Viewing</div>
@@ -383,34 +382,18 @@ export function VoteManagement() {
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-primary/10 border-primary/20">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{votes.length}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Active Votes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400">{activeVotes.length}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Deleted Votes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-red-600 dark:text-red-400">{revokedVotes.length}</div>
-              </CardContent>
-            </Card>
+          {/* Stats — one flat strip rather than three tall cards */}
+          <div className="grid grid-cols-3 rounded-xl border border-border divide-x divide-border overflow-hidden">
+            {[
+              { label: 'Total votes', value: votes.length },
+              { label: 'Active', value: activeVotes.length },
+              { label: 'Deleted', value: revokedVotes.length },
+            ].map(stat => (
+              <div key={stat.label} className="px-4 py-3.5">
+                <div className="text-xs text-muted-foreground">{stat.label}</div>
+                <div className="text-2xl font-semibold mt-0.5 tabular-nums">{stat.value}</div>
+              </div>
+            ))}
           </div>
 
           {/* Active Votes */}
@@ -445,31 +428,35 @@ export function VoteManagement() {
               ) : filteredActiveVotes.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">No voters match your search.</div>
               ) : (
-                <div className="space-y-3">
+                <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
                   {filteredActiveVotes.map((ballot, idx) => (
                     <div
                       key={ballot.voter?.id || ballot.voter?.email || idx}
-                      className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl animate-fade-in-up hover:border-primary/30 transition-all duration-300"
+                      className="flex items-center justify-between gap-4 px-4 py-3.5 animate-fade-in-up hover:bg-white/[0.02] transition-colors"
                       style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="font-semibold">{ballot.voter?.name || 'Unknown Voter'}</div>
-                          <span className="text-xs text-muted-foreground">•</span>
-                          <div className="text-sm text-muted-foreground truncate">{ballot.voter?.email}</div>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div
+                          className="w-9 h-9 flex-shrink-0 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-medium text-muted-foreground"
+                          aria-hidden="true"
+                        >
+                          {(ballot.voter?.name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Voted on {new Date(ballot.created_at).toLocaleString()}
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium">{ballot.voter?.name || 'Unknown Voter'}</div>
+                          <div className="truncate text-xs text-muted-foreground mt-0.5">
+                            {ballot.voter?.email} · voted {new Date(ballot.created_at).toLocaleString()}
+                          </div>
                         </div>
                       </div>
 
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => openDeleteDialog(ballot)}
-                        className="gap-2 hover:border-destructive/50 hover:text-destructive ml-4 shrink-0"
+                        className="gap-1.5 text-muted-foreground hover:text-destructive shrink-0"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                         Delete
                       </Button>
                     </div>
@@ -492,25 +479,22 @@ export function VoteManagement() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
                   {filteredRevokedVotes.map((ballot, idx) => (
                     <div
                       key={ballot.voter?.id || ballot.voter?.email || idx}
-                      className="p-4 bg-destructive/5 border border-destructive/20 rounded-xl"
+                      className="px-4 py-3.5"
                     >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="font-semibold text-muted-foreground">{ballot.voter?.name || 'Unknown Voter'}</div>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <div className="text-sm text-muted-foreground">{ballot.voter?.email}</div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-muted-foreground line-through">
+                          {ballot.voter?.name || 'Unknown Voter'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{ballot.voter?.email}</span>
                       </div>
-                      <div className="text-xs text-destructive mb-2">
-                        Deleted on {ballot.revoked_at ? new Date(ballot.revoked_at).toLocaleString() : 'Unknown'}
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        Deleted {ballot.revoked_at ? new Date(ballot.revoked_at).toLocaleString() : 'at an unknown time'}
+                        {ballot.revoke_reason ? ` · ${ballot.revoke_reason}` : ''}
                       </div>
-                      {ballot.revoke_reason && (
-                        <div className="text-xs text-muted-foreground">
-                          Reason: {ballot.revoke_reason}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -534,7 +518,7 @@ export function VoteManagement() {
             {/* Active Elections */}
             {activeElections.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-green-600 dark:text-green-400 mb-3 flex items-center gap-2">
+                <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                   Active Elections ({activeElections.length})
                 </h4>
@@ -551,10 +535,10 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border transition-colors ${
                           isSelected
-                            ? 'border-primary bg-primary/10'
-                            : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
+                            ? 'border-primary/60 bg-white/[0.04]'
+                            : 'border-border hover:bg-white/[0.02]'
                         }`}
                       >
                         <div className="font-semibold mb-1">{election.title}</div>
@@ -591,10 +575,10 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border transition-colors ${
                           isSelected
-                            ? 'border-primary bg-primary/10'
-                            : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
+                            ? 'border-primary/60 bg-white/[0.04]'
+                            : 'border-border hover:bg-white/[0.02]'
                         }`}
                       >
                         <div className="font-semibold mb-1">{election.title}</div>
@@ -614,7 +598,7 @@ export function VoteManagement() {
             {/* Upcoming Elections */}
             {upcomingElections.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-3">
+                <h4 className="text-sm font-medium text-muted-foreground mb-3">
                   Upcoming Elections ({upcomingElections.length})
                 </h4>
                 <div className="space-y-2">
@@ -630,10 +614,10 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                        className={`w-full text-left p-4 rounded-xl border transition-colors ${
                           isSelected
-                            ? 'border-primary bg-primary/10'
-                            : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
+                            ? 'border-primary/60 bg-white/[0.04]'
+                            : 'border-border hover:bg-white/[0.02]'
                         }`}
                       >
                         <div className="font-semibold mb-1">{election.title}</div>

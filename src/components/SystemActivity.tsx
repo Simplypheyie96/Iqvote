@@ -201,40 +201,20 @@ export function SystemActivity() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Activities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{activities.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">All-time events</p>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Recent Votes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {activities.filter(a => a.type === 'vote').length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Votes cast</p>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Admin Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {activities.filter(a => a.type === 'admin').length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Admin operations</p>
-          </CardContent>
-        </Card>
+      {/* Counts as a flat strip — three tall hollow cards for three numbers
+          was mostly empty space. */}
+      <div className="grid grid-cols-3 rounded-xl border border-border divide-x divide-border overflow-hidden">
+        {[
+          { label: 'Total activities', value: activities.length, hint: 'All-time events' },
+          { label: 'Votes', value: activities.filter(a => a.type === 'vote').length, hint: 'Votes cast' },
+          { label: 'Admin actions', value: activities.filter(a => a.type === 'admin').length, hint: 'Admin operations' },
+        ].map(stat => (
+          <div key={stat.label} className="px-4 py-3.5">
+            <div className="text-xs text-muted-foreground">{stat.label}</div>
+            <div className="text-2xl font-semibold mt-0.5 tabular-nums">{stat.value}</div>
+            <p className="text-xs text-muted-foreground mt-0.5">{stat.hint}</p>
+          </div>
+        ))}
       </div>
 
       <Card>
@@ -298,14 +278,14 @@ export function SystemActivity() {
               </SelectContent>
             </Select>
           </div>
-          <ScrollArea className="h-[600px] pr-4">
+          <ScrollArea className="max-h-[600px] pr-4">
             {activities.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Activity className="w-12 h-12 mx-auto mb-4 opacity-20" />
                 <p>No activities recorded yet</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
                 {activities
                   .filter(activity => 
                     (filterType === 'all' || activity.type === filterType) &&
@@ -315,7 +295,7 @@ export function SystemActivity() {
                   .map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-accent/40 transition-colors"
+                      className="flex items-start gap-3 px-4 py-3.5 hover:bg-white/[0.02] transition-colors"
                     >
                       <div className={`p-2 rounded-xl border ${getActivityColor(activity.type)}`}>
                         {getActivityIcon(activity.type)}

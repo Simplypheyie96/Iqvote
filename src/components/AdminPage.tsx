@@ -46,6 +46,11 @@ interface EmployeeFormData {
   is_admin: boolean;
 }
 
+// Same initials treatment the ballot and leaderboard use, so a person looks
+// like the same person everywhere in the app.
+const initialsOf = (name: string) =>
+  (name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
 export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
   const [stats, setStats] = useState<Stats>({
     totalEmployees: 0,
@@ -667,7 +672,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="elections" className="w-full">
+      <Tabs defaultValue={new URLSearchParams(location.search).get('tab') || 'elections'} className="w-full">
         <div className="w-full overflow-x-auto">
           <TabsList className="w-full sm:w-auto inline-flex">
             <TabsTrigger value="elections" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
@@ -1017,69 +1022,63 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
                 {employees.map(employee => (
                   <div
                     key={employee.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-all"
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 py-4 hover:bg-white/[0.02] transition-colors"
                   >
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div
+                        className="w-9 h-9 flex-shrink-0 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden text-xs font-medium text-muted-foreground"
+                        aria-hidden="true"
+                      >
                         {employee.image_url ? (
-                          <img 
-                            src={employee.image_url} 
-                            alt={employee.name}
-                            className="w-full h-full rounded-full object-cover"
+                          <img
+                            src={employee.image_url}
+                            alt=""
+                            className="w-full h-full object-cover"
                           />
                         ) : (
-                          <Users className="w-6 h-6 text-primary" />
+                          initialsOf(employee.name)
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
-                          <span className="truncate">{employee.name}</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="truncate text-sm font-medium">{employee.name}</span>
                           {employee.is_admin && employee.email !== 'ajayifey@gmail.com' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] flex-shrink-0">
                               <Shield className="w-3 h-3" />
                               Admin
                             </span>
                           )}
-                        </div>
-                        <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-2">
-                          <span className="truncate">{employee.role}</span>
-                          {employee.department && (
-                            <>
-                              <span className="hidden sm:inline">•</span>
-                              <span className="truncate">{employee.department}</span>
-                            </>
-                          )}
                           {!employee.active && (
-                            <>
-                              <span className="hidden sm:inline">•</span>
-                              <span className="text-destructive flex-shrink-0">Inactive</span>
-                            </>
+                            <span className="text-[11px] text-destructive flex-shrink-0">Inactive</span>
                           )}
+                        </div>
+                        <div className="truncate text-xs text-muted-foreground mt-0.5">
+                          {[employee.role, employee.department].filter(Boolean).join(' · ')}
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2 self-end sm:self-center">
+                    <div className="flex gap-1 self-end sm:self-center flex-shrink-0">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => openEmployeeDialog(employee)}
-                        className="gap-2 flex-1 sm:flex-none"
+                        className="gap-1.5 text-muted-foreground hover:text-foreground"
                       >
-                        <Edit2 className="w-3 h-3" />
-                        <span className="sm:inline">Edit</span>
+                        <Edit2 className="w-3.5 h-3.5" />
+                        Edit
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteEmployee(employee.id)}
-                        className="gap-2 hover:border-destructive/50 hover:text-destructive flex-1 sm:flex-none"
+                        className="gap-1.5 text-muted-foreground hover:text-destructive"
                       >
-                        <Trash2 className="w-3 h-3" />
-                        <span className="sm:inline">Delete</span>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete
                       </Button>
                     </div>
                   </div>
@@ -1087,7 +1086,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
                 {employees.length === 0 && (
                   <div className="text-center py-12 text-muted-foreground">
-                    <p className="mb-2">No employees found. Add your first employee to get started.</p>
+                    <p className="mb-2 text-sm">No employees found. Add your first employee to get started.</p>
                     <p className="text-xs">Note: To make a user an admin, they need to sign up first, then you can update their profile in the database.</p>
                   </div>
                 )}
@@ -1110,67 +1109,66 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Alert className="mb-6 border-blue-500/50 bg-blue-500/10">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
-                  <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click "Make Employee" to convert a user into a votable employee.
-                </AlertDescription>
-              </Alert>
+              <p className="mb-5 text-sm text-muted-foreground leading-relaxed">
+                <span className="text-foreground">Users are people who can vote.</span> Employees (in
+                the Employees tab) are candidates who can receive votes. These are two separate
+                groups — executives can vote without being votable. Use "Make Employee" to convert a
+                user into a votable employee.
+              </p>
 
-              <div className="space-y-3">
+              <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
                 {users.map(user => {
                   const isEmployee = isUserAnEmployee(user.id);
                   return (
                     <div
                       key={user.id}
-                      className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-all"
+                      className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 py-4 hover:bg-white/[0.02] transition-colors"
                     >
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
-                          <Users className="w-6 h-6 text-primary" />
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div
+                          className="w-9 h-9 flex-shrink-0 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-medium text-muted-foreground"
+                          aria-hidden="true"
+                        >
+                          {initialsOf(user.name)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
-                            <span className="truncate">{user.name}</span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="truncate text-sm font-medium">{user.name}</span>
                             {user.is_admin && user.email !== 'ajayifey@gmail.com' && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] flex-shrink-0">
                                 <Shield className="w-3 h-3" />
                                 Admin
                               </span>
                             )}
-                            {isEmployee && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-xs flex-shrink-0">
-                                <Users className="w-3 h-3" />
-                                Employee
+                            {!isEmployee && (
+                              <span className="px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[11px] flex-shrink-0">
+                                Voter only
                               </span>
                             )}
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            <div className="truncate">{user.email}</div>
-                            {user.role && (
-                              <div className="text-xs mt-0.5 truncate">{user.role}</div>
-                            )}
-                            <div className="text-xs mt-1">
-                              Signed up: {new Date(user.created_at).toLocaleDateString()}
-                            </div>
+                          <div className="truncate text-xs text-muted-foreground mt-0.5">
+                            {[user.email, user.role].filter(Boolean).join(' · ')}
+                          </div>
+                          <div className="text-xs text-muted-foreground/70 mt-0.5">
+                            Joined {new Date(user.created_at).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-shrink-0">
                         {!isEmployee && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleConvertToEmployee(user.id)}
                             disabled={loading}
-                            className="gap-2 whitespace-nowrap"
+                            className="gap-1.5 whitespace-nowrap"
                           >
-                            <Plus className="w-3 h-3" />
+                            <Plus className="w-3.5 h-3.5" />
                             Make Employee
                           </Button>
                         )}
-                        <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 sm:p-0 bg-muted/30 sm:bg-transparent rounded-xl sm:rounded-none border sm:border-0">
-                          <Label htmlFor={`admin-${user.id}`} className="text-sm cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={`admin-${user.id}`} className="text-xs text-muted-foreground cursor-pointer">
                             Admin
                           </Label>
                           <Switch
@@ -1181,32 +1179,32 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                           />
                         </div>
                       </div>
-                      <div className="flex gap-2 self-end sm:self-center">
+                      <div className="flex gap-1 self-end sm:self-center flex-shrink-0">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => {
                             setUserToResetPassword(user);
                             setNewPassword('');
                             setShowResetPasswordDialog(true);
                           }}
-                          className="gap-2 flex-1 sm:flex-none"
+                          className="gap-1.5 text-muted-foreground hover:text-foreground"
                         >
-                          <Key className="w-3 h-3" />
-                          <span className="sm:inline">Reset Pwd</span>
+                          <Key className="w-3.5 h-3.5" />
+                          Reset password
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => {
                             setUserToDelete(user);
                             setDeleteUserConfirmText('');
                             setShowDeleteUserDialog(true);
                           }}
-                          className="gap-2 flex-1 sm:flex-none"
+                          className="gap-1.5 text-muted-foreground hover:text-destructive"
                         >
-                          <Trash2 className="w-3 h-3" />
-                          <span className="sm:inline">Delete</span>
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete
                         </Button>
                       </div>
                     </div>

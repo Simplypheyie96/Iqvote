@@ -246,7 +246,7 @@ Bob Johnson,bob@example.com,32,1,2,3`;
         </Alert>
       )}
 
-      <Card className="border-primary/20 bg-primary/5">
+      <Card>
         <CardHeader className="pb-6">
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
