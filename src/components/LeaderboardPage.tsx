@@ -304,9 +304,9 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:items-end">
                 {topThree.map((entry, index) => {
                   const config = [
-                    { primary: true,  label: 'Champion',    order: 'md:order-2', Icon: Crown,  iconColor: 'text-amber-400',  plinth: 'md:pb-20', avatar: 'w-20 h-20 sm:w-24 sm:h-24', edge: '' },
-                    { primary: false, label: 'Runner-up',   order: 'md:order-1', Icon: Trophy, iconColor: 'text-slate-300',  plinth: 'md:pb-10', avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tl-xl' },
-                    { primary: false, label: 'Third place', order: 'md:order-3', Icon: Trophy, iconColor: 'text-amber-600',  plinth: 'md:pb-4',  avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tr-xl' },
+                    { primary: true,  label: 'Champion',    order: 'md:order-2', Icon: Crown,  iconColor: 'text-amber-300',  badge: 'bg-amber-400/15 border-amber-400/40',  plinth: 'md:pb-20', avatar: 'w-20 h-20 sm:w-24 sm:h-24', edge: '' },
+                    { primary: false, label: 'Runner-up',   order: 'md:order-1', Icon: Trophy, iconColor: 'text-slate-200',  badge: 'bg-slate-300/15 border-slate-300/40',  plinth: 'md:pb-10', avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tl-xl' },
+                    { primary: false, label: 'Third place', order: 'md:order-3', Icon: Trophy, iconColor: 'text-orange-300', badge: 'bg-orange-400/15 border-orange-400/40', plinth: 'md:pb-4',  avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tr-xl' },
                   ][index];
                   const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
@@ -369,8 +369,11 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                               : 'border-border bg-card md:border-t-0'
                           }`}
                         >
-                        <Icon className={`w-6 h-6 ${config.iconColor}`} aria-hidden="true" />
-                        <span className="mt-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {/* Award badge */}
+                        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${config.badge}`}>
+                          <Icon className={`w-6 h-6 ${config.iconColor}`} aria-hidden="true" />
+                        </div>
+                        <span className="mt-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                           {config.label}
                         </span>
 
