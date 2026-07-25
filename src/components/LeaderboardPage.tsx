@@ -385,39 +385,53 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                           <div className="text-xs text-muted-foreground mt-1.5">Points</div>
                         </div>
 
-                        {/* Inner surfaces use neutral alpha, not a fixed hue, so they
-                            tint with whatever block they sit in (pink or navy). */}
-                        <div className="mt-4 w-full grid grid-cols-3 rounded-xl border border-white/10 divide-x divide-white/10 overflow-hidden">
+                        {/* Inner surfaces derive from the foreground token rather
+                            than a fixed white, so they tint with whatever block
+                            they sit in and survive light mode. */}
+                        <div className="mt-4 w-full grid grid-cols-3 rounded-xl border border-inset-line divide-x divide-inset-line overflow-hidden">
                           {[
                             { n: entry.count_first, l: '1st' },
                             { n: entry.count_second, l: '2nd' },
                             { n: entry.count_third, l: '3rd' },
                           ].map(({ n, l }) => (
-                            <div key={l} className="px-1 py-2 text-center bg-white/[0.03]">
+                            <div key={l} className="px-1 py-2 text-center bg-inset">
                               <div className="text-sm font-semibold tabular-nums leading-none">{n}</div>
                               <div className="text-[11px] text-muted-foreground mt-1">{l}</div>
                             </div>
                           ))}
                         </div>
 
-                        {messageCount > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedEmployee({
-                                name: entry.employee?.name || 'Unknown',
-                                messages: (entry as any).messages || [],
-                                totalPoints: entry.total_points,
-                              });
-                              setReasonsModalOpen(true);
-                            }}
-                            className="w-full mt-3 gap-1.5 bg-white/[0.03] border-white/10 hover:bg-white/[0.08]"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                            <span className="text-sm">{messageCount} {messageCount === 1 ? 'message' : 'messages'}</span>
-                          </Button>
-                        )}
+                        {/* Always rendered, matching the All Rankings list. Hiding
+                            it at zero made the podium look like notes had been
+                            stripped from the top three rather than simply not
+                            written yet. */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={messageCount === 0}
+                          aria-label={
+                            messageCount === 0
+                              ? `No notes yet for ${entry.employee?.name || 'this person'}`
+                              : `Read ${messageCount} ${messageCount === 1 ? 'note' : 'notes'} for ${entry.employee?.name || 'this person'}`
+                          }
+                          onClick={() => {
+                            if (messageCount === 0) return;
+                            setSelectedEmployee({
+                              name: entry.employee?.name || 'Unknown',
+                              messages: (entry as any).messages || [],
+                              totalPoints: entry.total_points,
+                            });
+                            setReasonsModalOpen(true);
+                          }}
+                          className="w-full mt-3 gap-1.5 bg-inset border-inset-line hover:bg-inset-strong disabled:opacity-60"
+                        >
+                          <MessageCircle className="w-4 h-4" aria-hidden="true" />
+                          <span className="text-sm">
+                            {messageCount === 0
+                              ? 'No notes yet'
+                              : `${messageCount} ${messageCount === 1 ? 'note' : 'notes'}`}
+                          </span>
+                        </Button>
                         </div>
                       </div>
                     </div>

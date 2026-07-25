@@ -11,7 +11,7 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { ProfilePage } from './components/ProfilePage';
 import { OgImagePage } from './components/OgImagePage';
 import { Employee, Election } from './types';
-import { Toaster } from 'sonner@2.0.3';
+import { Toaster } from './components/ui/sonner';
 import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
 
