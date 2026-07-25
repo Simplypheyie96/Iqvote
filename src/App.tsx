@@ -107,6 +107,11 @@ export default function App() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  // Auth finishing does not mean the app has data yet. Until the first
+  // election/employee fetch settles, an empty `currentElection` is
+  // indistinguishable from "there is no election" — so hold the shell back
+  // rather than flashing the empty state at people.
+  const [dataReady, setDataReady] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   // Add refs to prevent infinite loops
   const authCheckInProgress = useRef(false);
@@ -244,6 +249,11 @@ export default function App() {
       ]);
     } catch (err) {
       console.error('Failed to load data:', err);
+    } finally {
+      // Each loader swallows its own error, so this always runs. Even on a
+      // failed fetch we release the shell — a stuck loader is worse than an
+      // honest empty state.
+      setDataReady(true);
     }
   }, [loadCurrentElection, loadAllElections, loadEmployees]);
 
@@ -367,6 +377,7 @@ export default function App() {
           setAllElections([]);
           setEmployees([]);
           setInitialized(false);
+          setDataReady(false);
           passwordRecoveryMode.current = false;
         } else if (event === 'SIGNED_IN' && session) {
           console.log('Signed in, skipping redundant check');
@@ -418,6 +429,7 @@ export default function App() {
     setAllElections([]);
     setEmployees([]);
     setInitialized(false);
+    setDataReady(false);
     clearSessionCache();
   }
 
@@ -452,7 +464,9 @@ export default function App() {
     await loadAllElections();
   }
 
-  if (loading) {
+  // Signed in but the first data fetch hasn't landed yet — keep showing the
+  // loader instead of rendering "No active election" over empty state.
+  if (loading || (currentUser && !dataReady)) {
     return <LoadingSpinner fullScreen text="Loading IQ Vote" />;
   }
 
