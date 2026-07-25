@@ -57,6 +57,22 @@
   --info: oklch(0.5100 0.1650 258.0000);
   --info-foreground: oklch(1.0000 0 0);
 
+  /* ---------------------------------------------------------------- */
+  /*  Medals. Gold / silver / bronze are semantic in a product whose    */
+  /*  whole subject is a podium, so they're tokens rather than one-off  */
+  /*  ambers and greys scattered across the ballot, the leaderboard     */
+  /*  and the share image.                                              */
+  /*                                                                    */
+  /*  These are FILLS, never text. They carry a dark numeral (9.2, 9.2, */
+  /*  7.0 in light; 9.8, 8.9, 6.8 in dark) and always sit inside a      */
+  /*  hairline, because at ~1.9 against a white page the disc edge      */
+  /*  would otherwise disappear.                                        */
+  /* ---------------------------------------------------------------- */
+  --medal-1: oklch(0.7900 0.1400 86.0000);
+  --medal-2: oklch(0.7900 0.0180 260.0000);
+  --medal-3: oklch(0.7200 0.0950 52.0000);
+  --medal-foreground: oklch(0.2077 0.0398 265.7549);
+
   /* Chart / data series */
   --chart-1: oklch(0.7103 0.2100 354.2024);
   --chart-2: oklch(0.8021 0.1343 350.3252);
@@ -135,6 +151,14 @@
   --info: oklch(0.7700 0.1150 250.0000);
   --info-foreground: oklch(0.2077 0.0398 265.7549);
 
+  /* Medals barely move between themes — metal is metal. Nudged a shade
+     lighter so the discs separate from the dark canvas (9.1 / 8.2 / 6.2)
+     the way the hairline does on a light one. */
+  --medal-1: oklch(0.8100 0.1350 88.0000);
+  --medal-2: oklch(0.7800 0.0180 260.0000);
+  --medal-3: oklch(0.7100 0.0950 52.0000);
+  --medal-foreground: oklch(0.2077 0.0398 265.7549);
+
   --chart-1: oklch(0.6532 0.2555 0.6048);
   --chart-2: oklch(0.7106 0.2105 353.8284);
   --chart-3: oklch(0.8638 0 0);
@@ -209,6 +233,11 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+
+  --color-medal-1: var(--medal-1);
+  --color-medal-2: var(--medal-2);
+  --color-medal-3: var(--medal-3);
+  --color-medal-foreground: var(--medal-foreground);
 
   /* Sunken surfaces — for panels nested inside an already-tinted block (the
      podium stat grid, for example). Derived from the foreground so they pick
