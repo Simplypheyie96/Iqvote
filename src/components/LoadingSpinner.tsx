@@ -32,12 +32,12 @@ function PodiumLoader({ size, className = '' }: { size: 'sm' | 'md' | 'lg'; clas
 
 export function LoadingSpinner({ size = 'md', text, fullScreen = false, inline = false }: LoadingSpinnerProps) {
   if (inline || (!text && !fullScreen)) {
-    return <PodiumLoader size={size} className={inline ? 'text-current' : 'text-primary'} />;
+    return <PodiumLoader size={size} className={inline ? 'text-current' : 'text-primary-strong'} />;
   }
 
   const content = (
     <div className="flex flex-col items-center justify-center gap-3">
-      <PodiumLoader size={size} className="text-primary" />
+      <PodiumLoader size={size} className="text-primary-strong" />
       {text && <p className={`${TEXT[size]} text-muted-foreground`}>{text}</p>}
     </div>
   );

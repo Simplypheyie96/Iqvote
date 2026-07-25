@@ -143,15 +143,15 @@ export function ResetData() {
             </>
           ) : (
             <div className="space-y-6">
-              <Alert className="border-green-500/50 bg-green-500/10">
-                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <AlertDescription className="text-green-600 dark:text-green-400 font-semibold">
+              <Alert className="border-success/50 bg-success/10">
+                <CheckCircle2 className="w-5 h-5 text-success" />
+                <AlertDescription className="text-success font-semibold">
                   All data has been reset successfully!
                 </AlertDescription>
               </Alert>
 
-              <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                <p className="text-sm text-blue-600 dark:text-blue-400">
+              <div className="p-4 rounded-xl bg-info/10 border border-info/20">
+                <p className="text-sm text-info">
                   <strong>Redirecting in 3 seconds...</strong>
                   <br />
                   You'll be taken to the sign-up page where you can create your admin account.

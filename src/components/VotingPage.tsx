@@ -282,25 +282,25 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
           <div>
             <h4 className="flex items-center gap-2 mb-3 font-semibold">
               <div className="w-6 h-6 rounded-xl bg-primary/20 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <CheckCircle2 className="w-4 h-4 text-primary-strong" />
               </div>
               How to vote
             </h4>
             <ul className="text-sm text-muted-foreground space-y-2 ml-8">
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">•</span>
+                <span className="text-primary-strong mt-0.5">•</span>
                 <span>Select one employee for each rank: 1st place (5 points), 2nd place (3 points), 3rd place (2 points)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">•</span>
+                <span className="text-primary-strong mt-0.5">•</span>
                 <span>You must choose three distinct employees</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">•</span>
+                <span className="text-primary-strong mt-0.5">•</span>
                 <span>You can vote for yourself if you wish</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">•</span>
+                <span className="text-primary-strong mt-0.5">•</span>
                 <span><strong>Important:</strong> Once submitted, your vote cannot be changed</span>
               </li>
             </ul>
@@ -590,7 +590,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
                     <div className="truncate font-semibold">{employee.name}</div>
                     <div className="text-xs text-muted-foreground truncate">{employee.role}</div>
                   </div>
-                  <div className="text-sm font-semibold text-primary whitespace-nowrap">
+                  <div className="text-sm font-semibold text-primary-strong whitespace-nowrap">
                     #{rank} • {points} pts
                   </div>
                 </div>
@@ -600,7 +600,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
 
           <div className="flex items-center justify-between rounded-xl bg-primary/5 border border-primary/15 px-4 py-2.5 text-sm">
             <span className="text-muted-foreground">Total points distributed</span>
-            <span className="font-semibold text-primary">
+            <span className="font-semibold text-primary-strong">
               {getConfirmationDetails().reduce((sum, d) => sum + d.points, 0)} pts
             </span>
           </div>
@@ -648,7 +648,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
       <Dialog open={!!success} onOpenChange={(open) => { if (!open) setSuccess(null); }}>
         <DialogContent className="max-w-md text-center">
           <div className="w-16 h-16 rounded-full bg-primary/20 border border-primary/20 flex items-center justify-center mx-auto animate-pop" aria-hidden="true">
-            <CheckCircle2 className="w-9 h-9 text-primary" />
+            <CheckCircle2 className="w-9 h-9 text-primary-strong" />
           </div>
           <DialogHeader>
             <DialogTitle className="text-xl text-center">Ballot submitted! 🎉</DialogTitle>

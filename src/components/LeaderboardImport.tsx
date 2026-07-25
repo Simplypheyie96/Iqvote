@@ -201,16 +201,16 @@ Lope,15,18,8,5,10,91`;
       )}
 
       {success && (
-        <Alert className="border-green-500/50 bg-green-500/10">
+        <Alert className="border-success/50 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+          <AlertDescription className="text-success">{success}</AlertDescription>
         </Alert>
       )}
 
       <Card className="border-primary/20 bg-primary/5">
         <CardHeader className="pb-6">
           <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
+            <FileText className="w-5 h-5 text-primary-strong" />
             Import Google Sheets Leaderboard
           </CardTitle>
           <CardDescription>

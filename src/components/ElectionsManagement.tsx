@@ -193,7 +193,7 @@ export function ElectionsManagement() {
       case 'active':
         return (
           <Badge variant="success">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-0.5 animate-pulse"></span>
+            <span className="w-1.5 h-1.5 bg-success rounded-full mr-0.5 animate-pulse"></span>
             Active
           </Badge>
         );
@@ -281,7 +281,7 @@ export function ElectionsManagement() {
                       variant="outline"
                       size="sm"
                       onClick={() => openStatusDialog(election, 'close')}
-                      className="gap-1.5 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400"
+                      className="gap-1.5 hover:border-warning/50 hover:text-warning"
                     >
                       <X className="w-3 h-3" />
                       Close
@@ -292,7 +292,7 @@ export function ElectionsManagement() {
                       variant="outline"
                       size="sm"
                       onClick={() => openStatusDialog(election, 'reopen')}
-                      className="gap-1.5 hover:border-green-500/50 hover:text-green-600 dark:hover:text-green-400"
+                      className="gap-1.5 hover:border-success/50 hover:text-success"
                     >
                       <Play className="w-3 h-3" />
                       Reopen
@@ -304,7 +304,7 @@ export function ElectionsManagement() {
                       size="sm"
                       onClick={() => handleNotify(election)}
                       disabled={notifyingId === election.id}
-                      className="gap-1.5 hover:border-primary/50 hover:text-primary"
+                      className="gap-1.5 hover:border-primary/50 hover:text-primary-strong"
                       title="Send reminder email to all users"
                     >
                       <Bell className="w-3 h-3" />
@@ -339,9 +339,9 @@ export function ElectionsManagement() {
       )}
 
       {success && (
-        <Alert className="border-green-500/50 bg-green-500/10">
+        <Alert className="border-success/50 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+          <AlertDescription className="text-success">{success}</AlertDescription>
         </Alert>
       )}
 
@@ -367,7 +367,7 @@ export function ElectionsManagement() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400">{activeElections.length}</div>
+            <div className="text-3xl font-bold text-success">{activeElections.length}</div>
           </CardContent>
         </Card>
 
@@ -376,7 +376,7 @@ export function ElectionsManagement() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Elections</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{upcomingElections.length}</div>
+            <div className="text-3xl font-bold text-info">{upcomingElections.length}</div>
           </CardContent>
         </Card>
 
@@ -403,7 +403,7 @@ export function ElectionsManagement() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
                   Active Elections
                 </CardTitle>
                 <CardDescription>
@@ -423,7 +423,7 @@ export function ElectionsManagement() {
           {upcomingElections.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-blue-600 dark:text-blue-400">Upcoming Elections</CardTitle>
+                <CardTitle className="text-info">Upcoming Elections</CardTitle>
                 <CardDescription>
                   Elections that haven't started yet
                 </CardDescription>
@@ -565,9 +565,9 @@ export function ElectionsManagement() {
               </div>
 
               {statusAction === 'close' ? (
-                <Alert className="border-amber-500/50 bg-amber-500/10">
+                <Alert className="border-warning/50 bg-warning/10">
                   <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                  <AlertDescription className="text-amber-700 dark:text-amber-300">
+                  <AlertDescription className="text-warning">
                     <strong>Note:</strong> Closing this election will:
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       <li>Immediately stop accepting new votes</li>
@@ -578,9 +578,9 @@ export function ElectionsManagement() {
                 </Alert>
               ) : (
                 <div className="space-y-3">
-                  <Alert className="border-green-500/50 bg-green-500/10">
+                  <Alert className="border-success/50 bg-success/10">
                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                    <AlertDescription className="text-green-700 dark:text-green-300">
+                    <AlertDescription className="text-success">
                       Reopening will allow voters to cast new votes. Previously cast votes remain intact.
                     </AlertDescription>
                   </Alert>
@@ -622,8 +622,8 @@ export function ElectionsManagement() {
               onClick={handleUpdateElectionStatus}
               disabled={loading || (statusAction === 'reopen' && !reopenEndDate)}
               className={statusAction === 'close'
-                ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                : 'bg-green-600 hover:bg-green-700 text-white'}
+                ? 'bg-warning text-warning-foreground hover:bg-warning/90 active:bg-warning/85'
+                : 'bg-success text-success-foreground hover:bg-success/90 active:bg-success/85'}
             >
               {loading
                 ? (statusAction === 'close' ? 'Closing...' : 'Reopening...')

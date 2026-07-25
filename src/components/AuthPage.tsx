@@ -118,8 +118,8 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
           )}
           
           {success && (
-            <Alert className="mb-6 border-green-500/50 bg-green-500/10">
-              <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+            <Alert className="mb-6 border-success/50 bg-success/10">
+              <AlertDescription className="text-success">{success}</AlertDescription>
             </Alert>
           )}
           

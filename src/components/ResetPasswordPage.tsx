@@ -111,9 +111,9 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
           )}
 
           {success ? (
-            <Alert className="mb-6 border-green-500/50 bg-green-500/10">
-              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <AlertDescription className="text-green-600 dark:text-green-400">
+            <Alert className="mb-6 border-success/50 bg-success/10">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              <AlertDescription className="text-success">
                 Password updated! Signing you in…
               </AlertDescription>
             </Alert>

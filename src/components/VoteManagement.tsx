@@ -239,9 +239,9 @@ export function VoteManagement() {
       )}
 
       {success && (
-        <Alert className="border-green-500/50 bg-green-500/10">
+        <Alert className="border-success/50 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+          <AlertDescription className="text-success">{success}</AlertDescription>
         </Alert>
       )}
 
@@ -253,9 +253,9 @@ export function VoteManagement() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Privacy Notice */}
-          <Alert className="border-blue-500/50 bg-blue-500/10">
+          <Alert className="border-info/50 bg-info/10">
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            <AlertDescription className="text-blue-600 dark:text-blue-400">
+            <AlertDescription className="text-info">
               <strong>Privacy Protection:</strong> Vote choices are kept confidential. You can see who has voted and delete votes if needed, but the specific candidates each person voted for remain private.
             </AlertDescription>
           </Alert>
@@ -302,13 +302,13 @@ export function VoteManagement() {
                             </div>
                           </div>
                           {isActive && (
-                            <span className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 shrink-0">
-                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                            <span className="flex items-center gap-1.5 text-xs text-success shrink-0">
+                              <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
                               Active
                             </span>
                           )}
                           {isUpcoming && (
-                            <span className="text-xs text-blue-600 dark:text-blue-400 shrink-0">
+                            <span className="text-xs text-info shrink-0">
                               Upcoming
                             </span>
                           )}
@@ -399,7 +399,7 @@ export function VoteManagement() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Active Votes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400">{activeVotes.length}</div>
+                <div className="text-3xl font-bold text-success">{activeVotes.length}</div>
               </CardContent>
             </Card>
 
@@ -408,7 +408,7 @@ export function VoteManagement() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Deleted Votes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-red-600 dark:text-red-400">{revokedVotes.length}</div>
+                <div className="text-3xl font-bold text-destructive">{revokedVotes.length}</div>
               </CardContent>
             </Card>
           </div>
@@ -534,8 +534,8 @@ export function VoteManagement() {
             {/* Active Elections */}
             {activeElections.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-green-600 dark:text-green-400 mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <h4 className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
                   Active Elections ({activeElections.length})
                 </h4>
                 <div className="space-y-2">
@@ -561,8 +561,8 @@ export function VoteManagement() {
                         <div className="text-sm text-muted-foreground">
                           {start.toLocaleDateString()} - {end.toLocaleDateString()}
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 mt-2">
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                        <div className="flex items-center gap-1.5 text-xs text-success mt-2">
+                          <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
                           In Progress
                         </div>
                       </button>
@@ -614,7 +614,7 @@ export function VoteManagement() {
             {/* Upcoming Elections */}
             {upcomingElections.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-3">
+                <h4 className="text-sm font-semibold text-info mb-3">
                   Upcoming Elections ({upcomingElections.length})
                 </h4>
                 <div className="space-y-2">
@@ -640,7 +640,7 @@ export function VoteManagement() {
                         <div className="text-sm text-muted-foreground">
                           {start.toLocaleDateString()} - {end.toLocaleDateString()}
                         </div>
-                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                        <div className="text-xs text-info mt-2">
                           Not Started
                         </div>
                       </button>
@@ -727,9 +727,9 @@ export function VoteManagement() {
                 />
               </div>
 
-              <Alert className="border-red-500/50 bg-red-500/10">
+              <Alert className="border-destructive/50 bg-destructive/10">
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                <AlertDescription className="text-red-600 dark:text-red-400">
+                <AlertDescription className="text-destructive">
                   <strong>Warning:</strong> This action will permanently delete the vote and update the leaderboard. This cannot be undone.
                 </AlertDescription>
               </Alert>

@@ -184,7 +184,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
 
                       {bellOpen && (
                         <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-border bg-popover shadow-e2 z-50 p-4 origin-top-right animate-scale-in">
-                          <p className="text-[10px] font-semibold text-primary uppercase tracking-[0.18em] mb-2">Active election</p>
+                          <p className="text-[10px] font-semibold text-primary-strong uppercase tracking-[0.18em] mb-2">Active election</p>
                           <p className="font-semibold text-sm text-foreground mb-1">{currentElection.title}</p>
                           <p className="text-xs text-muted-foreground">
                             Ends {new Date(currentElection.end_time).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -289,7 +289,7 @@ export function Header({ user, employees, currentElection, currentView, onNaviga
                   Active election
                 </p>
                 <div className="rounded-[1.5rem] border border-border bg-card px-5 py-5">
-                  <p className="flex items-center gap-2 text-[13px] font-semibold text-primary">
+                  <p className="flex items-center gap-2 text-[13px] font-semibold text-primary-strong">
                     <Bell className="w-3.5 h-3.5" aria-hidden="true" />
                     Voting is open
                   </p>

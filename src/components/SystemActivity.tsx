@@ -100,12 +100,12 @@ export function SystemActivity() {
 
   const getActivityColor = (type: string) => {
     switch (type) {
-      case 'auth': return 'bg-blue-500/10 text-muted-foreground border-blue-500/20';
-      case 'vote': return 'bg-green-500/10 text-muted-foreground border-green-500/20';
-      case 'admin': return 'bg-red-500/10 text-muted-foreground border-red-500/20';
-      case 'election': return 'bg-purple-500/10 text-muted-foreground border-purple-500/20';
-      case 'employee': return 'bg-orange-500/10 text-muted-foreground border-orange-500/20';
-      default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+      case 'auth': return 'bg-info/10 text-muted-foreground border-info/20';
+      case 'vote': return 'bg-success/10 text-muted-foreground border-success/20';
+      case 'admin': return 'bg-destructive/10 text-muted-foreground border-destructive/20';
+      case 'election': return 'bg-primary/10 text-muted-foreground border-primary/20';
+      case 'employee': return 'bg-warning/10 text-muted-foreground border-warning/20';
+      default: return 'bg-border/10 text-muted-foreground border-border/20';
     }
   };
 
@@ -177,7 +177,7 @@ export function SystemActivity() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Eye className="w-5 h-5 text-primary" />
+            <Eye className="w-5 h-5 text-primary-strong" />
             System Activity Monitor
           </CardTitle>
           <CardDescription>Loading activity logs…</CardDescription>
@@ -240,7 +240,7 @@ export function SystemActivity() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-primary" />
+            <Activity className="w-5 h-5 text-primary-strong" />
             Activity Timeline
           </CardTitle>
           <CardDescription>
@@ -341,10 +341,10 @@ export function SystemActivity() {
                               <p className="font-medium">Target User: {activity.details.target_user_name} ({activity.details.target_user_email})</p>
                             )}
                             {activity.details.admin_email && activity.action !== 'user_signup' && (
-                              <p className="text-primary font-medium">Action performed by: {activity.details.admin_email}</p>
+                              <p className="text-primary-strong font-medium">Action performed by: {activity.details.admin_email}</p>
                             )}
                             {activity.details.admin_name && (
-                              <p className="text-primary font-medium">Admin: {activity.details.admin_name}</p>
+                              <p className="text-primary-strong font-medium">Admin: {activity.details.admin_name}</p>
                             )}
                             {activity.details.old_value !== undefined && activity.details.new_value !== undefined && (
                               <p>Changed: {String(activity.details.old_value)} → {String(activity.details.new_value)}</p>

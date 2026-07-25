@@ -23,7 +23,7 @@ export function VotingReasonsModal({
       <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-primary" />
+            <MessageCircle className="w-5 h-5 text-primary-strong" />
             Why People Voted for {employeeName}
           </DialogTitle>
           <DialogDescription>
@@ -35,7 +35,7 @@ export function VotingReasonsModal({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Total Points</p>
-              <p className="text-2xl font-bold text-primary">{totalPoints}</p>
+              <p className="text-2xl font-bold text-primary-strong">{totalPoints}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Messages</p>
@@ -69,8 +69,8 @@ export function VotingReasonsModal({
           </div>
         </div>
 
-        <div className="mt-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 flex-shrink-0">
-          <p className="text-xs text-blue-600 dark:text-blue-400 flex items-start gap-2">
+        <div className="mt-4 p-3 rounded-xl bg-info/10 border border-info/20 flex-shrink-0">
+          <p className="text-xs text-info flex items-start gap-2">
             <MessageCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span>
               <strong>100% Anonymous:</strong> All messages are completely anonymous. No one (not even admins) can see who wrote which message. This ensures fairness and prevents bias.

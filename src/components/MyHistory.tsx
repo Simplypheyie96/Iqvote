@@ -80,9 +80,9 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
 
   function getRankBadge(rank: number) {
     const rankConfig = {
-      1: { icon: Trophy, label: '1st Place', color: 'text-muted-foreground bg-yellow-500/10 border-yellow-500/30' },
-      2: { icon: User, label: '2nd Place', color: 'text-gray-400 bg-gray-400/10 border-gray-400/30' },
-      3: { icon: User, label: '3rd Place', color: 'text-amber-600 bg-amber-600/10 border-amber-600/30' }
+      1: { icon: Trophy, label: '1st Place', color: 'text-muted-foreground bg-warning/10 border-warning/30' },
+      2: { icon: User, label: '2nd Place', color: 'text-muted-foreground bg-border/10 border-border/30' },
+      3: { icon: User, label: '3rd Place', color: 'text-warning bg-warning/10 border-warning/30' }
     };
 
     const config = rankConfig[rank as keyof typeof rankConfig] || {
@@ -172,7 +172,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
         <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
           <CardHeader className="pb-3">
             <CardDescription className="text-xs">Total Points Received</CardDescription>
-            <CardTitle className="text-3xl text-primary">{totalPointsReceived}</CardTitle>
+            <CardTitle className="text-3xl text-primary-strong">{totalPointsReceived}</CardTitle>
           </CardHeader>
         </Card>
 
@@ -335,7 +335,7 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                         <div className="grid sm:grid-cols-2 gap-4">
                           <div className="p-4 rounded-xl bg-muted/30 border border-border">
                             <p className="text-xs text-muted-foreground mb-1">Points Received</p>
-                            <p className="text-3xl font-bold text-primary">{vote.total_points}</p>
+                            <p className="text-3xl font-bold text-primary-strong">{vote.total_points}</p>
                           </div>
                           <div className="p-4 rounded-xl bg-muted/30 border border-border">
                             <p className="text-xs text-muted-foreground mb-1">Total Voters</p>
@@ -343,8 +343,8 @@ export function MyHistory({ currentUser }: MyHistoryProps) {
                           </div>
                         </div>
 
-                        <Alert className="mt-4 border-blue-500/50 bg-blue-500/10">
-                          <AlertDescription className="text-xs text-blue-600 dark:text-blue-400">
+                        <Alert className="mt-4 border-info/50 bg-info/10">
+                          <AlertDescription className="text-xs text-info">
                             Votes are anonymous. We don't share who voted for whom to maintain fairness and prevent bias.
                           </AlertDescription>
                         </Alert>

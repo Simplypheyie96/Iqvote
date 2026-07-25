@@ -567,7 +567,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           onClick={handleExportAllData}
           disabled={exporting}
           variant="outline"
-          className="gap-2 shrink-0 w-full sm:w-auto hover:border-primary/50 hover:text-primary transition-colors"
+          className="gap-2 shrink-0 w-full sm:w-auto hover:border-primary/50 hover:text-primary-strong transition-colors"
         >
           {exporting ? (
             <>
@@ -590,8 +590,8 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       )}
 
       {success && (
-        <Alert className="mb-6 border-green-500/50 bg-green-500/10">
-          <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+        <Alert className="mb-6 border-success/50 bg-success/10">
+          <AlertDescription className="text-success">{success}</AlertDescription>
         </Alert>
       )}
 
@@ -602,7 +602,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Users className="w-4 h-4 text-sky-400" />
+                <Users className="w-4 h-4 text-info" />
               </div>
             </div>
           </CardHeader>
@@ -619,7 +619,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Trophy className="w-4 h-4 text-primary" />
+                <Trophy className="w-4 h-4 text-primary-strong" />
               </div>
             </div>
           </CardHeader>
@@ -636,7 +636,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Activity className="w-4 h-4 text-emerald-400" />
+                <Activity className="w-4 h-4 text-success" />
               </div>
             </div>
           </CardHeader>
@@ -653,7 +653,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Award className="w-4 h-4 text-violet-400" />
+                <Award className="w-4 h-4 text-primary-strong" />
               </div>
             </div>
           </CardHeader>
@@ -699,7 +699,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <Calendar className="w-5 h-5 text-primary" />
+                <Calendar className="w-5 h-5 text-primary-strong" />
                 Create New Election
               </CardTitle>
               <CardDescription>
@@ -804,9 +804,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                   </p>
                 </div>
 
-                <Alert className="border-blue-500/50 bg-blue-500/10">
+                <Alert className="border-info/50 bg-info/10">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  <AlertDescription className="text-blue-600 dark:text-blue-400 text-xs">
+                  <AlertDescription className="text-info text-xs">
                     <strong>Important:</strong> ALL registered users (including admins) can vote in this election. The employees selected above are candidates who can RECEIVE votes. This separation allows executives and managers to participate in voting without being candidates themselves.
                   </AlertDescription>
                 </Alert>
@@ -847,7 +847,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
+                    <Users className="w-5 h-5 text-primary-strong" />
                     Employee Management
                   </CardTitle>
                   <CardDescription>
@@ -981,7 +981,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                       {editingEmployee && (
                         <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-xl border border-border">
                           <div className="flex items-center gap-3">
-                            <Shield className="w-5 h-5 text-primary" />
+                            <Shield className="w-5 h-5 text-primary-strong" />
                             <div>
                               <Label htmlFor="emp-admin" className="cursor-pointer">
                                 Admin Access
@@ -1032,14 +1032,14 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
-                          <Users className="w-6 h-6 text-primary" />
+                          <Users className="w-6 h-6 text-primary-strong" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
                           <span className="truncate">{employee.name}</span>
                           {employee.is_admin && employee.email !== 'ajayifey@gmail.com' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary-strong border border-primary/20 text-xs flex-shrink-0">
                               <Shield className="w-3 h-3" />
                               Admin
                             </span>
@@ -1102,7 +1102,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary" />
+                <Shield className="w-5 h-5 text-primary-strong" />
                 User Management
               </CardTitle>
               <CardDescription>
@@ -1110,9 +1110,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Alert className="mb-6 border-blue-500/50 bg-blue-500/10">
+              <Alert className="mb-6 border-info/50 bg-info/10">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
+                <AlertDescription className="text-info text-sm">
                   <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click "Make Employee" to convert a user into a votable employee.
                 </AlertDescription>
               </Alert>
@@ -1127,19 +1127,19 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                     >
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
-                          <Users className="w-6 h-6 text-primary" />
+                          <Users className="w-6 h-6 text-primary-strong" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
                             <span className="truncate">{user.name}</span>
                             {user.is_admin && user.email !== 'ajayifey@gmail.com' && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs flex-shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary-strong border border-primary/20 text-xs flex-shrink-0">
                                 <Shield className="w-3 h-3" />
                                 Admin
                               </span>
                             )}
                             {isEmployee && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-xs flex-shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-success/10 text-success border border-success/20 text-xs flex-shrink-0">
                                 <Users className="w-3 h-3" />
                                 Employee
                               </span>
@@ -1308,7 +1308,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               <DialogHeader className="flex-shrink-0">
                 <div className="flex items-center justify-center mb-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Key className="w-6 h-6 text-primary" />
+                    <Key className="w-6 h-6 text-primary-strong" />
                   </div>
                 </div>
                 <DialogTitle className="text-center">Reset Password</DialogTitle>
@@ -1322,15 +1322,15 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 <div className="rounded-xl border border-border bg-muted/40 p-4">
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
-                      <span className="text-primary font-bold mt-0.5">•</span>
+                      <span className="text-primary-strong font-bold mt-0.5">•</span>
                       Their password will be replaced with the one you set
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary font-bold mt-0.5">•</span>
+                      <span className="text-primary-strong font-bold mt-0.5">•</span>
                       Share the temporary password with them via Slack or WhatsApp
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary font-bold mt-0.5">•</span>
+                      <span className="text-primary-strong font-bold mt-0.5">•</span>
                       They can change it in their Profile after logging in
                     </li>
                   </ul>
@@ -1368,7 +1368,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                         setTimeout(() => setCopiedPassword(false), 2000);
                       }}
                       title="Copy password"
-                      className="flex items-center gap-1.5 px-3 bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium transition-colors border-l border-blue-600 shrink-0"
+                      className="flex items-center gap-1.5 px-3 bg-info text-info-foreground hover:bg-info/90 active:bg-info/85 text-xs font-medium transition-colors border-l border-info shrink-0"
                     >
                       {copiedPassword
                         ? <><CheckIcon className="w-3.5 h-3.5" /> Copied</>

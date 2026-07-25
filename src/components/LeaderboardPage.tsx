@@ -265,7 +265,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
       ) : leaderboard.length === 0 ? (
         <div className="text-center py-16 px-4">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center">
-            <Trophy className="w-10 h-10 text-primary/40" />
+            <Trophy className="w-10 h-10 text-primary-strong/40" />
           </div>
           <h3 className="text-xl font-semibold mb-2">No Results Yet</h3>
           <p className="text-muted-foreground max-w-md mx-auto mb-6">
@@ -295,7 +295,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
             <section className="mb-8 sm:mb-12 animate-fade-in" aria-labelledby="top-performers-heading">
               <div className="flex items-center gap-2 mb-8 sm:mb-10">
                 <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">
-                  <Crown className="w-5 h-5 text-primary" aria-hidden="true" />
+                  <Crown className="w-5 h-5 text-primary-strong" aria-hidden="true" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold" id="top-performers-heading">Top Performers</h3>
               </div>
@@ -304,9 +304,9 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:items-end">
                 {topThree.map((entry, index) => {
                   const config = [
-                    { primary: true,  label: 'Champion',    order: 'md:order-2', Icon: Crown,  iconColor: 'text-amber-300',  badge: 'bg-amber-400/15 border-amber-400/40',  plinth: 'md:pb-20', avatar: 'w-20 h-20 sm:w-24 sm:h-24', edge: '' },
-                    { primary: false, label: 'Runner-up',   order: 'md:order-1', Icon: Trophy, iconColor: 'text-slate-200',  badge: 'bg-slate-300/15 border-slate-300/40',  plinth: 'md:pb-10', avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tl-xl' },
-                    { primary: false, label: 'Third place', order: 'md:order-3', Icon: Trophy, iconColor: 'text-orange-300', badge: 'bg-orange-400/15 border-orange-400/40', plinth: 'md:pb-4',  avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tr-xl' },
+                    { primary: true,  label: 'Champion',    order: 'md:order-2', Icon: Crown,  iconColor: 'text-warning',  badge: 'bg-warning/15 border-warning/40',  plinth: 'md:pb-20', avatar: 'w-20 h-20 sm:w-24 sm:h-24', edge: '' },
+                    { primary: false, label: 'Runner-up',   order: 'md:order-1', Icon: Trophy, iconColor: 'text-muted-foreground',  badge: 'bg-border/15 border-border/40',  plinth: 'md:pb-10', avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tl-xl' },
+                    { primary: false, label: 'Third place', order: 'md:order-3', Icon: Trophy, iconColor: 'text-warning', badge: 'bg-warning/15 border-warning/40', plinth: 'md:pb-4',  avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tr-xl' },
                   ][index];
                   const Icon = config.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
@@ -342,7 +342,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         <div className="mt-3 flex items-center gap-1.5">
                           <span className="font-semibold truncate max-w-[12rem]">{entry.employee?.name}</span>
                           {isCurrentUser && (
-                            <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full flex-shrink-0">You</span>
+                            <span className="text-[10px] font-medium text-primary-strong bg-primary/10 px-1.5 py-0.5 rounded-full flex-shrink-0">You</span>
                           )}
                         </div>
                         {entry.employee?.role && (
@@ -488,7 +488,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                             <div className="flex items-center gap-2 flex-wrap">
                               <h4 className="font-semibold truncate text-sm sm:text-base">{entry.employee?.name}</h4>
                               {isCurrentUser && (
-                                <div className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                                <div className="flex items-center gap-1 text-xs text-primary-strong bg-primary/10 px-2 py-0.5 rounded-full">
                                   <Star className="w-3 h-3 fill-current" />
                                   You
                                 </div>

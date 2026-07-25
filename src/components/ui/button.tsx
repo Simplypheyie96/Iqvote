@@ -15,11 +15,11 @@ const buttonVariants = cva("inline-flex items-center justify-center gap-2 whites
     variants: {
       variant: {
         default: `bg-primary text-primary-foreground ${INNER_LIGHT} hover:bg-primary/90 active:bg-primary/85`,
-        destructive: `bg-destructive text-white ${INNER_LIGHT} hover:bg-destructive/90 active:bg-destructive/85 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60`,
+        destructive: `bg-destructive text-destructive-foreground ${INNER_LIGHT} hover:bg-destructive/90 active:bg-destructive/85 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40`,
         outline:"border border-border bg-card text-foreground hover:bg-accent hover:border-border hover:text-accent-foreground active:bg-accent/80",
         secondary: `bg-secondary text-secondary-foreground ${INNER_LIGHT} hover:bg-secondary/80 active:bg-secondary/70`,
         ghost:"hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-primary-strong underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
