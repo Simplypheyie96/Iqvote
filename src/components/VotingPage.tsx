@@ -528,6 +528,37 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
                 : 'Pick 1st, 2nd and 3rd to continue.'}
             </p>
           </div>
+
+          {/* How to vote */}
+          <div className="rounded-xl border border-border bg-card p-4 mt-4" role="region" aria-labelledby="how-to-vote-heading">
+            <h2 className="text-sm font-semibold mb-3" id="how-to-vote-heading">How to vote</h2>
+            <ul className="space-y-2.5 text-sm text-muted-foreground">
+              <li className="flex gap-2.5">
+                <span className="text-muted-foreground/60 flex-shrink-0" aria-hidden="true">1.</span>
+                <span>
+                  Use the <span className="text-foreground font-medium">1st / 2nd / 3rd</span> buttons on a colleague&apos;s
+                  row to rank them — worth <span className="text-foreground font-medium">5</span>,{' '}
+                  <span className="text-foreground font-medium">3</span> and{' '}
+                  <span className="text-foreground font-medium">2</span> points.
+                </span>
+              </li>
+              <li className="flex gap-2.5">
+                <span className="text-muted-foreground/60 flex-shrink-0" aria-hidden="true">2.</span>
+                <span>Pick <span className="text-foreground font-medium">three different people</span> — one for each place.</span>
+              </li>
+              <li className="flex gap-2.5">
+                <span className="text-muted-foreground/60 flex-shrink-0" aria-hidden="true">3.</span>
+                <span>You can vote for yourself if you want to.</span>
+              </li>
+              <li className="flex gap-2.5">
+                <span className="text-muted-foreground/60 flex-shrink-0" aria-hidden="true">4.</span>
+                <span>Adding a note is optional, and always anonymous.</span>
+              </li>
+            </ul>
+            <p className="text-xs text-foreground/80 mt-3 pt-3 border-t border-border">
+              Once you submit, your vote is final and cannot be changed.
+            </p>
+          </div>
         </aside>
       </div>
 
