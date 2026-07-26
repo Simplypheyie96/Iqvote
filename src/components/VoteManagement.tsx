@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, AlertCircle, CheckCircle2, XCircle, Search, FileDown } from 'lucide-react';
+import { Trash2, AlertCircle, CheckCircle2, XCircle, Search, FileDown, UserX } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -35,6 +35,9 @@ interface Election {
   title: string;
   start_time: string;
   end_time: string;
+  /* The employee ids on this election's ballot. Already in the /elections
+     payload — this interface simply never declared it. */
+  eligible_employees?: string[];
 }
 
 export function VoteManagement() {
@@ -42,6 +45,9 @@ export function VoteManagement() {
   const [selectedElectionId, setSelectedElectionId] = useState<string>('');
   const [votes, setVotes] = useState<Ballot[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
+  /* Only used to tell "hasn't voted yet" apart from "has no account, so never
+     can". Without it the same five names sit in the chase list forever. */
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -65,6 +71,7 @@ export function VoteManagement() {
   useEffect(() => {
     loadElections();
     loadEmployees();
+    loadUsers();
   }, []);
 
   useEffect(() => {
@@ -99,6 +106,17 @@ export function VoteManagement() {
       setEmployees(employees || []);
     } catch (err: any) {
       console.error('Failed to load employees:', err);
+    }
+  }
+
+  /* Non-fatal on purpose: if this fails the turnout list still works, it just
+     can't say which candidates have no account. */
+  async function loadUsers() {
+    try {
+      const { users } = await api.getUsers();
+      setUsers(users || []);
+    } catch (err: any) {
+      console.error('Failed to load users:', err);
     }
   }
 
@@ -216,6 +234,46 @@ export function VoteManagement() {
     ballot.voter?.name.toLowerCase().includes(voterSearch.toLowerCase()) ||
     ballot.voter?.email.toLowerCase().includes(voterSearch.toLowerCase())
   );
+
+  /* Who still owes a vote. Worked out here from data the screen already has —
+     the ballot's own candidate list, minus everyone with a counting ballot.
+     Nothing new is asked of the server and nothing about the vote changes.
+
+     Email is the join key, not id: employees converted from a user account
+     share that user's id, but an admin-created employee gets a fresh UUID, so
+     matching on id alone quietly misses people. Match on either. */
+  const selectedElection = elections.find(e => e.id === selectedElectionId);
+
+  const votedIds = new Set(activeVotes.map(b => b.voter_id).filter(Boolean));
+  const votedEmails = new Set(
+    activeVotes.map(b => b.voter?.email?.toLowerCase()).filter(Boolean) as string[]
+  );
+  const accountEmails = new Set(
+    users.map(u => u.email?.toLowerCase()).filter(Boolean) as string[]
+  );
+
+  /* An older election may predate the eligibility field, in which case every
+     employee was on the ballot — fall back to that rather than claiming nobody
+     was standing. */
+  const ballotCandidates = selectedElection?.eligible_employees?.length
+    ? selectedElection.eligible_employees
+        .map(id => employees.find(e => e.id === id))
+        .filter(Boolean)
+    : employees;
+
+  const nonVoters = ballotCandidates.filter(
+    (e: any) => !votedIds.has(e.id) && !(e.email && votedEmails.has(e.email.toLowerCase()))
+  );
+
+  const filteredNonVoters = nonVoters.filter((e: any) =>
+    (e.name || '').toLowerCase().includes(voterSearch.toLowerCase()) ||
+    (e.email || '').toLowerCase().includes(voterSearch.toLowerCase())
+  );
+
+  /* Someone with no sign-in can't cast a ballot however hard you chase them.
+     Only claim that when the roster actually loaded. */
+  const hasAccount = (e: any) =>
+    users.length === 0 || (!!e.email && accountEmails.has(e.email.toLowerCase()));
 
   // Group elections by status
   const now = new Date();
@@ -369,13 +427,19 @@ export function VoteManagement() {
         <>
           {/* Same three-up strip as the admin dashboard, so a count means the
               same thing and sits the same way wherever you meet it. */}
-          <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
+          {/* Four across on a wide screen, two-by-two on a phone — a fourth
+              column at 375px would squeeze the numbers to nothing. */}
+          <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-e1 sm:grid-cols-4">
             {[
               { label: 'Cast', value: votes.length, tone: '' },
               { label: 'Counting', value: activeVotes.length, tone: 'text-success' },
+              { label: 'Yet to vote', value: nonVoters.length, tone: nonVoters.length > 0 ? 'text-warning' : 'text-success' },
               { label: 'Removed', value: revokedVotes.length, tone: 'text-destructive' },
             ].map(({ label, value, tone }, i) => (
-              <div key={label} className={`p-4 sm:p-5 ${i > 0 ? 'border-l border-border' : ''}`}>
+              <div
+                key={label}
+                className={`border-border p-4 sm:border-t-0 sm:p-5 ${i % 2 === 1 ? 'border-l' : ''} ${i >= 2 ? 'border-t' : ''} ${i > 0 ? 'sm:border-l' : 'sm:border-l-0'}`}
+              >
                 <div className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
                   {label}
                 </div>
@@ -397,7 +461,7 @@ export function VoteManagement() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                {activeVotes.length > 0 && (
+                {(activeVotes.length > 0 || nonVoters.length > 0) && (
                   <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     <Input
@@ -468,6 +532,80 @@ export function VoteManagement() {
                       <Trash2 className="w-4 h-4" />
                       Remove
                     </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* The other half of the same question. "Who voted" tells you the
+              turnout; this tells you who to go and ask. Same enclosure and the
+              same shared search, so the two read as one pair. */}
+          <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
+            <div className="border-b border-border p-5 sm:p-6">
+              <h3 className="flex items-center gap-2 font-display text-base font-semibold tracking-tight">
+                <UserX className="w-4 h-4 text-muted-foreground" />
+                Still to vote
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground tabular-nums text-pretty">
+                {nonVoters.length} of {ballotCandidates.length} on this ballot {nonVoters.length === 1 ? 'has' : 'have'} not voted
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="divide-y divide-border" aria-busy="true">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="space-y-2 p-5 sm:p-6">
+                    <Skeleton className="h-4 w-44" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                ))}
+              </div>
+            ) : ballotCandidates.length === 0 ? (
+              <div className="px-6 py-14 text-center">
+                <p className="font-medium">Nobody is on this ballot</p>
+                <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground text-pretty">
+                  Add candidates to the election and they will show up here.
+                </p>
+              </div>
+            ) : nonVoters.length === 0 ? (
+              <div className="px-6 py-14 text-center">
+                <p className="font-medium text-success">Everyone on the ballot has voted</p>
+                <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground text-pretty">
+                  Nothing left to chase.
+                </p>
+              </div>
+            ) : filteredNonVoters.length === 0 ? (
+              <div className="px-6 py-14 text-center">
+                <p className="font-medium">Nobody here matches that search</p>
+                <p className="mt-1 text-sm text-muted-foreground">Try a different name or email.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {filteredNonVoters.map((employee: any, idx: number) => (
+                  <div
+                    key={employee.id || employee.email || idx}
+                    className="flex items-center justify-between gap-4 p-5 transition-colors duration-150 hover:bg-muted/40 animate-fade-in-up sm:p-6"
+                    style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{employee.name || 'Unnamed candidate'}</div>
+                      <div className="mt-0.5 truncate text-sm text-muted-foreground">
+                        {employee.email || 'No email on file'}
+                      </div>
+                      {employee.role && (
+                        <div className="mt-1 truncate text-xs text-muted-foreground">{employee.role}</div>
+                      )}
+                    </div>
+
+                    {/* A candidate with no sign-in isn't dragging their feet —
+                        they have no way in. Worth saying, so nobody spends a
+                        reminder on them. */}
+                    {!hasAccount(employee) && (
+                      <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground inset-ring-1 inset-ring-border">
+                        No account
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
