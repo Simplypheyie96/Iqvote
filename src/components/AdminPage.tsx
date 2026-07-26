@@ -134,7 +134,7 @@ function FormSection({
             </span>
             {title}
           </h3>
-          <p className="mt-1 text-sm text-muted-foreground text-pretty">{description}</p>
+          <p className="mt-1 max-w-prose text-sm text-muted-foreground text-pretty">{description}</p>
         </div>
       </div>
       <div className="mt-5">{children}</div>
@@ -760,10 +760,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           {/* Three questions, in the order you'd ask them out loud: what is it,
               when does it run, who can win. Each numbered so the form reads as
               a sequence rather than a wall of fields. */}
-          {/* Capped for readability, but CENTRED rather than pinned left: at a
-              desktop width a left-pinned column leaves one wide empty gutter on
-              the right that reads as a layout bug rather than as breathing room. */}
-          <form onSubmit={handleCreateElection} className="mx-auto max-w-4xl space-y-6">
+          {/* Full width, like every other tab. The step cards used to cap at
+              max-w-4xl and centre, which made this the only tab that didn't
+              reach the edges of the page container — it read as broken next to
+              Elections and Employees. Readability is handled per field instead:
+              the cards fill, and the things inside them that get unreadable when
+              stretched (long descriptions, single inputs) carry their own cap. */}
+          <form onSubmit={handleCreateElection} className="space-y-6">
             <FormSection
               step={1}
               icon={Calendar}
@@ -777,7 +780,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 onChange={(e) => setElectionTitle(e.target.value)}
                 placeholder="December 2026 — Employee of the Month"
                 required
-                className="mt-1.5 h-11"
+                className="mt-1.5 h-11 max-w-2xl"
               />
             </FormSection>
 
@@ -787,7 +790,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               title="Set the voting window"
               description="Voting opens and closes automatically at these times, in your local timezone."
             >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Two datetime fields, capped: a date picker stretched to
+                  1200px is a wide box holding a short string. */}
+              <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <Label htmlFor="start-date">Opens</Label>
                   <Input
@@ -876,9 +881,11 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                   discrete tiles, so the panel is actually filled and a partial
                   last row reads as a grid rather than as missing content.
                   20rem still clears six rows outright, and past that the list
-                  scrolls with a row cut in half to say there's more. */}
+                  scrolls with a row cut in half to say there's more. Three per
+                  row from `xl`, where two would leave each tile holding a short
+                  name across half a very wide panel. */}
               <div className="mt-4 max-h-80 overflow-y-auto rounded-xl border border-border p-2">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {visibleCandidates.map((employee) => {
                   const checked = eligibleEmployees.includes(employee.id);
                   return (
@@ -938,7 +945,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
             {/* Demoted from a coloured Alert. Nothing is wrong and nothing needs
                 doing — it's a note about how the app works, so it reads like one. */}
-            <p className="flex items-start gap-2.5 rounded-xl bg-muted/50 px-4 py-3 text-sm text-muted-foreground text-pretty inset-ring-1 inset-ring-border">
+            <p className="flex max-w-3xl items-start gap-2.5 rounded-xl bg-muted/50 px-4 py-3 text-sm text-muted-foreground text-pretty inset-ring-1 inset-ring-border">
               <Users className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
                 <span className="font-medium text-foreground">Voters and candidates are separate.</span>{' '}
