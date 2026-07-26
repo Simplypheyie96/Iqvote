@@ -31,17 +31,17 @@ const TIERS = [
   {
     primary: true, label: 'Champion', order: 'md:order-2', Icon: Crown, award: 'bg-medal-1',
     delay: 180, plinth: 'md:pb-20', edge: '',
-    avatar: 'h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24', points: 'text-3xl sm:text-4xl',
+    avatar: 'h-14 w-14 sm:h-16 sm:w-16 md:h-24 md:w-24', points: 'text-3xl md:text-4xl',
   },
   {
     primary: false, label: 'Runner-up', order: 'md:order-1', Icon: Trophy, award: 'bg-medal-2',
     delay: 60, plinth: 'md:pb-10', edge: 'md:rounded-tl-2xl',
-    avatar: 'h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20', points: 'text-2xl sm:text-3xl',
+    avatar: 'h-12 w-12 sm:h-14 sm:w-14 md:h-20 md:w-20', points: 'text-2xl md:text-3xl',
   },
   {
     primary: false, label: 'Third place', order: 'md:order-3', Icon: Award, award: 'bg-medal-3',
     delay: 120, plinth: 'md:pb-4', edge: 'md:rounded-tr-2xl',
-    avatar: 'h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20', points: 'text-2xl sm:text-3xl',
+    avatar: 'h-12 w-12 sm:h-14 sm:w-14 md:h-20 md:w-20', points: 'text-2xl md:text-3xl',
   },
 ];
 
@@ -333,15 +333,20 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
            ranked list — rather than a spinner that says only "wait". */
         <div aria-busy="true" role="status" aria-live="polite">
           <span className="sr-only">Loading the leaderboard</span>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end md:gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:items-end md:gap-3">
             {['md:order-2 md:h-28', 'md:order-1 md:h-16', 'md:order-3 md:h-10'].map((tier, i) => (
               <div key={i} className={`flex flex-col ${tier.split(' ')[0]}`}>
-                <div className="rounded-2xl border border-border bg-card p-6 shadow-e1">
-                  <Skeleton className="mx-auto h-20 w-20 rounded-full" />
-                  <Skeleton className="mx-auto mt-4 h-4 w-28" />
-                  <Skeleton className="mx-auto mt-2 h-3 w-20" />
-                  <Skeleton className="mx-auto mt-5 h-9 w-16" />
-                  <Skeleton className="mt-5 h-16 w-full rounded-xl" />
+                {/* Phone: a row. Desktop: a column. Same shape as what lands. */}
+                <div className="rounded-2xl border border-border bg-card p-3.5 shadow-e1 md:p-6">
+                  <div className="flex items-center gap-3.5 md:block">
+                    <Skeleton className="h-14 w-14 shrink-0 rounded-full md:mx-auto md:h-20 md:w-20" />
+                    <div className="flex min-w-0 flex-1 flex-col gap-2 md:gap-0">
+                      <Skeleton className="h-4 w-28 md:mx-auto md:mt-4" />
+                      <Skeleton className="h-3 w-20 md:mx-auto md:mt-2" />
+                    </div>
+                    <Skeleton className="h-8 w-12 shrink-0 md:mx-auto md:mt-5 md:h-9 md:w-16" />
+                  </div>
+                  <Skeleton className="mt-3.5 h-14 w-full rounded-xl md:mt-5 md:h-16" />
                 </div>
                 <div className={`hidden rounded-t-xl border border-b-0 border-border bg-muted md:block ${tier.split(' ')[1]}`} />
               </div>
@@ -385,15 +390,21 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
         </div>
       ) : (
         <div id="leaderboard-content">
-          {/* The podium. Three blocks of different heights standing on a floor
-              — the tiering IS the ranking, so it is drawn rather than
-              described. Below 768px there is no room for a silhouette, so the
-              blocks drop away and the cards stack in rank order. */}
+          {/* The podium. Three blocks of different heights standing on a floor:
+              the tiering IS the ranking, so it is drawn rather than described.
+
+              Below 768px a silhouette will not fit, so the same three entries
+              become left-aligned ranked rows on the identical axis as the rest
+              of the field below them — photo inside the block at the left, name
+              beside it, points right. Rank is carried by size and by the pink
+              wash on 1st rather than by centring. It used to be three centred
+              columns with the photo floating above each one, which ran two
+              different alignment systems on one screen. */}
           {topThree.length > 0 && (
             <section className="mb-10 sm:mb-14" aria-labelledby="podium-heading">
               <h2 id="podium-heading" className="sr-only">Top three</h2>
 
-              <ol className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end md:gap-0">
+              <ol className="grid grid-cols-1 gap-3 md:grid-cols-3 md:items-end md:gap-0">
                 {topThree.map((entry, index) => {
                   const tier = TIERS[index];
                   const Icon = tier.Icon;
@@ -404,12 +415,23 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                   return (
                     <li
                       key={entry.employee_id}
-                      className={`flex animate-fade-in-up flex-col items-center ${tier.order}`}
+                      className={`grid animate-fade-in-up grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3.5 rounded-2xl border p-3.5 md:flex md:flex-col md:items-center md:rounded-none md:border-0 md:bg-transparent md:p-0 ${tier.order} ${
+                        tier.primary ? 'border-primary/55 bg-primary/[0.11]' : 'border-border bg-card'
+                      }`}
                       style={{ animationDelay: `${tier.delay}ms` }}
                     >
-                      {/* The person stands above the platform, not inside it. */}
-                      <div className="flex flex-col items-center px-2 pb-3 text-center md:pb-4">
-                        <div className="relative">
+                      {/* On a phone the two wrappers below go `display: contents`,
+                          so every leaf lands directly in the row grid above:
+                          photo | name + role + award | points. That is the whole
+                          point of the mobile layout — the photo sits inside the
+                          block on the same left axis as the rest of the field,
+                          instead of floating above a centred column.
+
+                          From `md` up the wrappers come back and nothing about
+                          the podium changes: the person stands above the
+                          platform, and the platform is its own bordered box. */}
+                      <div className="contents md:flex md:flex-col md:items-center md:px-2 md:pb-4 md:text-center">
+                        <div className="relative col-start-1 row-span-2 row-start-1 self-center">
                           <div
                             className={`${tier.avatar} grid place-items-center overflow-hidden rounded-full bg-muted text-lg font-medium text-muted-foreground ${
                               tier.primary ? 'inset-ring-2 inset-ring-primary/60' : 'inset-ring-1 inset-ring-border'
@@ -428,7 +450,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                           />
                         </div>
 
-                        <div className="mt-3 flex max-w-full items-center justify-center gap-1.5">
+                        <div className="col-start-2 row-start-1 flex max-w-full items-center gap-1.5 md:mt-3 md:justify-center">
                           <h3 className="truncate font-display text-base font-semibold tracking-tight">
                             {entry.employee?.name}
                           </h3>
@@ -439,7 +461,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                           )}
                         </div>
                         {entry.employee?.role && (
-                          <p className="mt-0.5 max-w-full truncate text-xs text-muted-foreground">
+                          <p className="col-start-2 row-start-2 max-w-full truncate text-xs text-muted-foreground md:mt-0.5">
                             {entry.employee.role}
                           </p>
                         )}
@@ -449,7 +471,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                           front face. The top face is a real bordered element
                           rotated in 3D (not a clip-path), so the outline wraps
                           the whole shape and the block reads as one object. */}
-                      <div className="w-full">
+                      <div className="contents md:block md:w-full">
                         <div
                           className={`hidden h-11 border border-b-0 md:block ${tier.edge} ${
                             tier.primary ? 'border-primary/55 bg-primary/[0.16]' : 'border-border bg-muted'
@@ -459,29 +481,34 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         />
 
                         <div
-                          className={`flex w-full flex-col items-center rounded-2xl border px-4 pb-4 pt-3.5 text-center sm:px-5 md:rounded-none md:border-b-0 md:border-t-0 md:pb-6 md:pt-5 ${tier.plinth} ${
-                            tier.primary ? 'border-primary/55 bg-primary/[0.11]' : 'border-border bg-card'
+                          className={`contents md:flex md:w-full md:flex-col md:items-center md:border-x md:px-5 md:pb-6 md:pt-5 md:text-center ${tier.plinth} ${
+                            tier.primary ? 'md:border-primary/55 md:bg-primary/[0.11]' : 'md:border-border md:bg-card'
                           }`}
                         >
-                          {/* The award, in the rank's own metal. */}
-                          <div
-                            className={`grid h-9 w-9 place-items-center rounded-xl text-medal-foreground inset-ring-1 inset-ring-foreground/15 md:h-12 md:w-12 ${tier.award}`}
-                          >
-                            <Icon className="h-4 w-4 md:h-6 md:w-6" aria-hidden="true" />
+                          {/* The award, in the rank's own metal. On a phone it
+                              shrinks to a chip and pairs with its label on one
+                              line under the name; on the podium it goes back to
+                              being the tile at the top of the block. */}
+                          <div className="col-start-2 row-start-3 mt-2 flex items-center gap-2 md:contents">
+                            <div
+                              className={`grid h-6 w-6 place-items-center rounded-lg text-medal-foreground inset-ring-1 inset-ring-foreground/15 md:h-12 md:w-12 md:rounded-xl ${tier.award}`}
+                            >
+                              <Icon className="h-3.5 w-3.5 md:h-6 md:w-6" aria-hidden="true" />
+                            </div>
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground md:mt-2.5">
+                              {tier.label}
+                            </span>
                           </div>
-                          <span className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground md:mt-2.5">
-                            {tier.label}
-                          </span>
 
-                          <p className={`mt-3 font-display font-semibold leading-none tabular-nums md:mt-4 ${tier.points}`}>
+                          <p className={`col-start-3 row-start-1 self-center text-right font-display font-semibold leading-none tabular-nums md:mt-4 md:text-center ${tier.points}`}>
                             {entry.total_points}
                             <span className="sr-only"> points</span>
                           </p>
-                          <p className="mt-1.5 text-xs text-muted-foreground" aria-hidden="true">Points</p>
+                          <p className="col-start-3 row-start-2 self-start text-right text-xs text-muted-foreground md:mt-1.5 md:self-auto md:text-center" aria-hidden="true">Points</p>
 
                           {/* Where those points came from. Sunken so it reads as
                               a panel inside the block, not a second card. */}
-                          <div className="mt-3 grid w-full grid-cols-3 divide-x divide-sunken-line overflow-hidden rounded-xl bg-sunken inset-ring-1 inset-ring-sunken-line md:mt-4">
+                          <div className="col-span-3 col-start-1 row-start-4 mt-3.5 grid w-full grid-cols-3 divide-x divide-sunken-line overflow-hidden rounded-xl bg-sunken text-center inset-ring-1 inset-ring-sunken-line md:mt-4">
                             {[
                               { n: entry.count_first, l: '1st' },
                               { n: entry.count_second, l: '2nd' },
@@ -502,7 +529,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                               type="button"
                               onClick={() => openNotes(entry)}
                               aria-label={`Read ${messageCount} anonymous ${messageCount === 1 ? 'note' : 'notes'} about ${entry.employee?.name || 'this person'}`}
-                              className="mt-3 w-full rounded-xl bg-sunken px-3.5 py-2.5 text-left transition-colors inset-ring-1 inset-ring-sunken-line hover:bg-sunken-strong md:min-h-[5.5rem] md:py-3"
+                              className="col-span-3 col-start-1 row-start-5 mt-2.5 w-full rounded-xl bg-sunken px-3.5 py-2.5 text-left transition-colors inset-ring-1 inset-ring-sunken-line hover:bg-sunken-strong md:mt-3 md:min-h-[5.5rem] md:py-3"
                             >
                               <p className="line-clamp-2 text-sm leading-relaxed text-pretty">
                                 &ldquo;{firstNote}&rdquo;
@@ -513,7 +540,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                               </span>
                             </button>
                           ) : (
-                            <div className="mt-3 flex w-full items-center justify-center rounded-xl bg-sunken px-3.5 py-2.5 text-sm text-muted-foreground inset-ring-1 inset-ring-sunken-line md:min-h-[5.5rem] md:py-3">
+                            <div className="col-span-3 col-start-1 row-start-5 mt-2.5 flex w-full items-center rounded-xl bg-sunken px-3.5 py-2.5 text-sm text-muted-foreground inset-ring-1 inset-ring-sunken-line md:mt-3 md:min-h-[5.5rem] md:justify-center md:py-3">
                               No notes left yet.
                             </div>
                           )}
