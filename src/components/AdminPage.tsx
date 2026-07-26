@@ -681,6 +681,21 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
     Boolean(electionStartDate && electionEndDate) &&
     new Date(electionStartDate) >= new Date(electionEndDate);
 
+  /**
+   * How long the window the two fields above describe actually is, read back
+   * in the unit a person would use out loud. Purely a restatement of what was
+   * typed — it feeds nothing and is not submitted.
+   */
+  const votingWindowLength = (() => {
+    if (!electionStartDate || !electionEndDate || datesOutOfOrder) return null;
+    const ms = new Date(electionEndDate).getTime() - new Date(electionStartDate).getTime();
+    if (!Number.isFinite(ms) || ms <= 0) return null;
+    const hours = Math.round(ms / 3_600_000);
+    if (hours < 48) return `${hours} hour${hours === 1 ? '' : 's'} of voting`;
+    const days = Math.round(hours / 24);
+    return `${days} days of voting`;
+  })();
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
@@ -797,7 +812,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               title="Set the voting window"
               description="Voting opens and closes automatically at these times, in your local timezone."
             >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Three columns from `lg`, not two. A datetime input is a short
+                  string in a wide box, and at half a full-width card each one
+                  read as an empty field. The third column is what makes thirds
+                  legitimate rather than a cap in disguise: it carries the state
+                  of the pair, so the row is full and each field is the width of
+                  what it holds. */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
                   <Label htmlFor="start-date">Opens</Label>
                   <Input
@@ -823,20 +844,33 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                     className="mt-1.5 h-11"
                   />
                 </div>
-              </div>
 
-              {/* Says it here, next to the field that's wrong, instead of after
-                  the submit that would have failed. Same rule, same wording. */}
-              {datesOutOfOrder && (
-                <p
-                  id="date-order-error"
-                  role="alert"
-                  className="mt-3 flex items-center gap-2 text-sm font-medium text-destructive"
-                >
-                  <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  Start time must be before end time
-                </p>
-              )}
+                {/* Sits beside the fields, not under them: the problem is with
+                    the pair, and saying it after the submit that would have
+                    failed is saying it too late. Same rule, same wording. When
+                    there is nothing wrong the same slot reads the window back
+                    in the unit you'd say out loud, so the row is never blank. */}
+                <div className="flex items-end sm:col-span-2 lg:col-span-1">
+                  {datesOutOfOrder ? (
+                    <p
+                      id="date-order-error"
+                      role="alert"
+                      className="flex h-11 w-full items-center gap-2 rounded-xl bg-destructive/10 px-4 text-sm font-medium text-destructive-strong inset-ring-1 inset-ring-destructive/30"
+                    >
+                      <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      Start time must be before end time
+                    </p>
+                  ) : (
+                    <p
+                      aria-live="polite"
+                      className="flex h-11 w-full items-center gap-2 rounded-xl bg-muted/50 px-4 text-sm text-muted-foreground tabular-nums inset-ring-1 inset-ring-border"
+                    >
+                      <Activity className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      {votingWindowLength ?? 'Length shows once both times are set'}
+                    </p>
+                  )}
+                </div>
+              </div>
             </FormSection>
 
             <FormSection
