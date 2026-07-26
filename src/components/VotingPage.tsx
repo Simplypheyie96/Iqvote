@@ -371,10 +371,10 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
       )}
 
       <div className="grid lg:grid-cols-[1fr_340px] gap-6 lg:gap-8 items-start">
-        {/* Left: candidate list. Ordered second on a phone so the ballot —
-            the thing that tells you where you are — isn't buried under a
-            list that can run to dozens of rows. */}
-        <div className="order-2 lg:order-1">
+        {/* Left: candidate list. Ordered last on a phone: the rules and then
+            the ballot — the thing that tells you where you are — both come
+            before a list that can run to dozens of rows. */}
+        <div className="order-3 lg:order-1">
           <div className="flex items-baseline justify-between gap-3 mb-2.5 px-1">
             <h2 className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
               Candidates
@@ -436,7 +436,7 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
             ballot sit above the candidate list while the reference material
             drops below it. On desktop it re-forms as a sticky column. */}
         <aside className="max-lg:contents lg:order-2 lg:sticky lg:top-24">
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-e1 max-lg:order-1 sm:p-5" role="status" aria-live="polite" aria-label={`Ballot: ${selections.size} of 3 selected`}>
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-e1 max-lg:order-2 sm:p-5" role="status" aria-live="polite" aria-label={`Ballot: ${selections.size} of 3 selected`}>
             <div className="flex items-baseline justify-between gap-3 mb-3.5">
               <h2 className="text-sm font-semibold">Your ballot</h2>
               {/* A count, not a progress bar — three slots is small enough to
@@ -520,8 +520,18 @@ export function VotingPage({ currentUser, election, employees, onVoteSubmitted }
             </p>
           </div>
 
-          {/* How to vote */}
-          <div className="rounded-2xl border border-border bg-card p-4 max-lg:order-3 lg:mt-4 sm:p-5" role="region" aria-labelledby="how-to-vote-heading">
+          {/* How to vote. On a phone this used to sit below a list of dozens of
+              rows, which is where instructions go to die — you meet them after
+              you've already worked it out. It now leads, above the ballot, and
+              only drops back to the bottom once the ballot is locked, when it
+              has stopped being instructions and become a record of the rules. */}
+          <div
+            className={`rounded-2xl border border-border bg-card p-4 lg:mt-4 sm:p-5 ${
+              hasVoted ? 'max-lg:order-4' : 'max-lg:order-1'
+            }`}
+            role="region"
+            aria-labelledby="how-to-vote-heading"
+          >
             <h2 className="text-sm font-semibold mb-3" id="how-to-vote-heading">How to vote</h2>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li className="flex gap-2.5">
