@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Trophy, User, MessageCircle, Calendar, Download, Share2 } from 'lucide-react';
+import { Trophy, Crown, Award, User, MessageCircle, Calendar, Download, Share2 } from 'lucide-react';
 import { Employee, Election, LeaderboardEntry } from '../types';
 import { api } from '../utils/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -19,16 +19,30 @@ interface LeaderboardPageProps {
 /**
  * The podium tiers, in rank order.
  *
- * `order` is what puts 1st in the middle on desktop while keeping the DOM in
- * rank order — a screen reader and a keyboard both still travel 1 → 2 → 3.
- * `height` is the block each person stands on; it is the whole point of a
- * podium, so it is a real height rather than extra padding under the card.
+ * `order` puts 1st in the middle on desktop while the DOM stays in rank order —
+ * a screen reader and a keyboard both still travel 1 → 2 → 3.
+ * `plinth` is the extra depth under each block; it is what makes 1st stand
+ * taller than 3rd, so the three blocks read as one physical podium.
+ * `award` is the rank's own metal, so gold, silver and bronze are actually
+ * three different colours rather than two of them sharing one.
  * `delay` runs the entrance 2nd → 3rd → 1st so the winner lands last.
  */
 const TIERS = [
-  { order: 'md:order-2', height: 'md:h-28', delay: 180, medal: 'md' as const, avatar: 'h-20 w-20 sm:h-24 sm:w-24', points: 'text-4xl' },
-  { order: 'md:order-1', height: 'md:h-16', delay: 60,  medal: 'md' as const, avatar: 'h-16 w-16 sm:h-20 sm:w-20', points: 'text-3xl' },
-  { order: 'md:order-3', height: 'md:h-10', delay: 120, medal: 'md' as const, avatar: 'h-16 w-16 sm:h-20 sm:w-20', points: 'text-3xl' },
+  {
+    primary: true, label: 'Champion', order: 'md:order-2', Icon: Crown, award: 'bg-medal-1',
+    delay: 180, plinth: 'md:pb-20', edge: '',
+    avatar: 'h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24', points: 'text-3xl sm:text-4xl',
+  },
+  {
+    primary: false, label: 'Runner-up', order: 'md:order-1', Icon: Trophy, award: 'bg-medal-2',
+    delay: 60, plinth: 'md:pb-10', edge: 'md:rounded-tl-2xl',
+    avatar: 'h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20', points: 'text-2xl sm:text-3xl',
+  },
+  {
+    primary: false, label: 'Third place', order: 'md:order-3', Icon: Award, award: 'bg-medal-3',
+    delay: 120, plinth: 'md:pb-4', edge: 'md:rounded-tr-2xl',
+    avatar: 'h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20', points: 'text-2xl sm:text-3xl',
+  },
 ];
 
 function initialsOf(name?: string) {
@@ -379,10 +393,10 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
             <section className="mb-10 sm:mb-14" aria-labelledby="podium-heading">
               <h2 id="podium-heading" className="sr-only">Top three</h2>
 
-              <ol className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end md:gap-3">
+              <ol className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end md:gap-0">
                 {topThree.map((entry, index) => {
                   const tier = TIERS[index];
-                  const isFirst = index === 0;
+                  const Icon = tier.Icon;
                   const isCurrentUser = entry.employee_id === currentUser.id;
                   const messageCount = (entry as any).message_count || 0;
                   const firstNote: string | undefined = ((entry as any).messages || [])[0];
@@ -390,26 +404,15 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                   return (
                     <li
                       key={entry.employee_id}
-                      className={`flex animate-fade-in-up flex-col ${tier.order}`}
+                      className={`flex animate-fade-in-up flex-col items-center ${tier.order}`}
                       style={{ animationDelay: `${tier.delay}ms` }}
                     >
-                      {/* On desktop the card and the block below it are one
-                          object — a two-tone column standing on the floor —
-                          so the card drops its bottom edge, its radius and
-                          its shadow rather than reading as a pill balanced on
-                          a second pill. On a phone there is no block, so the
-                          card goes back to being a card. */}
-                      <article
-                        className={`flex flex-col items-center rounded-2xl border px-4 py-6 text-center sm:px-5 md:rounded-b-none md:border-b-0 md:shadow-none ${
-                          isFirst
-                            ? 'border-primary/45 bg-card shadow-e2'
-                            : 'border-border bg-card shadow-e1'
-                        }`}
-                      >
+                      {/* The person stands above the platform, not inside it. */}
+                      <div className="flex flex-col items-center px-2 pb-3 text-center md:pb-4">
                         <div className="relative">
                           <div
                             className={`${tier.avatar} grid place-items-center overflow-hidden rounded-full bg-muted text-lg font-medium text-muted-foreground ${
-                              isFirst ? 'inset-ring-2 inset-ring-primary/60' : 'inset-ring-1 inset-ring-border'
+                              tier.primary ? 'inset-ring-2 inset-ring-primary/60' : 'inset-ring-1 inset-ring-border'
                             }`}
                           >
                             {entry.employee?.image_url ? (
@@ -420,12 +423,12 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                           </div>
                           <RankMedal
                             rank={entry.rank}
-                            size={tier.medal}
-                            className="absolute -bottom-1 -right-1 ring-2 ring-card"
+                            size="sm"
+                            className="absolute -bottom-0.5 -right-0.5 ring-2 ring-background"
                           />
                         </div>
 
-                        <div className="mt-4 flex max-w-full items-center justify-center gap-1.5">
+                        <div className="mt-3 flex max-w-full items-center justify-center gap-1.5">
                           <h3 className="truncate font-display text-base font-semibold tracking-tight">
                             {entry.employee?.name}
                           </h3>
@@ -440,64 +443,81 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                             {entry.employee.role}
                           </p>
                         )}
+                      </div>
 
-                        <p className={`mt-5 font-display font-semibold leading-none tabular-nums ${tier.points}`}>
-                          {entry.total_points}
-                          <span className="sr-only"> points</span>
-                        </p>
-                        <p className="mt-1.5 text-xs text-muted-foreground" aria-hidden="true">points</p>
+                      {/* The platform — a solid block with a lit top face and a
+                          front face. The top face is a real bordered element
+                          rotated in 3D (not a clip-path), so the outline wraps
+                          the whole shape and the block reads as one object. */}
+                      <div className="w-full">
+                        <div
+                          className={`hidden h-11 border border-b-0 md:block ${tier.edge} ${
+                            tier.primary ? 'border-primary/55 bg-primary/[0.16]' : 'border-border bg-muted'
+                          }`}
+                          style={{ transform: 'perspective(420px) rotateX(58deg)', transformOrigin: 'bottom center' }}
+                          aria-hidden="true"
+                        />
 
-                        {/* Where those points came from. Sunken so it reads as
-                            a panel inside the card, not a second card. */}
-                        <div className="mt-5 grid w-full grid-cols-3 divide-x divide-sunken-line overflow-hidden rounded-xl bg-sunken">
-                          {[
-                            { n: entry.count_first, l: '1st' },
-                            { n: entry.count_second, l: '2nd' },
-                            { n: entry.count_third, l: '3rd' },
-                          ].map(({ n, l }) => (
-                            <div key={l} className="px-1 py-2.5">
-                              <div className="text-sm font-semibold leading-none tabular-nums">{n}</div>
-                              <div className="mt-1 text-[11px] text-muted-foreground">{l}</div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* The reason someone won, in their voters' words. One
-                            element in both states so the three cards keep the
-                            same height and the podium stays level. */}
-                        {messageCount > 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => openNotes(entry)}
-                            aria-label={`Read ${messageCount} anonymous ${messageCount === 1 ? 'note' : 'notes'} about ${entry.employee?.name || 'this person'}`}
-                            className="mt-4 min-h-[5.75rem] w-full rounded-xl bg-sunken px-3.5 py-3 text-left transition-colors inset-ring-1 inset-ring-sunken-line hover:bg-sunken-strong"
+                        <div
+                          className={`flex w-full flex-col items-center rounded-2xl border px-4 pb-4 pt-3.5 text-center sm:px-5 md:rounded-none md:border-b-0 md:border-t-0 md:pb-6 md:pt-5 ${tier.plinth} ${
+                            tier.primary ? 'border-primary/55 bg-primary/[0.11]' : 'border-border bg-card'
+                          }`}
+                        >
+                          {/* The award, in the rank's own metal. */}
+                          <div
+                            className={`grid h-9 w-9 place-items-center rounded-xl text-medal-foreground inset-ring-1 inset-ring-foreground/15 md:h-12 md:w-12 ${tier.award}`}
                           >
-                            <p className="line-clamp-2 text-sm leading-relaxed text-pretty">
-                              &ldquo;{firstNote}&rdquo;
-                            </p>
-                            <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary-strong">
-                              <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
-                              {messageCount === 1 ? 'Read the note' : `Read all ${messageCount} notes`}
-                            </span>
-                          </button>
-                        ) : (
-                          <div className="mt-4 flex min-h-[5.75rem] w-full items-center justify-center rounded-xl bg-sunken px-3.5 py-3 text-sm text-muted-foreground inset-ring-1 inset-ring-sunken-line">
-                            No notes left yet.
+                            <Icon className="h-4 w-4 md:h-6 md:w-6" aria-hidden="true" />
                           </div>
-                        )}
-                      </article>
+                          <span className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground md:mt-2.5">
+                            {tier.label}
+                          </span>
 
-                      {/* The block itself. Decorative — the rank is already
-                          announced by the medal and the list order. */}
-                      <div
-                        className={`hidden place-items-center border border-t-0 border-b-0 md:grid ${tier.height} ${
-                          isFirst ? 'border-primary/45 bg-primary/[0.09]' : 'border-border bg-muted'
-                        }`}
-                        aria-hidden="true"
-                      >
-                        <span className="font-display text-3xl font-bold tabular-nums text-foreground/20">
-                          {entry.rank}
-                        </span>
+                          <p className={`mt-3 font-display font-semibold leading-none tabular-nums md:mt-4 ${tier.points}`}>
+                            {entry.total_points}
+                            <span className="sr-only"> points</span>
+                          </p>
+                          <p className="mt-1.5 text-xs text-muted-foreground" aria-hidden="true">Points</p>
+
+                          {/* Where those points came from. Sunken so it reads as
+                              a panel inside the block, not a second card. */}
+                          <div className="mt-3 grid w-full grid-cols-3 divide-x divide-sunken-line overflow-hidden rounded-xl bg-sunken inset-ring-1 inset-ring-sunken-line md:mt-4">
+                            {[
+                              { n: entry.count_first, l: '1st' },
+                              { n: entry.count_second, l: '2nd' },
+                              { n: entry.count_third, l: '3rd' },
+                            ].map(({ n, l }) => (
+                              <div key={l} className="px-1 py-2">
+                                <div className="text-sm font-semibold leading-none tabular-nums">{n}</div>
+                                <div className="mt-1 text-[11px] text-muted-foreground">{l}</div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* The reason someone won, in their voters' words. One
+                              element in both states so the three blocks keep the
+                              same content height and the podium stays level. */}
+                          {messageCount > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => openNotes(entry)}
+                              aria-label={`Read ${messageCount} anonymous ${messageCount === 1 ? 'note' : 'notes'} about ${entry.employee?.name || 'this person'}`}
+                              className="mt-3 w-full rounded-xl bg-sunken px-3.5 py-2.5 text-left transition-colors inset-ring-1 inset-ring-sunken-line hover:bg-sunken-strong md:min-h-[5.5rem] md:py-3"
+                            >
+                              <p className="line-clamp-2 text-sm leading-relaxed text-pretty">
+                                &ldquo;{firstNote}&rdquo;
+                              </p>
+                              <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary-strong">
+                                <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                                {messageCount === 1 ? 'Read the note' : `Read all ${messageCount} notes`}
+                              </span>
+                            </button>
+                          ) : (
+                            <div className="mt-3 flex w-full items-center justify-center rounded-xl bg-sunken px-3.5 py-2.5 text-sm text-muted-foreground inset-ring-1 inset-ring-sunken-line md:min-h-[5.5rem] md:py-3">
+                              No notes left yet.
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </li>
                   );
@@ -559,11 +579,32 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         </p>
                       </div>
 
-                      <div className="col-start-4 row-start-2 flex items-baseline justify-end gap-1.5 text-right sm:row-start-1 sm:block">
-                        <div className="font-display text-lg font-semibold leading-none tabular-nums sm:text-xl">
-                          {entry.total_points}
+                      {/* The score, and where it came from. From `sm` up this
+                          is a full stat cluster — the total, then the 1st /
+                          2nd / 3rd breakdown behind a rule — so the scoring is
+                          legible at a glance the way it is on the podium. On a
+                          phone there is no room for it, so the breakdown drops
+                          to its own line below. */}
+                      <div className="col-start-4 row-start-2 flex items-center justify-end sm:row-start-1 sm:gap-4">
+                        <div className="flex items-baseline gap-1.5 text-right sm:block">
+                          <div className="font-display text-lg font-semibold leading-none tabular-nums sm:text-2xl">
+                            {entry.total_points}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground sm:mt-1 sm:text-xs">Points</div>
                         </div>
-                        <div className="text-[11px] text-muted-foreground sm:mt-1">points</div>
+
+                        <div className="hidden items-center gap-3 border-l border-border pl-4 sm:flex">
+                          {[
+                            { n: entry.count_first, l: '1st' },
+                            { n: entry.count_second, l: '2nd' },
+                            { n: entry.count_third, l: '3rd' },
+                          ].map(({ n, l }) => (
+                            <div key={l} className="w-7 text-center">
+                              <div className="text-sm font-semibold leading-none tabular-nums">{n}</div>
+                              <div className="mt-1 text-[11px] text-muted-foreground">{l}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                       <Button
@@ -582,12 +623,10 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
                         <span className="tabular-nums">{messageCount}</span>
                       </Button>
 
-                      {/* The breakdown as one line of prose. The old version
-                          drew it as a stat cluster on desktop and again as a
-                          three-column grid on mobile — same three numbers,
-                          twice the markup, and a row four times as tall on a
-                          phone. */}
-                      <p className="col-start-3 row-start-2 text-xs text-muted-foreground tabular-nums">
+                      {/* Phone-only: the same three numbers as the cluster
+                          above, as one line of prose so the row stays two
+                          lines tall instead of four. */}
+                      <p className="col-start-3 row-start-2 text-xs text-muted-foreground tabular-nums sm:hidden">
                         {entry.count_first} × 1st · {entry.count_second} × 2nd · {entry.count_third} × 3rd
                       </p>
                     </li>

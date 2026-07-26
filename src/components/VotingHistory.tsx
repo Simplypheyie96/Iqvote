@@ -155,11 +155,11 @@ export function VotingHistory({
       <TabsList className={TAB_LIST_CLASS}>
         <TabsTrigger value="my-votes" className={`${TAB_TRIGGER_CLASS} gap-2`}>
           <Send className="h-4 w-4" aria-hidden="true" />
-          Votes you cast
+          My Votes
         </TabsTrigger>
         <TabsTrigger value="received" className={`${TAB_TRIGGER_CLASS} gap-2`}>
           <Inbox className="h-4 w-4" aria-hidden="true" />
-          Votes you got
+          Votes Received
         </TabsTrigger>
       </TabsList>
 

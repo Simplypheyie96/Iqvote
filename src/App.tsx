@@ -484,7 +484,10 @@ export default function App() {
   return (
     <ThemeProvider>
       <Toaster position="top-center" />
-      <div className="relative min-h-screen bg-background overflow-x-hidden">
+      {/* `overflow-x-clip`, never `overflow-x-hidden`: `hidden` turns this into
+          a scroll container, and a scroll container silently kills
+          `position: sticky` on the header inside it. */}
+      <div className="relative min-h-screen bg-background overflow-x-clip">
         <Header
           user={currentUser}
           employees={employees}
@@ -494,7 +497,7 @@ export default function App() {
           currentView={currentView}
         />
         
-        <main id="main-content" role="main" className="overflow-x-hidden">
+        <main id="main-content" role="main" className="overflow-x-clip">
           {visitedViews.has('vote') && (
             <div style={{ display: currentView === 'vote' ? '' : 'none' }}>
               <VotingPage

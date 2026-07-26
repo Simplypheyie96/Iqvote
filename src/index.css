@@ -20,12 +20,13 @@
   --card-foreground: oklch(0.2077 0.0398 265.7549);
   --popover: oklch(0.9769 0.0011 17.1781);
   --popover-foreground: oklch(0.2077 0.0398 265.7549);
-  /* The IQ.wiki pink, unchanged. What changed is what sits ON it: white
-     text on this pink measures 2.85:1, which fails AA on the app's most
-     important button. The same pink with the dark foreground on it is
-     6.26:1. So the brand colour is untouched and the label flipped. */
-  --primary: oklch(0.7103 0.2100 354.2024);
-  --primary-foreground: oklch(0.2077 0.0398 265.7549);
+  /* Pink buttons carry WHITE labels, in both themes — that is the brand's
+     call. White on the raw IQ.wiki pink (L 0.7103) measures only 2.86:1, so
+     the FILL is taken down in lightness — same hue, same chroma — until
+     white clears AA on it: #D02C82, 4.81:1. Still unmistakably the IQ pink,
+     now legible. `--primary-strong` below stays the token for pink TEXT. */
+  --primary: oklch(0.5800 0.2100 354.2024);
+  --primary-foreground: oklch(1.0000 0 0);
   /* Pink used as TEXT can't be the fill pink — 2.85:1 against white. This
      is the same hue and chroma taken down in lightness until it clears AA
      (5.23:1). Same colour family, legible weight of it. */
@@ -124,10 +125,13 @@
   --card-foreground: oklch(0.9884 0.0057 128.5242);
   --popover: oklch(0.2816 0.0279 255.1758);
   --popover-foreground: oklch(0.9884 0.0057 128.5242);
-  --primary: oklch(0.6532 0.2555 0.6048);
-  --primary-foreground: oklch(0.2077 0.0398 265.7549);
-  /* On a dark canvas the fill pink already clears AA as text (4.5:1), so
-     the strong variant is the same colour — no second pink in the app. */
+  /* Same rule as light: white label on the pink fill. White on the raw dark
+     pink (L 0.6532) is 3.65:1, so the fill drops to L 0.59 — #E70075,
+     4.50:1 with white. */
+  --primary: oklch(0.5900 0.2555 0.6048);
+  --primary-foreground: oklch(1.0000 0 0);
+  /* Pink used as TEXT on the dark canvas keeps the brighter value, which
+     clears AA against the background (4.5:1). */
   --primary-strong: oklch(0.6532 0.2555 0.6048);
   --secondary: oklch(0.2961 0.0218 262.5183);
   --secondary-foreground: oklch(0.9884 0.0057 128.5242);

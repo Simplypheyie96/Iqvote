@@ -265,8 +265,8 @@ Bob Johnson,bob@example.com,32,1,2,3`;
       <Tabs defaultValue="csv" className="space-y-6">
         <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className={SUBTAB_LIST_CLASS}>
-            <TabsTrigger value="csv" className={SUBTAB_TRIGGER_CLASS}>Upload a CSV</TabsTrigger>
-            <TabsTrigger value="manual" className={SUBTAB_TRIGGER_CLASS}>Type it in</TabsTrigger>
+            <TabsTrigger value="csv" className={SUBTAB_TRIGGER_CLASS}>CSV Import</TabsTrigger>
+            <TabsTrigger value="manual" className={SUBTAB_TRIGGER_CLASS}>Manual Entry</TabsTrigger>
           </TabsList>
         </div>
 

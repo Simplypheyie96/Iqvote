@@ -54,20 +54,14 @@ export function EmployeeCard({
       <div
         className={`relative flex flex-col gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 sm:flex-row sm:items-center ${
           isSelectedAny
-            ? 'bg-primary/[0.07] inset-ring-1 inset-ring-primary/25'
+            ? 'bg-primary/[0.09] inset-ring-2 inset-ring-primary/45'
             : 'hover:bg-muted/60'
         }`}
       >
-        {/* A picked row carries a spine down its left edge as well as a tint.
-            The tint alone is ~2% of a light canvas — easy to miss, and
-            invisible to anyone who can't separate the two hues. */}
-        {isSelectedAny && (
-          <span
-            className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-primary"
-            aria-hidden="true"
-          />
-        )}
-
+        {/* A picked row reads through three things at once: the tint, this
+            ring, and the rank chip at the end of the row. There used to be a
+            pink spine at `left-0` as well, but it sat directly on top of the
+            ring and made that one edge look thicker than the other three. */}
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {/* Avatar */}
           <div

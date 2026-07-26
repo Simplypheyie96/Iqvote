@@ -42,10 +42,15 @@ const PALETTE = {
     fg: '#0F172A', //      17.9:1
     mutedFg: '#475569', //  7.6:1
     border: '#E4E7EB',
-    plinth: '#F3F4F6',
+    plinth: '#EFF1F4',
+    // The lit top face of the block. It has to read as the same material as
+    // the front face with light falling on it, so it is the same hue a few
+    // steps up in value — not a different grey.
+    plinthLit: '#F8F9FB',
     accent: '#FF5CAA',
     accentText: '#C9237C', // 5.2:1
     accentWash: 'rgba(255, 92, 170, 0.10)',
+    accentWashLit: 'rgba(255, 92, 170, 0.17)',
     accentLine: 'rgba(255, 92, 170, 0.45)',
     glow: 'rgba(255, 92, 170, 0.16)',
   },
@@ -56,17 +61,24 @@ const PALETTE = {
     mutedFg: '#D2D2D2', // 10.9:1
     border: '#39414B',
     plinth: '#272D38',
+    plinthLit: '#343D4A',
     accent: '#FF1A88',
     accentText: '#FF1A88', // 4.5:1
     accentWash: 'rgba(255, 26, 136, 0.14)',
+    accentWashLit: 'rgba(255, 26, 136, 0.22)',
     accentLine: 'rgba(255, 26, 136, 0.45)',
     glow: 'rgba(255, 26, 136, 0.20)',
   },
 } as const;
 
-/** Fills, never text. Each carries the dark numeral: 9.2 / 9.2 / 7.0. */
+/** Fills, never text. Each carries the dark glyph: 9.2 / 9.2 / 7.0. */
 const MEDALS = ['#E2B33F', '#B4BBC6', '#D4946C'] as const;
 const MEDAL_FG = '#0F172A';
+
+/** What each block is called, and the award that sits on it. */
+const AWARD_LABELS = ['CHAMPION', 'RUNNER-UP', 'THIRD PLACE'] as const;
+const AWARD_ICONS = ['crown', 'trophy', 'award'] as const;
+type AwardIcon = (typeof AWARD_ICONS)[number];
 
 /**
  * Every measurement of both cards, in CSS pixels before the density multiplier.
@@ -83,18 +95,21 @@ const LAYOUTS = {
     brandY: 46,
     brandSize: 40,
     wordmark: 23,
-    titleY: 168,
+    titleY: 148,
     titleSize: 48,
-    subY: 204,
+    subY: 184,
     subSize: 19,
     floorY: 604,
     colW: 250,
     colGap: 20,
-    plinth: [130, 92, 66],
+    plinth: [146, 110, 82],
     avatar: [112, 94, 94],
     nameSize: [26, 22, 22],
     roleSize: 16,
     pointsSize: [36, 30, 30],
+    awardTile: 34,
+    awardPad: 14,
+    labelSize: 12,
     footY: 644,
   },
   square: {
@@ -104,18 +119,21 @@ const LAYOUTS = {
     brandY: 70,
     brandSize: 46,
     wordmark: 26,
-    titleY: 300,
+    titleY: 264,
     titleSize: 60,
-    subY: 344,
+    subY: 308,
     subSize: 23,
     floorY: 960,
     colW: 300,
     colGap: 24,
-    plinth: [232, 164, 118],
+    plinth: [250, 190, 142],
     avatar: [158, 130, 130],
     nameSize: [32, 27, 27],
     roleSize: 19,
     pointsSize: [46, 37, 37],
+    awardTile: 44,
+    awardPad: 18,
+    labelSize: 15,
     footY: 1008,
   },
 } as const;
@@ -178,6 +196,75 @@ function initialsOf(name: string) {
 
 function font(weight: number, size: number) {
   return `${weight} ${size}px Inter, system-ui, -apple-system, sans-serif`;
+}
+
+/**
+ * The three award glyphs — crown, trophy, ribbon — drawn as paths rather than
+ * pulled from the icon font. The screen gets these from lucide; a canvas has no
+ * DOM to render an SVG into, and rasterising one would mean shipping the icon
+ * set twice. They are described in a 0–1 box and scaled to `size`, so the same
+ * source works for the landscape tile and the larger square one.
+ */
+function drawAward(
+  ctx: CanvasRenderingContext2D,
+  kind: AwardIcon,
+  cx: number,
+  cy: number,
+  size: number,
+  color: string,
+) {
+  const x0 = cx - size / 2;
+  const y0 = cy - size / 2;
+  const px = (u: number) => x0 + u * size;
+  const py = (v: number) => y0 + v * size;
+  const poly = (pts: [number, number][]) => {
+    ctx.beginPath();
+    pts.forEach(([u, v], i) => (i ? ctx.lineTo(px(u), py(v)) : ctx.moveTo(px(u), py(v))));
+    ctx.closePath();
+    ctx.fill();
+  };
+  const box = (u: number, v: number, w: number, h: number) =>
+    ctx.fillRect(px(u), py(v), w * size, h * size);
+
+  ctx.save();
+  ctx.fillStyle = color;
+
+  if (kind === 'crown') {
+    poly([
+      [0.06, 0.74],
+      [0.06, 0.26],
+      [0.3, 0.5],
+      [0.5, 0.18],
+      [0.7, 0.5],
+      [0.94, 0.26],
+      [0.94, 0.74],
+    ]);
+    box(0.06, 0.8, 0.88, 0.1);
+  } else if (kind === 'trophy') {
+    ctx.beginPath();
+    ctx.moveTo(px(0.26), py(0.12));
+    ctx.lineTo(px(0.74), py(0.12));
+    ctx.lineTo(px(0.74), py(0.34));
+    ctx.quadraticCurveTo(px(0.74), py(0.62), px(0.5), py(0.62));
+    ctx.quadraticCurveTo(px(0.26), py(0.62), px(0.26), py(0.34));
+    ctx.closePath();
+    ctx.fill();
+    box(0.44, 0.6, 0.12, 0.18);
+    box(0.28, 0.78, 0.44, 0.11);
+  } else {
+    ctx.beginPath();
+    ctx.arc(px(0.5), py(0.38), 0.27 * size, 0, Math.PI * 2);
+    ctx.fill();
+    poly([
+      [0.34, 0.6],
+      [0.26, 0.94],
+      [0.5, 0.78],
+      [0.74, 0.94],
+      [0.66, 0.6],
+    ]);
+  }
+
+  ctx.restore();
 }
 
 /**
@@ -265,25 +352,61 @@ export async function drawPodiumCard(
     const plinthTop = L.floorY - plinthH;
     const isFirst = rankIdx === 0;
 
-    /* Plinth. The block IS the ranking — it is drawn, not described. */
-    ctx.fillStyle = isFirst ? C.accentWash : C.plinth;
-    roundRect(ctx, x, plinthTop, L.colW, plinthH, [14, 14, 0, 0]);
+    /* Plinth. The block IS the ranking — it is drawn, not described.
+       Same shape as the block on the leaderboard: a lit top face raked back
+       in perspective sitting on a flat front face, so the podium reads as a
+       solid object rather than three bars of different heights. `depth` and
+       `topInset` are the projection of the screen's
+       `perspective(420px) rotateX(58deg)` at this column width. */
+    const depth = Math.round(L.colW * 0.085);
+    const topInset = Math.round(L.colW * 0.05);
+    const blockTop = plinthTop - depth;
+    const edge = isFirst ? C.accentLine : C.border;
+
+    ctx.beginPath();
+    ctx.moveTo(x + topInset, blockTop);
+    ctx.lineTo(x + L.colW - topInset, blockTop);
+    ctx.lineTo(x + L.colW, plinthTop);
+    ctx.lineTo(x, plinthTop);
+    ctx.closePath();
+    ctx.fillStyle = isFirst ? C.accentWashLit : C.plinthLit;
     ctx.fill();
-    ctx.strokeStyle = isFirst ? C.accentLine : C.border;
+    ctx.strokeStyle = edge;
     ctx.lineWidth = 1;
     ctx.stroke();
 
+    ctx.fillStyle = isFirst ? C.accentWash : C.plinth;
+    ctx.fillRect(x, plinthTop, L.colW, plinthH);
+    // The shared edge is already drawn by the top face, so the front face is
+    // outlined on three sides only — otherwise that line doubles and reads
+    // as a seam across the middle of one solid block.
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, plinthTop);
+    ctx.lineTo(x + 0.5, L.floorY);
+    ctx.lineTo(x + L.colW - 0.5, L.floorY);
+    ctx.lineTo(x + L.colW - 0.5, plinthTop);
+    ctx.strokeStyle = edge;
+    ctx.stroke();
+
+    /* The award, on the face of the block it was won on. */
+    const tile = L.awardTile;
+    const tileCy = plinthTop + L.awardPad + tile / 2;
+    roundRect(ctx, cx - tile / 2, plinthTop + L.awardPad, tile, tile, Math.round(tile * 0.28));
+    ctx.fillStyle = MEDALS[rankIdx];
+    ctx.fill();
+    drawAward(ctx, AWARD_ICONS[rankIdx], cx, tileCy, tile * 0.55, MEDAL_FG);
+
     ctx.textAlign = 'center';
     ctx.fillStyle = isFirst ? C.accentText : C.mutedFg;
-    ctx.font = font(700, Math.round(plinthH * 0.42));
-    ctx.globalAlpha = isFirst ? 0.5 : 0.4;
-    ctx.fillText(String(rankIdx + 1), cx, plinthTop + plinthH * 0.72);
-    ctx.globalAlpha = 1;
+    ctx.font = font(600, L.labelSize);
+    ctx.letterSpacing = `${(L.labelSize * 0.11).toFixed(2)}px`;
+    ctx.fillText(AWARD_LABELS[rankIdx], cx, tileCy + tile / 2 + 12 + L.labelSize * 0.8);
+    ctx.letterSpacing = '0px';
 
     /* Everything above the block, stacked upward from its top edge. */
     const pointsSize = L.pointsSize[rankIdx];
     const nameSize = L.nameSize[rankIdx];
-    const pointsY = plinthTop - Math.round(pointsSize * 0.62);
+    const pointsY = blockTop - Math.round(pointsSize * 0.62);
     const roleY = pointsY - Math.round(pointsSize * 1.05);
     const nameY = roleY - Math.round(nameSize * 1.12);
     const avatarSize = L.avatar[rankIdx];

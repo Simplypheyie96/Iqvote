@@ -36,16 +36,20 @@ interface AdminPageProps {
  * little content. One card with hairline dividers reads as a single instrument.
  */
 function StatStrip({ stats }: { stats: Stats }) {
+  /* Each number carries its own tinted icon tile. Four identical grey cells
+     read as one undifferentiated block; the tints let you find "running now"
+     without reading all four labels. The colours are the existing semantic
+     tokens — no new palette. */
   const items = [
-    { label: 'Employees', value: stats.totalEmployees || 0, hint: `${stats.activeEmployees || 0} active`, icon: Users },
-    { label: 'Votes cast', value: stats.totalVotes || 0, hint: 'across all elections', icon: Trophy },
-    { label: 'Running now', value: stats.activeElections || 0, hint: 'open for voting', icon: Activity },
-    { label: 'Completed', value: stats.completedElections || 0, hint: 'past elections', icon: Award },
+    { label: 'Employees', value: stats.totalEmployees || 0, hint: `${stats.activeEmployees || 0} active`, icon: Users, tint: 'bg-info/12 text-info' },
+    { label: 'Votes cast', value: stats.totalVotes || 0, hint: 'across all elections', icon: Trophy, tint: 'bg-primary/12 text-primary-strong' },
+    { label: 'Running now', value: stats.activeElections || 0, hint: 'open for voting', icon: Activity, tint: 'bg-success/12 text-success' },
+    { label: 'Completed', value: stats.completedElections || 0, hint: 'past elections', icon: Award, tint: 'bg-warning/12 text-warning' },
   ];
 
   return (
     <div className="mb-8 grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-e1 lg:grid-cols-4">
-      {items.map(({ label, value, hint, icon: Icon }, i) => (
+      {items.map(({ label, value, hint, icon: Icon, tint }, i) => (
         <div
           key={label}
           className={`animate-fade-in-up p-4 sm:p-5 ${i % 2 === 1 ? 'border-l border-border' : ''} ${
@@ -53,11 +57,15 @@ function StatStrip({ stats }: { stats: Stats }) {
           } ${i === 2 ? 'lg:border-l' : ''}`}
           style={{ animationDelay: `${i * 60}ms` }}
         >
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-            {label}
+          <div className="flex items-center gap-2.5">
+            <span className={`inline-grid h-8 w-8 shrink-0 place-items-center rounded-xl ${tint}`} aria-hidden="true">
+              <Icon className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 truncate text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              {label}
+            </span>
           </div>
-          <div className="mt-2.5 font-display text-3xl font-semibold tabular-nums tracking-tight sm:text-4xl">
+          <div className="mt-3 font-display text-3xl font-semibold tabular-nums tracking-tight sm:text-4xl">
             {value}
           </div>
           <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
@@ -724,10 +732,10 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
         <div className="-mx-4 mb-6 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className={TAB_LIST_CLASS}>
             <TabsTrigger value="elections" className={TAB_TRIGGER_CLASS}>
-              New election
+              Create Election
             </TabsTrigger>
             <TabsTrigger value="manage-elections" className={TAB_TRIGGER_CLASS}>
-              Elections
+              Manage Elections
             </TabsTrigger>
             <TabsTrigger value="employees" className={TAB_TRIGGER_CLASS}>
               Employees
@@ -752,7 +760,10 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           {/* Three questions, in the order you'd ask them out loud: what is it,
               when does it run, who can win. Each numbered so the form reads as
               a sequence rather than a wall of fields. */}
-          <form onSubmit={handleCreateElection} className="max-w-3xl space-y-6">
+          {/* Capped for readability, but CENTRED rather than pinned left: at a
+              desktop width a left-pinned column leaves one wide empty gutter on
+              the right that reads as a layout bug rather than as breathing room. */}
+          <form onSubmit={handleCreateElection} className="mx-auto max-w-4xl space-y-6">
             <FormSection
               step={1}
               icon={Calendar}
@@ -860,19 +871,25 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 </div>
               </div>
 
-              {/* 20rem clears six two-line rows outright. Past that the list
-                  scrolls and the seventh row is deliberately cut in half —
-                  a sliver of a row is the only honest way to say there's more. */}
-              <div className="mt-4 max-h-80 overflow-y-auto rounded-xl border border-border">
-                {visibleCandidates.map((employee, i) => {
+              {/* A name and a role are a narrow thing; one per full-width row
+                  left most of the panel empty. Two per row from `sm` up, as
+                  discrete tiles, so the panel is actually filled and a partial
+                  last row reads as a grid rather than as missing content.
+                  20rem still clears six rows outright, and past that the list
+                  scrolls with a row cut in half to say there's more. */}
+              <div className="mt-4 max-h-80 overflow-y-auto rounded-xl border border-border p-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {visibleCandidates.map((employee) => {
                   const checked = eligibleEmployees.includes(employee.id);
                   return (
                     <label
                       key={employee.id}
                       htmlFor={`eligible-${employee.id}`}
-                      className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors duration-150 ${
-                        i > 0 ? 'border-t border-border' : ''
-                      } ${checked ? 'bg-primary/8' : 'hover:bg-muted/50'}`}
+                      className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors duration-150 ${
+                        checked
+                          ? 'bg-primary/10 inset-ring-1 inset-ring-primary/35'
+                          : 'inset-ring-1 inset-ring-border hover:bg-muted/60'
+                      }`}
                     >
                       <Checkbox
                         id={`eligible-${employee.id}`}
@@ -897,6 +914,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                     </label>
                   );
                 })}
+                </div>
 
                 {activeEmployees.length === 0 && (
                   <p className="px-4 py-10 text-center text-sm text-muted-foreground text-pretty">
@@ -1541,10 +1559,10 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
             <div className="-mx-4 mb-6 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <TabsList className={SUBTAB_LIST_CLASS}>
                 <TabsTrigger value="leaderboard" className={SUBTAB_TRIGGER_CLASS}>
-                  Google Sheets leaderboard
+                  Google Sheets Leaderboard
                 </TabsTrigger>
                 <TabsTrigger value="single" className={SUBTAB_TRIGGER_CLASS}>
-                  Single election
+                  Single Election
                 </TabsTrigger>
               </TabsList>
             </div>

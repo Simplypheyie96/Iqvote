@@ -292,13 +292,13 @@ export function AuthPage({ onSignIn, error: externalError, showResetOption = fal
                 value="signin"
                 className="h-9 flex-1 rounded-full data-[state=active]:bg-background data-[state=active]:font-semibold data-[state=active]:shadow-[0_1px_2px_rgba(0,0,0,0.06)] data-[state=active]:inset-ring-1 data-[state=active]:inset-ring-border"
               >
-                Sign in
+                Sign In
               </TabsTrigger>
               <TabsTrigger
                 value="signup"
                 className="h-9 flex-1 rounded-full data-[state=active]:bg-background data-[state=active]:font-semibold data-[state=active]:shadow-[0_1px_2px_rgba(0,0,0,0.06)] data-[state=active]:inset-ring-1 data-[state=active]:inset-ring-border"
               >
-                Create account
+                Sign Up
               </TabsTrigger>
             </TabsList>
 
