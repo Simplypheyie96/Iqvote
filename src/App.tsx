@@ -11,7 +11,7 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { ProfilePage } from './components/ProfilePage';
 import { OgImagePage } from './components/OgImagePage';
 import { Employee, Election } from './types';
-import { Toaster } from 'sonner@2.0.3';
+import { Toaster } from './components/ui/sonner';
 import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
 
@@ -484,7 +484,10 @@ export default function App() {
   return (
     <ThemeProvider>
       <Toaster position="top-center" />
-      <div className="relative min-h-screen bg-background overflow-x-hidden">
+      {/* `overflow-x-clip`, never `overflow-x-hidden`: `hidden` turns this into
+          a scroll container, and a scroll container silently kills
+          `position: sticky` on the header inside it. */}
+      <div className="relative min-h-screen bg-background overflow-x-clip">
         <Header
           user={currentUser}
           employees={employees}
@@ -494,7 +497,7 @@ export default function App() {
           currentView={currentView}
         />
         
-        <main id="main-content" role="main" className="overflow-x-hidden">
+        <main id="main-content" role="main" className="overflow-x-clip">
           {visitedViews.has('vote') && (
             <div style={{ display: currentView === 'vote' ? '' : 'none' }}>
               <VotingPage

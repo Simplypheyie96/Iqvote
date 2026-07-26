@@ -3,8 +3,8 @@ import { Trash2, AlertCircle, CheckCircle2, XCircle, Search, FileDown } from 'lu
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
+import { Skeleton } from './ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
@@ -239,35 +239,30 @@ export function VoteManagement() {
       )}
 
       {success && (
-        <Alert className="border-green-500/50 bg-green-500/10">
+        <Alert className="border-success/50 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+          <AlertDescription className="text-success">{success}</AlertDescription>
         </Alert>
       )}
 
-      {/* Election Selector */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Election</CardTitle>
-          <CardDescription>Search and select an election to view and manage votes</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Privacy Notice */}
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            <span className="text-foreground">Vote choices are confidential.</span> You can see who
-            has voted and delete votes if needed, but the specific candidates each person voted for
-            remain private.
-          </p>
+      {/* No heading here on purpose — the tab header above already says what
+          this screen is, and repeating it just pushes the search further down. */}
+      <div className="space-y-4">
+        {/* A plain note, not an alert. Nothing has gone wrong; this is simply
+            how the ballot works, so it shouldn't wear a warning colour. */}
+        <p className="rounded-xl bg-muted/50 px-4 py-3 text-sm text-muted-foreground text-pretty inset-ring-1 inset-ring-border">
+          Ballots stay anonymous. You can see who voted and remove a vote if you need to — but never who they picked.
+        </p>
 
           {/* Search/Select Combo */}
           <div className="space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Type to search elections by title or date..."
+                placeholder="Search elections by name or date"
                 value={electionSearch}
                 onChange={(e) => setElectionSearch(e.target.value)}
-                className="pl-9"
+                className="h-11 pl-9"
               />
             </div>
 
@@ -301,13 +296,13 @@ export function VoteManagement() {
                             </div>
                           </div>
                           {isActive && (
-                            <span className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 shrink-0">
-                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                            <span className="flex items-center gap-1.5 text-xs text-success shrink-0">
+                              <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
                               Active
                             </span>
                           )}
                           {isUpcoming && (
-                            <span className="text-xs text-blue-600 dark:text-blue-400 shrink-0">
+                            <span className="text-xs text-info shrink-0">
                               Upcoming
                             </span>
                           )}
@@ -330,10 +325,10 @@ export function VoteManagement() {
 
             {/* Currently Selected Election */}
             {selectedElectionId && !electionSearch && (
-              <div className="p-4 bg-muted/40 border border-border rounded-xl">
+              <div className="rounded-xl bg-primary/8 p-4 inset-ring-1 inset-ring-primary/25">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-1">Currently Viewing</div>
+                    <div className="mb-1 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Now viewing</div>
                     <div className="font-semibold">
                       {elections.find(e => e.id === selectedElectionId)?.title}
                     </div>
@@ -358,148 +353,160 @@ export function VoteManagement() {
             )}
 
             {!selectedElectionId && !electionSearch && (
-              <div className="text-center py-8 text-sm text-muted-foreground">
-                <Button onClick={() => setShowElectionModal(true)} variant="outline">
-                  Browse All Elections
+              <div className="rounded-2xl border border-dashed border-border px-6 py-10 text-center">
+                <p className="text-sm text-muted-foreground text-pretty">
+                  Pick an election to see who has voted in it.
+                </p>
+                <Button onClick={() => setShowElectionModal(true)} variant="outline" className="mt-4 h-10">
+                  Browse all elections
                 </Button>
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {selectedElectionId && (
         <>
-          {/* Export Button */}
-          <div className="flex justify-end">
-            <Button
-              onClick={handleExportVotes}
-              variant="outline"
-              className="gap-2"
-            >
-              <FileDown className="w-4 h-4" />
-              Export Results
-            </Button>
-          </div>
-
-          {/* Stats — one flat strip rather than three tall cards */}
-          <div className="grid grid-cols-3 rounded-xl border border-border divide-x divide-border overflow-hidden">
+          {/* Same three-up strip as the admin dashboard, so a count means the
+              same thing and sits the same way wherever you meet it. */}
+          <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
             {[
-              { label: 'Total votes', value: votes.length },
-              { label: 'Active', value: activeVotes.length },
-              { label: 'Deleted', value: revokedVotes.length },
-            ].map(stat => (
-              <div key={stat.label} className="px-4 py-3.5">
-                <div className="text-xs text-muted-foreground">{stat.label}</div>
-                <div className="text-2xl font-semibold mt-0.5 tabular-nums">{stat.value}</div>
+              { label: 'Cast', value: votes.length, tone: '' },
+              { label: 'Counting', value: activeVotes.length, tone: 'text-success' },
+              { label: 'Removed', value: revokedVotes.length, tone: 'text-destructive' },
+            ].map(({ label, value, tone }, i) => (
+              <div key={label} className={`p-4 sm:p-5 ${i > 0 ? 'border-l border-border' : ''}`}>
+                <div className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  {label}
+                </div>
+                <div className={`mt-2 font-display text-3xl font-semibold tabular-nums tracking-tight ${tone}`}>
+                  {value}
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Active Votes */}
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <CardTitle>Active Votes</CardTitle>
-                  <CardDescription>
-                    {activeVotes.length} vote{activeVotes.length !== 1 ? 's' : ''} recorded
-                  </CardDescription>
-                </div>
-                {/* Voter Search */}
+          {/* One enclosure, hairline rows. A per-voter card each would make a
+              turnout of thirty read as thirty unrelated objects. */}
+          <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
+            <div className="flex flex-col gap-3 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div>
+                <h3 className="font-display text-base font-semibold tracking-tight">Who voted</h3>
+                <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                  {activeVotes.length} ballot{activeVotes.length !== 1 ? 's' : ''} counting
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 {activeVotes.length > 0 && (
-                  <div className="relative w-full sm:w-72">
+                  <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     <Input
-                      placeholder="Search by name or email..."
+                      placeholder="Search by name or email"
                       value={voterSearch}
                       onChange={(e) => setVoterSearch(e.target.value)}
-                      className="pl-9"
+                      className="h-11 pl-9"
                     />
                   </div>
                 )}
+                <Button
+                  onClick={handleExportVotes}
+                  variant="outline"
+                  className="h-11 gap-2 shrink-0"
+                >
+                  <FileDown className="w-4 h-4" />
+                  Export
+                </Button>
               </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading votes...</div>
-              ) : activeVotes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No votes found for this election.</div>
-              ) : filteredActiveVotes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No voters match your search.</div>
-              ) : (
-                <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
-                  {filteredActiveVotes.map((ballot, idx) => (
-                    <div
-                      key={ballot.voter?.id || ballot.voter?.email || idx}
-                      className="flex items-center justify-between gap-4 px-4 py-3.5 animate-fade-in-up hover:bg-white/[0.02] transition-colors"
-                      style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div
-                          className="w-9 h-9 flex-shrink-0 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-medium text-muted-foreground"
-                          aria-hidden="true"
-                        >
-                          {(ballot.voter?.name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium">{ballot.voter?.name || 'Unknown Voter'}</div>
-                          <div className="truncate text-xs text-muted-foreground mt-0.5">
-                            {ballot.voter?.email} · voted {new Date(ballot.created_at).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
+            </div>
 
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openDeleteDialog(ballot)}
-                        className="gap-1.5 text-muted-foreground hover:text-destructive shrink-0"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Delete
-                      </Button>
+            {loading ? (
+              <div className="divide-y divide-border" aria-busy="true">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="flex items-center justify-between gap-4 p-5 sm:p-6">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-44" />
+                      <Skeleton className="h-3 w-32" />
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    <Skeleton className="h-9 w-20 rounded-lg" />
+                  </div>
+                ))}
+              </div>
+            ) : activeVotes.length === 0 ? (
+              <div className="px-6 py-14 text-center">
+                <p className="font-medium">Nobody has voted yet</p>
+                <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground text-pretty">
+                  Ballots will appear here the moment the first one comes in.
+                </p>
+              </div>
+            ) : filteredActiveVotes.length === 0 ? (
+              <div className="px-6 py-14 text-center">
+                <p className="font-medium">No voters match that search</p>
+                <p className="mt-1 text-sm text-muted-foreground">Try a different name or email.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {filteredActiveVotes.map((ballot, idx) => (
+                  <div
+                    key={ballot.voter?.id || ballot.voter?.email || idx}
+                    className="flex items-center justify-between gap-4 p-5 transition-colors duration-150 hover:bg-muted/40 animate-fade-in-up sm:p-6"
+                    style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{ballot.voter?.name || 'Unknown voter'}</div>
+                      <div className="mt-0.5 truncate text-sm text-muted-foreground">{ballot.voter?.email}</div>
+                      <div className="mt-1 text-xs text-muted-foreground tabular-nums">
+                        Voted {new Date(ballot.created_at).toLocaleString()}
+                      </div>
+                    </div>
 
-          {/* Deleted Votes */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openDeleteDialog(ballot)}
+                      className="h-9 shrink-0 gap-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Removed ballots. Kept visibly separate from the live count so the
+              two can never be mistaken for one another. */}
           {revokedVotes.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <XCircle className="w-5 h-5 text-destructive" />
-                  Deleted Votes
-                </CardTitle>
-                <CardDescription>
-                  {revokedVotes.length} vote{revokedVotes.length !== 1 ? 's' : ''} deleted
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
-                  {filteredRevokedVotes.map((ballot, idx) => (
-                    <div
-                      key={ballot.voter?.id || ballot.voter?.email || idx}
-                      className="px-4 py-3.5"
-                    >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-medium text-muted-foreground line-through">
-                          {ballot.voter?.name || 'Unknown Voter'}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{ballot.voter?.email}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        Deleted {ballot.revoked_at ? new Date(ballot.revoked_at).toLocaleString() : 'at an unknown time'}
-                        {ballot.revoke_reason ? ` · ${ballot.revoke_reason}` : ''}
-                      </div>
+            <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
+              <div className="border-b border-border p-5 sm:p-6">
+                <h3 className="flex items-center gap-2 font-display text-base font-semibold tracking-tight">
+                  <XCircle className="w-4 h-4 text-destructive" />
+                  Removed
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                  {revokedVotes.length} ballot{revokedVotes.length !== 1 ? 's' : ''} no longer counting
+                </p>
+              </div>
+              <div className="divide-y divide-border">
+                {filteredRevokedVotes.map((ballot, idx) => (
+                  <div
+                    key={ballot.voter?.id || ballot.voter?.email || idx}
+                    className="p-5 sm:p-6"
+                  >
+                    <div className="truncate font-medium text-muted-foreground">{ballot.voter?.name || 'Unknown voter'}</div>
+                    <div className="mt-0.5 truncate text-sm text-muted-foreground">{ballot.voter?.email}</div>
+                    <div className="mt-2 text-xs text-destructive tabular-nums">
+                      Removed {ballot.revoked_at ? new Date(ballot.revoked_at).toLocaleString() : 'at an unknown time'}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    {ballot.revoke_reason && (
+                      <p className="mt-1 text-xs text-muted-foreground text-pretty">
+                        Reason: {ballot.revoke_reason}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
           )}
         </>
       )}
@@ -508,9 +515,9 @@ export function VoteManagement() {
       <Dialog open={showElectionModal} onOpenChange={setShowElectionModal}>
         <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>Browse All Elections</DialogTitle>
+            <DialogTitle>All elections</DialogTitle>
             <DialogDescription>
-              Select an election to view and manage its votes
+              Pick one to see who voted in it.
             </DialogDescription>
           </DialogHeader>
 
@@ -518,9 +525,9 @@ export function VoteManagement() {
             {/* Active Elections */}
             {activeElections.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Active Elections ({activeElections.length})
+                <h4 className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+                  Running now ({activeElections.length})
                 </h4>
                 <div className="space-y-2">
                   {activeElections.map(election => {
@@ -535,19 +542,19 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-xl border transition-colors ${
+                        className={`w-full rounded-xl border border-border bg-card p-4 text-left transition-colors duration-150 ${
                           isSelected
-                            ? 'border-primary/60 bg-white/[0.04]'
-                            : 'border-border hover:bg-white/[0.02]'
+                            ? 'bg-primary/8 inset-ring-1 inset-ring-primary/30'
+                            : 'hover:bg-muted/40'
                         }`}
                       >
                         <div className="font-semibold mb-1">{election.title}</div>
                         <div className="text-sm text-muted-foreground">
                           {start.toLocaleDateString()} - {end.toLocaleDateString()}
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 mt-2">
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                          In Progress
+                        <div className="flex items-center gap-1.5 text-xs text-success mt-2">
+                          <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
+                          Open for votes
                         </div>
                       </button>
                     );
@@ -560,7 +567,7 @@ export function VoteManagement() {
             {pastElections.length > 0 && (
               <div>
                 <h4 className="text-sm font-semibold text-muted-foreground mb-3">
-                  Past Elections ({pastElections.length})
+                  Finished ({pastElections.length})
                 </h4>
                 <div className="space-y-2">
                   {pastElections.map(election => {
@@ -575,18 +582,18 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-xl border transition-colors ${
+                        className={`w-full rounded-xl border border-border bg-card p-4 text-left transition-colors duration-150 ${
                           isSelected
-                            ? 'border-primary/60 bg-white/[0.04]'
-                            : 'border-border hover:bg-white/[0.02]'
+                            ? 'bg-primary/8 inset-ring-1 inset-ring-primary/30'
+                            : 'hover:bg-muted/40'
                         }`}
                       >
                         <div className="font-semibold mb-1">{election.title}</div>
                         <div className="text-sm text-muted-foreground">
                           {start.toLocaleDateString()} - {end.toLocaleDateString()}
                         </div>
-                        <div className="text-xs text-muted-foreground mt-2">
-                          Completed
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          Closed
                         </div>
                       </button>
                     );
@@ -598,8 +605,8 @@ export function VoteManagement() {
             {/* Upcoming Elections */}
             {upcomingElections.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-3">
-                  Upcoming Elections ({upcomingElections.length})
+                <h4 className="text-sm font-semibold text-info mb-3">
+                  Not open yet ({upcomingElections.length})
                 </h4>
                 <div className="space-y-2">
                   {upcomingElections.map(election => {
@@ -614,18 +621,18 @@ export function VoteManagement() {
                           setSelectedElectionId(election.id);
                           setShowElectionModal(false);
                         }}
-                        className={`w-full text-left p-4 rounded-xl border transition-colors ${
+                        className={`w-full rounded-xl border border-border bg-card p-4 text-left transition-colors duration-150 ${
                           isSelected
-                            ? 'border-primary/60 bg-white/[0.04]'
-                            : 'border-border hover:bg-white/[0.02]'
+                            ? 'bg-primary/8 inset-ring-1 inset-ring-primary/30'
+                            : 'hover:bg-muted/40'
                         }`}
                       >
                         <div className="font-semibold mb-1">{election.title}</div>
                         <div className="text-sm text-muted-foreground">
                           {start.toLocaleDateString()} - {end.toLocaleDateString()}
                         </div>
-                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                          Not Started
+                        <div className="mt-2 text-xs text-info">
+                          Opens later
                         </div>
                       </button>
                     );
@@ -653,74 +660,63 @@ export function VoteManagement() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>Delete Vote</DialogTitle>
-            <DialogDescription>
-              This action will remove the vote and adjust the election results. Please provide a reason for the deletion.
+            <DialogTitle>Remove this vote?</DialogTitle>
+            <DialogDescription className="text-pretty">
+              The ballot stops counting and the leaderboard updates straight away. This can't be undone, so a reason is required.
             </DialogDescription>
           </DialogHeader>
 
           {ballotToDelete && (
-            <div className="space-y-4 overflow-y-auto flex-1 pr-2">
-              <div className="p-3 bg-muted/50 rounded-xl">
-                <div className="font-semibold mb-1">{ballotToDelete.voter?.name}</div>
-                <div className="text-sm text-muted-foreground">{ballotToDelete.voter?.email}</div>
+            <div className="space-y-5 overflow-y-auto flex-1 pr-2">
+              <div className="rounded-xl bg-muted/50 p-4 inset-ring-1 inset-ring-border">
+                <div className="font-medium">{ballotToDelete.voter?.name}</div>
+                <div className="mt-0.5 text-sm text-muted-foreground">{ballotToDelete.voter?.email}</div>
               </div>
 
               <div>
-                <Label className="mb-3 block">Select reason for deletion *</Label>
+                <Label className="mb-2 block">Why is it being removed?</Label>
+                {/* Hairline-divided rows rather than floating pills — the whole
+                    group is one decision, so it should read as one object. */}
                 <RadioGroup value={deleteReasonPreset} onValueChange={setDeleteReasonPreset}>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
-                      <RadioGroupItem value="Duplicate vote" id="duplicate" />
-                      <Label htmlFor="duplicate" className="cursor-pointer flex-1">Duplicate vote</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
-                      <RadioGroupItem value="Voter requested removal" id="voter-request" />
-                      <Label htmlFor="voter-request" className="cursor-pointer flex-1">Voter requested removal</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
-                      <RadioGroupItem value="Error correction" id="error" />
-                      <Label htmlFor="error" className="cursor-pointer flex-1">Error correction</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
-                      <RadioGroupItem value="Policy violation" id="policy" />
-                      <Label htmlFor="policy" className="cursor-pointer flex-1">Policy violation</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
-                      <RadioGroupItem value="Invalid submission" id="invalid" />
-                      <Label htmlFor="invalid" className="cursor-pointer flex-1">Invalid submission</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-2 rounded-xl hover:bg-muted/50 cursor-pointer">
-                      <RadioGroupItem value="other" id="other" />
-                      <Label htmlFor="other" className="cursor-pointer flex-1">Other (specify below)</Label>
-                    </div>
+                  <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                    {[
+                      { value: 'Duplicate vote', id: 'duplicate', label: 'Duplicate vote' },
+                      { value: 'Voter requested removal', id: 'voter-request', label: 'Voter asked for it to be removed' },
+                      { value: 'Error correction', id: 'error', label: 'Correcting a mistake' },
+                      { value: 'Policy violation', id: 'policy', label: 'Broke a policy' },
+                      { value: 'Invalid submission', id: 'invalid', label: 'Invalid submission' },
+                      { value: 'other', id: 'other', label: 'Something else' },
+                    ].map(({ value, id, label }) => (
+                      <div
+                        key={id}
+                        className={`flex items-center gap-3 px-4 py-3 transition-colors duration-150 ${
+                          deleteReasonPreset === value ? 'bg-primary/8' : 'hover:bg-muted/40'
+                        }`}
+                      >
+                        <RadioGroupItem value={value} id={id} />
+                        <Label htmlFor={id} className="flex-1 cursor-pointer font-normal">{label}</Label>
+                      </div>
+                    ))}
                   </div>
                 </RadioGroup>
               </div>
 
               <div>
                 <Label htmlFor="custom-reason">
-                  Additional details {deleteReasonPreset === 'other' ? '(required)' : '(optional)'}
+                  More detail {deleteReasonPreset === 'other' ? '(required)' : '(optional)'}
                 </Label>
                 <Textarea
                   id="custom-reason"
                   value={customDeleteReason}
                   onChange={(e) => setCustomDeleteReason(e.target.value)}
-                  placeholder={deleteReasonPreset === 'other' ? 'Please specify the reason...' : 'Add any additional context (optional)'}
+                  placeholder={deleteReasonPreset === 'other' ? 'Say what happened' : 'Anything worth recording alongside this'}
                   className="mt-1.5 min-h-[80px] max-h-[120px] resize-none"
                 />
               </div>
-
-              <Alert className="border-red-500/50 bg-red-500/10">
-                <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                <AlertDescription className="text-red-600 dark:text-red-400">
-                  <strong>Warning:</strong> This action will permanently delete the vote and update the leaderboard. This cannot be undone.
-                </AlertDescription>
-              </Alert>
             </div>
           )}
 
-          <div className="flex gap-3 flex-shrink-0 pt-4 border-t">
+          <div className="flex flex-shrink-0 gap-3 border-t border-border pt-4">
             <Button
               variant="outline"
               onClick={() => {
@@ -729,7 +725,7 @@ export function VoteManagement() {
                 setCustomDeleteReason('');
               }}
               disabled={loading}
-              className="flex-1"
+              className="h-11 flex-1"
             >
               Cancel
             </Button>
@@ -737,13 +733,13 @@ export function VoteManagement() {
               variant="destructive"
               onClick={handleDeleteVote}
               disabled={
-                loading || 
-                !deleteReasonPreset || 
+                loading ||
+                !deleteReasonPreset ||
                 (deleteReasonPreset === 'other' && !customDeleteReason.trim())
               }
-              className="flex-1"
+              className="h-11 flex-1"
             >
-              {loading ? 'Deleting...' : 'Delete Vote'}
+              {loading ? 'Removing…' : 'Remove vote'}
             </Button>
           </div>
         </DialogContent>

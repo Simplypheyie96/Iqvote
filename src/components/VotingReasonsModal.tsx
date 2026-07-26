@@ -1,7 +1,5 @@
-import { MessageCircle, X } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
-import { Badge } from './ui/badge';
-import { ScrollArea } from './ui/scroll-area';
 
 interface VotingReasonsModalProps {
   open: boolean;
@@ -11,72 +9,52 @@ interface VotingReasonsModalProps {
   totalPoints: number;
 }
 
-export function VotingReasonsModal({ 
-  open, 
-  onOpenChange, 
-  employeeName, 
+export function VotingReasonsModal({
+  open,
+  onOpenChange,
+  employeeName,
   messages,
-  totalPoints 
+  totalPoints
 }: VotingReasonsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-primary" />
-            Why People Voted for {employeeName}
-          </DialogTitle>
-          <DialogDescription>
-            {messages.length} anonymous {messages.length === 1 ? 'message' : 'messages'} from voters
+      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col">
+        <DialogHeader className="shrink-0">
+          <DialogTitle className="font-display tracking-tight">Why people voted for {employeeName}</DialogTitle>
+          <DialogDescription className="text-pretty">
+            {messages.length === 1 ? 'One note' : `${messages.length} notes`}, left anonymously
+            {' · '}
+            <span className="tabular-nums">{totalPoints}</span> points in total
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mb-4 p-4 rounded-xl bg-primary/10 border border-primary/20 flex-shrink-0">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Points</p>
-              <p className="text-2xl font-bold text-primary">{totalPoints}</p>
+        {/* The notes are the content — they don't need a stat panel above them
+            repeating two numbers the sentence has already given. */}
+        <div className="-mr-2 flex-1 overflow-y-auto pr-2">
+          {messages.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center">
+              <p className="text-sm text-muted-foreground text-pretty">
+                No notes were left for {employeeName}.
+              </p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Messages</p>
-              <p className="text-2xl font-bold">{messages.length}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="overflow-y-auto flex-1 pr-2">
-          <div className="space-y-3">
-            {messages.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No messages yet</p>
-              </div>
-            ) : (
-              messages.map((message, index) => (
-                <div
+          ) : (
+            <ul className="space-y-2.5">
+              {messages.map((message, index) => (
+                <li
                   key={index}
-                  className="p-4 rounded-xl bg-muted/50 border border-border hover:border-primary/30 transition-colors"
+                  className="rounded-xl bg-muted/50 px-4 py-3.5 inset-ring-1 inset-ring-border"
                 >
-                  <div className="flex items-start gap-3">
-                    <Badge variant="outline" className="mt-0.5 flex-shrink-0">
-                      #{index + 1}
-                    </Badge>
-                    <p className="text-sm leading-relaxed flex-1 break-words">{message}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                  <p className="text-sm leading-relaxed break-words text-pretty">{message}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
-        <div className="mt-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 flex-shrink-0">
-          <p className="text-xs text-blue-600 dark:text-blue-400 flex items-start gap-2">
-            <MessageCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <span>
-              <strong>100% Anonymous:</strong> All messages are completely anonymous. No one (not even admins) can see who wrote which message. This ensures fairness and prevents bias.
-            </span>
-          </p>
-        </div>
+        <p className="flex shrink-0 items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground text-pretty">
+          <MessageCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>Nobody — not even an admin — can see who wrote which note.</span>
+        </p>
       </DialogContent>
     </Dialog>
   );

@@ -5,78 +5,335 @@
 /*  in-app theme toggle), NOT the OS preference. This variant makes     */
 /*  every `dark:` utility follow that class.                            */
 /* ------------------------------------------------------------------ */
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:is(.dark, .dark *));
+
+/* ================================================================== */
+/*  IQ.wiki design tokens — THE source of truth for colour.            */
+/*  Raw OKLCH values live here; the @theme inline block below maps      */
+/*  them onto Tailwind's utility names so `.dark` overrides resolve     */
+/*  at use-site rather than being frozen at build time.                 */
+/* ================================================================== */
+:root {
+  --background: oklch(1.0000 0 0);
+  --foreground: oklch(0.2077 0.0398 265.7549);
+  --card: oklch(0.9846 0.0017 247.8389);
+  --card-foreground: oklch(0.2077 0.0398 265.7549);
+  --popover: oklch(0.9769 0.0011 17.1781);
+  --popover-foreground: oklch(0.2077 0.0398 265.7549);
+  /* Pink buttons carry WHITE labels, in both themes — that is the brand's
+     call. White on the raw IQ.wiki pink (L 0.7103) measures only 2.86:1, so
+     the FILL is taken down in lightness — same hue, same chroma — until
+     white clears AA on it: #D02C82, 4.81:1. Still unmistakably the IQ pink,
+     now legible. `--primary-strong` below stays the token for pink TEXT. */
+  --primary: oklch(0.5800 0.2100 354.2024);
+  --primary-foreground: oklch(1.0000 0 0);
+  /* Pink used as TEXT can't be the fill pink — 2.85:1 against white. This
+     is the same hue and chroma taken down in lightness until it clears AA
+     (5.23:1). Same colour family, legible weight of it. */
+  --primary-strong: oklch(0.5600 0.2100 354.2024);
+  --secondary: oklch(0.9276 0.0058 264.5313);
+  --secondary-foreground: oklch(0.2077 0.0398 265.7549);
+  --muted: oklch(0.9670 0.0029 264.5419);
+  --muted-foreground: oklch(0.4455 0.0374 257.2808);
+  --accent: oklch(0.8717 0.0093 258.3382);
+  --accent-foreground: oklch(0.2077 0.0398 265.7549);
+  --destructive: oklch(0.5750 0.2100 27.0000);
+  --destructive-foreground: oklch(1.0000 0 0);
+  /* Same story as --primary-strong, for red. The fill red used as TEXT on a
+     10% wash of itself measures 3.97:1 — and even on the bare card it only
+     reaches 4.66:1, so there is no tint faint enough to rescue it. Same hue
+     and chroma taken down in lightness until it clears AA on the wash with
+     room to spare (5.18:1). Use this for red TEXT, --destructive for fills. */
+  --destructive-strong: oklch(0.5100 0.2100 27.0000);
+  --border: oklch(0.9268 0.0063 255.4767);
+  --input: oklch(0.8717 0.0093 258.3382);
+  --input-background: oklch(1.0000 0 0);
+  --ring: oklch(0.8021 0.1343 350.3252);
+
+  /* ---------------------------------------------------------------- */
+  /*  Status colours. Not part of the brand — these are signal, and     */
+  /*  signal has to be legible before it is on-brand. They exist as     */
+  /*  tokens so `.dark` can re-point them once, instead of every        */
+  /*  component hand-pairing `text-green-600 dark:text-green-400`.      */
+  /*  Each is tuned to clear AA as text on this theme's canvas.         */
+  /* ---------------------------------------------------------------- */
+  --success: oklch(0.5250 0.1300 152.0000);
+  --success-foreground: oklch(1.0000 0 0);
+  --warning: oklch(0.5200 0.1150 68.0000);
+  --warning-foreground: oklch(1.0000 0 0);
+  --info: oklch(0.5100 0.1650 258.0000);
+  --info-foreground: oklch(1.0000 0 0);
+
+  /* ---------------------------------------------------------------- */
+  /*  Medals. Gold / silver / bronze are semantic in a product whose    */
+  /*  whole subject is a podium, so they're tokens rather than one-off  */
+  /*  ambers and greys scattered across the ballot, the leaderboard     */
+  /*  and the share image.                                              */
+  /*                                                                    */
+  /*  These are FILLS, never text. They carry a dark numeral (9.2, 9.2, */
+  /*  7.0 in light; 9.8, 8.9, 6.8 in dark) and always sit inside a      */
+  /*  hairline, because at ~1.9 against a white page the disc edge      */
+  /*  would otherwise disappear.                                        */
+  /* ---------------------------------------------------------------- */
+  --medal-1: oklch(0.7900 0.1400 86.0000);
+  --medal-2: oklch(0.7900 0.0180 260.0000);
+  --medal-3: oklch(0.7200 0.0950 52.0000);
+  --medal-foreground: oklch(0.2077 0.0398 265.7549);
+
+  /* Chart / data series */
+  --chart-1: oklch(0.7103 0.2100 354.2024);
+  --chart-2: oklch(0.8021 0.1343 350.3252);
+  --chart-3: oklch(0.4455 0.0374 257.2808);
+  --chart-4: oklch(0.8717 0.0093 258.3382);
+  --chart-5: oklch(0.6358 0.2088 25.4126);
+
+  /* Sidebar surfaces */
+  --sidebar: oklch(0.9846 0.0017 247.8389);
+  --sidebar-foreground: oklch(0.2077 0.0398 265.7549);
+  --sidebar-primary: oklch(0.7103 0.2100 354.2024);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.9276 0.0058 264.5313);
+  --sidebar-accent-foreground: oklch(0.2077 0.0398 265.7549);
+  --sidebar-border: oklch(0.9268 0.0063 255.4767);
+  --sidebar-ring: oklch(0.8021 0.1343 350.3252);
+
+  /* ---------------------------------------------------------------- */
+  /*  Elevation — a real scale, not one-off shadows.                    */
+  /*  Light: layered neutral black. A single consistent light source     */
+  /*  from directly above, so every surface agrees on where "up" is.     */
+  /* ---------------------------------------------------------------- */
+  --elevation-1:
+    0px 2px 3px -1px rgba(0, 0, 0, 0.10),
+    0px 1px 0px 0px rgba(25, 28, 33, 0.02),
+    0px 0px 0px 1px rgba(25, 28, 33, 0.08);
+  --elevation-2:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.06),
+    0px 1px 1px -0.5px rgba(0, 0, 0, 0.06),
+    0px 3px 3px -1.5px rgba(0, 0, 0, 0.06),
+    0px 6px 6px -3px rgba(0, 0, 0, 0.06),
+    0px 12px 12px -6px rgba(0, 0, 0, 0.06),
+    0px 24px 24px -12px rgba(0, 0, 0, 0.06);
+  --elevation-3:
+    0 2.8px 2.2px rgba(0, 0, 0, 0.034),
+    0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+    0 12.5px 10px rgba(0, 0, 0, 0.06),
+    0 22.3px 17.9px rgba(0, 0, 0, 0.072),
+    0 41.8px 33.4px rgba(0, 0, 0, 0.086),
+    0 100px 80px rgba(0, 0, 0, 0.12);
+
+  color-scheme: light;
+}
+
+.dark {
+  --background: oklch(0.2401 0.0249 253.7688);
+  --foreground: oklch(0.9884 0.0057 128.5242);
+  --card: oklch(0.2574 0.0262 255.7576);
+  --card-foreground: oklch(0.9884 0.0057 128.5242);
+  --popover: oklch(0.2816 0.0279 255.1758);
+  --popover-foreground: oklch(0.9884 0.0057 128.5242);
+  /* Same rule as light: white label on the pink fill. White on the raw dark
+     pink (L 0.6532) is 3.65:1, so the fill drops to L 0.59 — #E70075,
+     4.50:1 with white. */
+  --primary: oklch(0.5900 0.2555 0.6048);
+  --primary-foreground: oklch(1.0000 0 0);
+  /* Pink used as TEXT on the dark canvas keeps the brighter value, which
+     clears AA against the background (4.5:1). */
+  --primary-strong: oklch(0.6532 0.2555 0.6048);
+  --secondary: oklch(0.2961 0.0218 262.5183);
+  --secondary-foreground: oklch(0.9884 0.0057 128.5242);
+  --muted: oklch(0.2961 0.0218 262.5183);
+  --muted-foreground: oklch(0.8638 0 0);
+  --accent: oklch(0.2101 0.0318 264.6645);
+  --accent-foreground: oklch(0.9884 0.0057 128.5242);
+  --destructive: oklch(0.7050 0.1750 22.0000);
+  --destructive-foreground: oklch(0.2077 0.0398 265.7549);
+  /* On dark the fill red is already light enough to read as text (4.83:1 on
+     its own wash), so this is a nudge for headroom rather than a rescue. */
+  --destructive-strong: oklch(0.7450 0.1750 22.0000);
+  --border: oklch(0.3719 0.0202 254.0850);
+  --input: oklch(0.4502 0.0172 254.7110);
+  --input-background: oklch(0.2101 0.0318 264.6645);
+  --ring: oklch(0.7106 0.2105 353.8284);
+
+  /* Same signals, re-pointed for a dark canvas: lighter and less
+     saturated, so they stay legible instead of vibrating against it. */
+  --success: oklch(0.8000 0.1500 152.0000);
+  --success-foreground: oklch(0.2077 0.0398 265.7549);
+  --warning: oklch(0.8350 0.1400 82.0000);
+  --warning-foreground: oklch(0.2077 0.0398 265.7549);
+  --info: oklch(0.7700 0.1150 250.0000);
+  --info-foreground: oklch(0.2077 0.0398 265.7549);
+
+  /* Medals barely move between themes — metal is metal. Nudged a shade
+     lighter so the discs separate from the dark canvas (9.1 / 8.2 / 6.2)
+     the way the hairline does on a light one. */
+  --medal-1: oklch(0.8100 0.1350 88.0000);
+  --medal-2: oklch(0.7800 0.0180 260.0000);
+  --medal-3: oklch(0.7100 0.0950 52.0000);
+  --medal-foreground: oklch(0.2077 0.0398 265.7549);
+
+  --chart-1: oklch(0.6532 0.2555 0.6048);
+  --chart-2: oklch(0.7106 0.2105 353.8284);
+  --chart-3: oklch(0.8638 0 0);
+  --chart-4: oklch(0.3719 0.0202 254.0850);
+  --chart-5: oklch(0.6358 0.2088 25.4126);
+
+  --sidebar: oklch(0.2574 0.0262 255.7576);
+  --sidebar-foreground: oklch(0.9884 0.0057 128.5242);
+  --sidebar-primary: oklch(0.6532 0.2555 0.6048);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.2961 0.0218 262.5183);
+  --sidebar-accent-foreground: oklch(0.9884 0.0057 128.5242);
+  --sidebar-border: oklch(0.3719 0.0202 254.0850);
+  --sidebar-ring: oklch(0.7106 0.2105 353.8284);
+
+  /* Dark elevation: black alone is invisible on a dark canvas, so each
+     step pairs a deeper cast shadow with a hairline top light. Same
+     geometry as light mode — only the material changes. */
+  --elevation-1:
+    0px 2px 3px -1px rgba(0, 0, 0, 0.45),
+    0px 1px 0px 0px rgba(0, 0, 0, 0.20),
+    0px 0px 0px 1px rgba(255, 255, 255, 0.06);
+  --elevation-2:
+    0px 0px 0px 1px rgba(255, 255, 255, 0.06),
+    0px 1px 1px -0.5px rgba(0, 0, 0, 0.22),
+    0px 3px 3px -1.5px rgba(0, 0, 0, 0.22),
+    0px 6px 6px -3px rgba(0, 0, 0, 0.22),
+    0px 12px 12px -6px rgba(0, 0, 0, 0.22),
+    0px 24px 24px -12px rgba(0, 0, 0, 0.22);
+  --elevation-3:
+    0px 0px 0px 1px rgba(255, 255, 255, 0.07),
+    0 2.8px 2.2px rgba(0, 0, 0, 0.14),
+    0 6.7px 5.3px rgba(0, 0, 0, 0.18),
+    0 12.5px 10px rgba(0, 0, 0, 0.22),
+    0 22.3px 17.9px rgba(0, 0, 0, 0.26),
+    0 41.8px 33.4px rgba(0, 0, 0, 0.32),
+    0 100px 80px rgba(0, 0, 0, 0.44);
+
+  color-scheme: dark;
+}
+
+/* ================================================================== */
+/*  Tailwind mapping. `inline` is what lets .dark re-point these at     */
+/*  runtime — without it the light values bake in permanently.          */
+/* ================================================================== */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-strong: var(--destructive-strong);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-medal-1: var(--medal-1);
+  --color-medal-2: var(--medal-2);
+  --color-medal-3: var(--medal-3);
+  --color-medal-foreground: var(--medal-foreground);
+
+  /* Sunken surfaces — for panels nested inside an already-tinted block (the
+     podium stat grid, for example). Derived from the foreground so they pick
+     up the parent's hue instead of forcing a fixed white, which vanished
+     entirely on a light canvas.
+
+     Named "sunken", not "inset": a `--color-inset` token makes Tailwind read
+     `ring-inset` as ring-<color:inset> and silently repaint every inset
+     hairline in the app at 4% foreground. */
+  --color-sunken: color-mix(in srgb, var(--foreground) 4%, transparent);
+  --color-sunken-strong: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --color-sunken-line: color-mix(in srgb, var(--foreground) 10%, transparent);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Elevation utilities: shadow-e1 / shadow-e2 / shadow-e3 */
+  --shadow-e1: var(--elevation-1);
+  --shadow-e2: var(--elevation-2);
+  --shadow-e3: var(--elevation-3);
+}
 
 @theme {
-  /* Light mode — a soft gray canvas so white cards lift off it with depth,
-     magenta kept only as a sparing accent */
-  --color-background: #f6f7f9;
-  --color-foreground: #16181d;
-  --color-muted: #eef0f3;
-  --color-muted-foreground: #6b7280;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #16181d;
-  --color-card: #ffffff;
-  --color-card-foreground: #16181d;
-  --color-border: #e5e8ec;
-  --color-input: #dfe3e8;
-  --color-input-background: #ffffff;
-  --color-primary: #ff1a88;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #eef0f3;
-  --color-secondary-foreground: #16181d;
-  --color-accent: #eef0f3;
-  --color-accent-foreground: #16181d;
-  --color-destructive: #e5484d;
-  --color-destructive-foreground: #ffffff;
-  --color-ring: #16181d;
-
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-display: "Inter", system-ui, -apple-system, sans-serif;
 
+  /* Radius language — one base, a derived scale. The tokens ship 0.5rem;
+     we run softer (0.75rem) per the brief's rounded direction, applied
+     consistently so containers read softer than the controls inside them. */
   --radius: 0.75rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
 
   /* Motion system -------------------------------------------------- */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Overshoot is reserved for celebration only (a vote landing, a rank
+     badge arriving). UI chrome — dropdowns, panels — decelerates smoothly;
+     bounce on a menu reads as cheap. */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Heavier, iOS-sheet feel — long tail, no overshoot. Used for the glass
+     bar engaging on scroll and the mobile menu opening. */
+  --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
 
   --animate-fade-in: fade-in 0.5s var(--ease-out-soft) both;
   --animate-fade-in-up: fade-in-up 0.55s var(--ease-out-soft) both;
   --animate-fade-in-down: fade-in-down 0.55s var(--ease-out-soft) both;
-  --animate-scale-in: scale-in 0.4s var(--ease-spring) both;
+  --animate-scale-in: scale-in 0.28s var(--ease-out-soft) both;
   --animate-slide-in-right: slide-in-right 0.45s var(--ease-out-soft) both;
   --animate-pop: pop 0.35s var(--ease-spring) both;
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-float: float 6s ease-in-out infinite;
   --animate-shine: shine 2.8s ease-in-out infinite;
   --animate-count-up: fade-in-up 0.5s var(--ease-out-soft) both;
+  /* Menu rows enter shorter and faster than page content — a menu that
+     takes half a second to assemble feels broken, not considered. */
+  --animate-menu-row: menu-row-in 0.4s var(--ease-fluid) both;
 }
 
-/* Dark mode token overrides */
-.dark {
-  /* Brand dark theme — deep navy (not black), refined neutrals */
-  --color-background: #0b1220;
-  --color-foreground: #edeef0;
-  --color-muted: #1a2436;
-  --color-muted-foreground: #a8adb6;
-  --color-popover: #141d2e;
-  --color-popover-foreground: #edeef0;
-  --color-card: #111a2b;
-  --color-card-foreground: #edeef0;
-  --color-border: #26324a;
-  --color-input: #2b3852;
-  --color-input-background: #0f1829;
-  --color-primary: #ff1a88;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #1a2436;
-  --color-secondary-foreground: #edeef0;
-  --color-accent: #1e2a40;
-  --color-accent-foreground: #edeef0;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #ffffff;
-  --color-ring: #cbd5e1;
-
-  color-scheme: dark;
+@keyframes menu-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -94,16 +351,20 @@
     transition: background-color 0.3s, color 0.3s;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
+    /* `clip`, not `hidden`. Both stop sideways scrolling, but `hidden` turns
+       the element into a scroll container, which silently breaks the sticky
+       header inside it. `clip` doesn't. */
+    overflow-x: clip;
   }
 
   h1, h2, h3 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 
   #root {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100vw;
   }
 
@@ -111,9 +372,14 @@
     scroll-behavior: smooth;
   }
 
+  /* Two-part focus ring. The IQ.wiki ring token is a light pink that on
+     its own can't clear 3:1 against a white canvas, so it rides on a
+     contrasting halo drawn from the foreground. Reads as one crisp ring,
+     passes contrast in both themes. */
   *:focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-foreground) 22%, transparent);
   }
 
   ::selection {
@@ -224,7 +490,7 @@
     color: var(--color-foreground);
   }
   .text-gradient-primary {
-    color: var(--color-primary);
+    color: var(--color-primary-strong);
   }
 
   /* Distinctive display type */
@@ -239,6 +505,86 @@
       linear-gradient(color-mix(in srgb, var(--color-foreground) 6%, transparent) 1px, transparent 1px),
       linear-gradient(90deg, color-mix(in srgb, var(--color-foreground) 6%, transparent) 1px, transparent 1px);
     background-size: 44px 44px;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Glass                                                             */
+  /*                                                                    */
+  /*  Glass is only glass when something is behind it. Blurring a flat  */
+  /*  background returns the same flat colour, and the leftover fill +  */
+  /*  soft shadow is what reads as neumorphism. So these classes are    */
+  /*  toggled ON by scroll position / menu state, never applied at      */
+  /*  rest, and they carry no bevel — a bevel makes glass look moulded  */
+  /*  rather than transparent.                                          */
+  /* ---------------------------------------------------------------- */
+
+  /* Header bar, once content is passing underneath it.
+   *
+   * The fill percentages are a contrast floor, not a taste call. Whatever
+   * scrolls under the bar becomes part of the bar's background, so the
+   * nav text has no fixed backdrop — its contrast is whatever happens to
+   * be passing. Measured against the worst case (a dark block in light
+   * mode, a white one in dark), the old 58% / 52% put nav labels at
+   * 2.50:1 and 2.27:1. AA needs 4.5. The floor where it holds is 82% and
+   * 78%; these sit just above it, at ~5.2:1 and ~5.7:1.
+   *
+   * That is still glass, not paint: the blur is heavier now, so what does
+   * come through arrives as diffuse colour and movement rather than a
+   * ghost of the text underneath. Legible frost reads deliberate; a faint
+   * see-through bar reads broken. */
+  .glass-bar {
+    background-color: color-mix(in srgb, var(--color-background) 84%, transparent);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+  }
+  .dark .glass-bar {
+    background-color: color-mix(in srgb, var(--color-background) 80%, transparent);
+    /* No brightness() here any more. It multiplies the backdrop, so bright
+       content passing under was pulled up toward the bar — the one case
+       the text could least afford. The fill does that job predictably. */
+    backdrop-filter: blur(28px) saturate(155%);
+    -webkit-backdrop-filter: blur(28px) saturate(155%);
+  }
+
+  /* Full-bleed sheet behind the mobile menu — same material, heavier.
+     It covers the whole screen over arbitrary content, so it had the same
+     problem worse: 76% / 70% left the menu links at roughly 4.4:1 and
+     3.9:1 in the bad cases. A navigation menu you have to squint at is
+     not a trade worth making for a view of the page you just left. */
+  .glass-sheet {
+    background-color: color-mix(in srgb, var(--color-background) 88%, transparent);
+    backdrop-filter: blur(36px) saturate(180%);
+    -webkit-backdrop-filter: blur(36px) saturate(180%);
+  }
+  .dark .glass-sheet {
+    background-color: color-mix(in srgb, var(--color-background) 85%, transparent);
+    backdrop-filter: blur(36px) saturate(150%);
+    -webkit-backdrop-filter: blur(36px) saturate(150%);
+  }
+
+  /* The separator. One hairline, drawn from the foreground so it works in
+     both themes, and nothing else — a second line or a bevel here is what
+     makes a bar look moulded instead of transparent.
+
+     Two weights: the soft one holds the edge at rest, when the bar is
+     transparent and would otherwise bleed into the page; the full one takes
+     over once the glass engages and there is real content to separate from. */
+  .hairline-soft {
+    box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-foreground) 11%, transparent);
+  }
+  .glass-hairline {
+    box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-foreground) 18%, transparent);
+  }
+
+  /* Without backdrop-filter, fall back to opaque. A see-through bar with
+     unreadable text over it is worse than no glass at all. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-bar,
+    .dark .glass-bar,
+    .glass-sheet,
+    .dark .glass-sheet {
+      background-color: var(--color-background);
+    }
   }
 
   /* Staggered entrance delays */

@@ -1,12 +1,28 @@
 import { useState } from 'react';
-import { Upload, Plus, Trash2, AlertCircle, CheckCircle2, FileText, Download } from 'lucide-react';
+import { Upload, Plus, Trash2, AlertCircle, CheckCircle2, FileText, Download, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { SUBTAB_LIST_CLASS, SUBTAB_TRIGGER_CLASS } from './ui/tab-pills';
 import { api } from '../utils/api';
+
+/** Matches the numbered steps on the create-election form, minus the number —
+ *  these two panels are alternatives, not a sequence. */
+function Panel({ title, description, children }: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-e1 sm:p-6">
+      <h4 className="font-display text-base font-semibold tracking-tight">{title}</h4>
+      <p className="mt-1 max-w-prose text-sm text-muted-foreground text-pretty">{description}</p>
+      <div className="mt-5 space-y-5">{children}</div>
+    </section>
+  );
+}
 
 interface HistoricalEntry {
   employee_name: string;
@@ -240,108 +256,94 @@ Bob Johnson,bob@example.com,32,1,2,3`;
       )}
 
       {success && (
-        <Alert className="border-green-500/50 bg-green-500/10">
+        <Alert className="border-success/50 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+          <AlertDescription className="text-success">{success}</AlertDescription>
         </Alert>
       )}
 
-      <Card>
-        <CardHeader className="pb-6">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            Import Historical Voting Data
-          </CardTitle>
-          <CardDescription>
-            Import past election results from Google Forms/Sheets or enter them manually. This creates historical records in your system.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
       <Tabs defaultValue="csv" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="csv">CSV Import</TabsTrigger>
-          <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-        </TabsList>
+        <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList className={SUBTAB_LIST_CLASS}>
+            <TabsTrigger value="csv" className={SUBTAB_TRIGGER_CLASS}>CSV Import</TabsTrigger>
+            <TabsTrigger value="manual" className={SUBTAB_TRIGGER_CLASS}>Manual Entry</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* CSV Import Tab */}
-        <TabsContent value="csv" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Import from CSV</CardTitle>
-              <CardDescription>
-                Export your Google Sheets as CSV and upload it here. We'll automatically detect the columns.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <TabsContent value="csv" className="mt-0">
+          <Panel
+            title="Upload a CSV"
+            description="Export the sheet as CSV and drop it here. The columns are detected for you."
+          >
               {/* Template Download */}
-              <Alert>
-                <Download className="h-4 w-4" />
-                <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <span className="text-sm">Need help formatting your CSV?</span>
-                  <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-2 w-full sm:w-auto flex-shrink-0">
-                    <Download className="w-3 h-3" />
-                    Download Template
-                  </Button>
-                </AlertDescription>
-              </Alert>
+              <div className="flex flex-col gap-3 rounded-xl bg-muted/50 p-4 inset-ring-1 inset-ring-border sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <p className="text-sm text-muted-foreground text-pretty">
+                    Not sure how the file should be laid out? Start from the template.
+                  </p>
+                </div>
+                <Button variant="outline" onClick={downloadTemplate} className="h-10 w-full shrink-0 gap-2 sm:w-auto">
+                  <Download className="h-4 w-4" aria-hidden="true" />
+                  Download template
+                </Button>
+              </div>
 
               {/* Election Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="csv-title">Election Title</Label>
+                  <Label htmlFor="csv-title">Election title</Label>
                   <Input
                     id="csv-title"
                     value={electionTitle}
                     onChange={(e) => setElectionTitle(e.target.value)}
-                    placeholder="e.g., January 2024 IQ Vote"
-                    className="mt-1.5"
+                    placeholder="January 2024 — Employee of the Month"
+                    className="mt-1.5 h-11"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="csv-date">Election Date</Label>
+                  <Label htmlFor="csv-date">Election date</Label>
                   <Input
                     id="csv-date"
                     type="date"
                     value={electionDate}
                     onChange={(e) => setElectionDate(e.target.value)}
-                    className="mt-1.5"
+                    className="mt-1.5 h-11"
                   />
                 </div>
               </div>
 
               {/* File Upload */}
               <div>
-                <Label htmlFor="csv-upload">Upload CSV File</Label>
-                <div className="mt-1.5">
-                  <Input
-                    id="csv-upload"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileSelect}
-                    className="cursor-pointer"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Supported columns: name/employee, email, total_points/points/score, 1st place, 2nd place, 3rd place
+                <Label htmlFor="csv-upload">CSV file</Label>
+                <Input
+                  id="csv-upload"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileSelect}
+                  className="mt-1.5 h-11 cursor-pointer py-2.5 file:mr-3 file:text-sm file:font-medium"
+                />
+                <p className="mt-2 text-xs text-muted-foreground text-pretty">
+                  Recognised columns: name/employee, email, total_points/points/score, 1st place, 2nd place, 3rd place.
                 </p>
               </div>
 
               {/* CSV Preview */}
               {csvPreview.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Preview ({csvPreview.length} rows)</Label>
-                  <div className="border border-border rounded-xl overflow-hidden">
+                <div>
+                  <Label>Preview — {csvPreview.length} {csvPreview.length === 1 ? 'row' : 'rows'}</Label>
+                  <div className="mt-1.5 overflow-hidden rounded-xl border border-border">
                     <div className="max-h-64 overflow-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-muted/50 sticky top-0">
+                        <thead className="sticky top-0 bg-muted/70 backdrop-blur-sm">
                           <tr>
-                            <th className="text-left p-2 font-medium">Name</th>
-                            <th className="text-left p-2 font-medium">Email</th>
-                            <th className="text-left p-2 font-medium">Points</th>
-                            <th className="text-left p-2 font-medium">1st</th>
-                            <th className="text-left p-2 font-medium">2nd</th>
-                            <th className="text-left p-2 font-medium">3rd</th>
+                            <th className="p-2.5 text-left text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Name</th>
+                            <th className="p-2.5 text-left text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Email</th>
+                            <th className="p-2.5 text-left text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Points</th>
+                            <th className="p-2.5 text-left text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">1st</th>
+                            <th className="p-2.5 text-left text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">2nd</th>
+                            <th className="p-2.5 text-left text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">3rd</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -355,12 +357,12 @@ Bob Johnson,bob@example.com,32,1,2,3`;
 
                             return (
                               <tr key={idx} className="border-t border-border">
-                                <td className="p-2">{name}</td>
-                                <td className="p-2 text-muted-foreground">{email}</td>
-                                <td className="p-2 font-medium">{points}</td>
-                                <td className="p-2 text-muted-foreground">{first}</td>
-                                <td className="p-2 text-muted-foreground">{second}</td>
-                                <td className="p-2 text-muted-foreground">{third}</td>
+                                <td className="p-2.5">{name}</td>
+                                <td className="p-2.5 text-muted-foreground">{email}</td>
+                                <td className="p-2.5 font-medium tabular-nums">{points}</td>
+                                <td className="p-2.5 tabular-nums text-muted-foreground">{first}</td>
+                                <td className="p-2.5 tabular-nums text-muted-foreground">{second}</td>
+                                <td className="p-2.5 tabular-nums text-muted-foreground">{third}</td>
                               </tr>
                             );
                           })}
@@ -368,181 +370,186 @@ Bob Johnson,bob@example.com,32,1,2,3`;
                       </table>
                     </div>
                     {csvPreview.length > 10 && (
-                      <div className="p-2 text-xs text-center text-muted-foreground bg-muted/30 border-t border-border">
-                        Showing first 10 of {csvPreview.length} rows
+                      <div className="border-t border-border bg-muted/40 p-2.5 text-center text-xs text-muted-foreground">
+                        Showing the first 10 of {csvPreview.length} rows
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              <Button 
+              <Button
                 onClick={handleCSVImport}
                 disabled={loading || !csvFile || csvPreview.length === 0 || !electionTitle || !electionDate}
-                className="w-full gap-2"
+                className="h-11 w-full gap-2"
               >
-                <Upload className="w-4 h-4" />
-                {loading ? 'Importing...' : 'Import CSV Data'}
+                {loading
+                  ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  : <Upload className="h-4 w-4" aria-hidden="true" />}
+                {loading ? 'Importing…' : 'Import this file'}
               </Button>
-            </CardContent>
-          </Card>
+          </Panel>
         </TabsContent>
 
         {/* Manual Entry Tab */}
-        <TabsContent value="manual" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Manual Entry</CardTitle>
-              <CardDescription>
-                Enter historical election results manually, one employee at a time.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <TabsContent value="manual" className="mt-0">
+          <Panel
+            title="Type it in"
+            description="For a single past election with only a handful of results — add one person at a time."
+          >
               {/* Election Details */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="manual-title">Election Title</Label>
+                  <Label htmlFor="manual-title">Election title</Label>
                   <Input
                     id="manual-title"
                     value={electionTitle}
                     onChange={(e) => setElectionTitle(e.target.value)}
-                    placeholder="e.g., January 2024 IQ Vote"
-                    className="mt-1.5"
+                    placeholder="January 2024 — Employee of the Month"
+                    className="mt-1.5 h-11"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="manual-date">Election Date</Label>
+                  <Label htmlFor="manual-date">Election date</Label>
                   <Input
                     id="manual-date"
                     type="date"
                     value={electionDate}
                     onChange={(e) => setElectionDate(e.target.value)}
-                    className="mt-1.5"
+                    className="mt-1.5 h-11"
                   />
                 </div>
               </div>
 
               {/* Manual Entries */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label>Employee Results</Label>
+              <div>
+                <div className="flex items-center justify-between gap-4">
+                  <Label>Results</Label>
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
                     onClick={addManualEntry}
-                    className="gap-2"
+                    className="h-10 gap-2"
                   >
-                    <Plus className="w-3 h-3" />
-                    Add Employee
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    Add person
                   </Button>
                 </div>
 
+                <div className="mt-3 space-y-3">
                 {manualEntries.map((entry, index) => (
-                  <div key={index} className="p-4 border border-border rounded-xl space-y-3 bg-card">
-                    <div className="grid grid-cols-2 gap-3">
+                  <div key={index} className="rounded-xl bg-muted/40 p-4 inset-ring-1 inset-ring-border">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                        Person {index + 1}
+                      </span>
+                      {manualEntries.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => removeManualEntry(index)}
+                          className="h-8 gap-1.5 px-2.5 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
-                        <Label htmlFor={`name-${index}`}>Employee Name *</Label>
+                        <Label htmlFor={`name-${index}`}>Name</Label>
                         <Input
                           id={`name-${index}`}
                           value={entry.employee_name}
                           onChange={(e) => updateManualEntry(index, 'employee_name', e.target.value)}
-                          placeholder="John Doe"
-                          className="mt-1.5"
+                          placeholder="Ngozi Okonkwo"
+                          className="mt-1.5 h-11 bg-card"
                         />
                       </div>
                       <div>
-                        <Label htmlFor={`email-${index}`}>Email (Optional)</Label>
+                        <Label htmlFor={`email-${index}`}>Email <span className="font-normal text-muted-foreground">(optional)</span></Label>
                         <Input
                           id={`email-${index}`}
                           value={entry.employee_email || ''}
                           onChange={(e) => updateManualEntry(index, 'employee_email', e.target.value)}
-                          placeholder="john@example.com"
-                          className="mt-1.5"
+                          placeholder="n.okonkwo@braindao.org"
+                          className="mt-1.5 h-11 bg-card"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                       <div>
-                        <Label htmlFor={`points-${index}`}>Total Points *</Label>
+                        <Label htmlFor={`points-${index}`}>Points</Label>
                         <Input
                           id={`points-${index}`}
                           type="number"
                           value={entry.total_points}
                           onChange={(e) => updateManualEntry(index, 'total_points', parseInt(e.target.value) || 0)}
                           placeholder="0"
-                          className="mt-1.5"
+                          className="mt-1.5 h-11 bg-card tabular-nums"
                         />
                       </div>
                       <div>
-                        <Label htmlFor={`first-${index}`}>1st Place</Label>
+                        <Label htmlFor={`first-${index}`}>1st places</Label>
                         <Input
                           id={`first-${index}`}
                           type="number"
                           value={entry.count_first || 0}
                           onChange={(e) => updateManualEntry(index, 'count_first', parseInt(e.target.value) || 0)}
                           placeholder="0"
-                          className="mt-1.5"
+                          className="mt-1.5 h-11 bg-card tabular-nums"
                         />
                       </div>
                       <div>
-                        <Label htmlFor={`second-${index}`}>2nd Place</Label>
+                        <Label htmlFor={`second-${index}`}>2nd places</Label>
                         <Input
                           id={`second-${index}`}
                           type="number"
                           value={entry.count_second || 0}
                           onChange={(e) => updateManualEntry(index, 'count_second', parseInt(e.target.value) || 0)}
                           placeholder="0"
-                          className="mt-1.5"
+                          className="mt-1.5 h-11 bg-card tabular-nums"
                         />
                       </div>
                       <div>
-                        <Label htmlFor={`third-${index}`}>3rd Place</Label>
+                        <Label htmlFor={`third-${index}`}>3rd places</Label>
                         <Input
                           id={`third-${index}`}
                           type="number"
                           value={entry.count_third || 0}
                           onChange={(e) => updateManualEntry(index, 'count_third', parseInt(e.target.value) || 0)}
                           placeholder="0"
-                          className="mt-1.5"
+                          className="mt-1.5 h-11 bg-card tabular-nums"
                         />
                       </div>
                     </div>
-
-                    {manualEntries.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeManualEntry(index)}
-                        className="gap-2 hover:border-destructive/50 hover:text-destructive w-full"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Remove
-                      </Button>
-                    )}
                   </div>
                 ))}
+                </div>
+
+                <p className="mt-3 text-sm text-muted-foreground text-pretty">
+                  Points are what the leaderboard ranks on. The 1st/2nd/3rd counts are optional — they only
+                  come into play to break a tie.
+                </p>
               </div>
 
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  <strong>Note:</strong> Total points is required. Rank counts (1st, 2nd, 3rd place) are optional but help with tie-breaking.
-                </AlertDescription>
-              </Alert>
-
-              <Button 
+              <Button
                 onClick={handleManualImport}
                 disabled={loading || !electionTitle || !electionDate}
-                className="w-full gap-2"
+                className="h-11 w-full gap-2"
               >
-                <Upload className="w-4 h-4" />
-                {loading ? 'Importing...' : `Import ${manualEntries.filter(e => e.employee_name && e.total_points > 0).length} Entries`}
+                {loading
+                  ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  : <Upload className="h-4 w-4" aria-hidden="true" />}
+                {loading
+                  ? 'Importing…'
+                  : `Import ${manualEntries.filter(e => e.employee_name && e.total_points > 0).length} ${
+                      manualEntries.filter(e => e.employee_name && e.total_points > 0).length === 1 ? 'result' : 'results'
+                    }`}
               </Button>
-            </CardContent>
-          </Card>
+          </Panel>
         </TabsContent>
       </Tabs>
     </div>

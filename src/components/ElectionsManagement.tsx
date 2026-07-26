@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Trash2, AlertCircle, CheckCircle2, Calendar, Clock, Search, Users, Vote, Play, X, Bell } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Badge } from './ui/badge';
@@ -193,7 +192,7 @@ export function ElectionsManagement() {
       case 'active':
         return (
           <Badge variant="success">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-0.5 animate-pulse"></span>
+            <span className="w-1.5 h-1.5 bg-success rounded-full mr-0.5 animate-pulse"></span>
             Active
           </Badge>
         );
@@ -232,20 +231,22 @@ export function ElectionsManagement() {
   function ElectionTable({ elections, emptyMessage }: { elections: ElectionWithVotes[], emptyMessage: string }) {
     if (elections.length === 0) {
       return (
-        <div className="text-center py-12 text-muted-foreground">
+        <div className="rounded-2xl border border-border bg-card px-6 py-12 text-center text-sm text-muted-foreground">
           {emptyMessage}
         </div>
       );
     }
 
     return (
-      <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
         {elections.map((election, idx) => {
           const status = getElectionStatus(election);
           return (
             <div
               key={election.id}
-              className="px-4 py-4 animate-fade-in-up transition-colors hover:bg-white/[0.02]"
+              className={`animate-fade-in-up p-4 transition-colors duration-150 hover:bg-muted/40 sm:px-5 ${
+                idx > 0 ? 'border-t border-border' : ''
+              }`}
               style={{ animationDelay: `${Math.min(idx, 10) * 40}ms` }}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -275,49 +276,45 @@ export function ElectionsManagement() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap lg:justify-end">
+                <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end">
                   {(status === 'active' || status === 'upcoming') && (
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={() => openStatusDialog(election, 'close')}
-                      className="gap-1.5 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400"
+                      className="h-10 gap-2 hover:border-warning/50 hover:text-warning"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" aria-hidden="true" />
                       Close
                     </Button>
                   )}
                   {status === 'past' && (
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={() => openStatusDialog(election, 'reopen')}
-                      className="gap-1.5 hover:border-green-500/50 hover:text-green-600 dark:hover:text-green-400"
+                      className="h-10 gap-2 hover:border-success/50 hover:text-success"
                     >
-                      <Play className="w-3 h-3" />
+                      <Play className="w-3.5 h-3.5" aria-hidden="true" />
                       Reopen
                     </Button>
                   )}
                   {status === 'active' && (
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={() => handleNotify(election)}
                       disabled={notifyingId === election.id}
-                      className="gap-1.5 hover:border-primary/50 hover:text-primary"
-                      title="Send reminder email to all users"
+                      className="h-10 gap-2 hover:border-primary/50 hover:text-primary-strong"
+                      title="Send a reminder email to everyone"
                     >
-                      <Bell className="w-3 h-3" />
-                      {notifyingId === election.id ? 'Sending…' : 'Notify All'}
+                      <Bell className="w-3.5 h-3.5" aria-hidden="true" />
+                      {notifyingId === election.id ? 'Sending…' : 'Remind everyone'}
                     </Button>
                   )}
                   <Button
                     variant="outline"
-                    size="sm"
                     onClick={() => openDeleteDialog(election)}
-                    className="gap-1.5 hover:border-destructive/50 hover:text-destructive"
+                    className="h-10 gap-2 hover:border-destructive/50 hover:text-destructive"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     Delete
                   </Button>
                 </div>
@@ -339,104 +336,102 @@ export function ElectionsManagement() {
       )}
 
       {success && (
-        <Alert className="border-green-500/50 bg-green-500/10">
+        <Alert className="border-success/50 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+          <AlertDescription className="text-success">{success}</AlertDescription>
         </Alert>
       )}
 
-      {/* Search + counts. The dashboard above already carries the big stat
-          tiles, so these are a caption, not a second row of cards. */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search elections by title or date..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span><span className="text-foreground font-medium">{activeElections.length}</span> active</span>
-          <span><span className="text-foreground font-medium">{upcomingElections.length}</span> upcoming</span>
-          <span><span className="text-foreground font-medium">{pastElections.length}</span> past</span>
-        </div>
+      {/* A bare search field. It was wrapped in a Card, which gave a single
+          input the same visual weight as a whole section of content. */}
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <Input
+          type="search"
+          placeholder="Search elections by title or date"
+          aria-label="Search elections"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="h-11 pl-9"
+        />
+      </div>
+
+      <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
+        {[
+          { label: 'Running', value: activeElections.length, tone: 'text-success' },
+          { label: 'Upcoming', value: upcomingElections.length, tone: 'text-info' },
+          { label: 'Finished', value: pastElections.length, tone: '' },
+        ].map(({ label, value, tone }, i) => (
+          <div key={label} className={`p-4 sm:p-5 ${i > 0 ? 'border-l border-border' : ''}`}>
+            <div className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              {label}
+            </div>
+            <div className={`mt-2 font-display text-3xl font-semibold tabular-nums tracking-tight ${tone}`}>
+              {value}
+            </div>
+          </div>
+        ))}
       </div>
 
       {loading && elections.length === 0 ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center text-muted-foreground">Loading elections...</div>
-          </CardContent>
-        </Card>
+        <div className="space-y-3" aria-busy="true" aria-label="Loading elections">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="h-24 animate-pulse rounded-2xl border border-border bg-card" />
+          ))}
+        </div>
       ) : (
         <>
-          {/* Active Elections */}
+          {/* The status is already on every row as a badge, so the group
+              heading is a plain label, not another bordered card wrapped
+              around a bordered list. */}
           {activeElections.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Active Elections
-                </CardTitle>
-                <CardDescription>
-                  Currently running elections
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ElectionTable 
-                  elections={activeElections} 
-                  emptyMessage="No active elections"
-                />
-              </CardContent>
-            </Card>
+            <section>
+              <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" aria-hidden="true" />
+                Running now
+              </h4>
+              <ElectionTable elections={activeElections} emptyMessage="No active elections" />
+            </section>
           )}
 
-          {/* Upcoming Elections */}
           {upcomingElections.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Elections</CardTitle>
-                <CardDescription>
-                  Elections that haven't started yet
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ElectionTable 
-                  elections={upcomingElections} 
-                  emptyMessage="No upcoming elections"
-                />
-              </CardContent>
-            </Card>
+            <section>
+              <h4 className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Upcoming
+              </h4>
+              <ElectionTable elections={upcomingElections} emptyMessage="No upcoming elections" />
+            </section>
           )}
 
-          {/* Past Elections */}
           {pastElections.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Past Elections</CardTitle>
-                <CardDescription>
-                  Completed elections
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ElectionTable 
-                  elections={pastElections} 
-                  emptyMessage="No past elections"
-                />
-              </CardContent>
-            </Card>
+            <section>
+              <h4 className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Finished
+              </h4>
+              <ElectionTable elections={pastElections} emptyMessage="No past elections" />
+            </section>
           )}
 
           {filteredElections.length === 0 && !loading && (
-            <Card>
-              <CardContent className="py-12">
-                <div className="text-center text-muted-foreground">
-                  {searchQuery ? `No elections match "${searchQuery}"` : 'No elections found'}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border border-border bg-card px-6 py-16 text-center shadow-e1">
+              <div
+                className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-muted"
+                aria-hidden="true"
+              >
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="mt-4 font-medium">
+                {searchQuery ? 'Nothing matches that search' : 'No elections yet'}
+              </p>
+              <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground text-pretty">
+                {searchQuery
+                  ? `Nothing found for “${searchQuery}”. Try a shorter phrase.`
+                  : 'Create one from the New election tab to get started.'}
+              </p>
+            </div>
           )}
         </>
       )}
@@ -539,9 +534,9 @@ export function ElectionsManagement() {
               </div>
 
               {statusAction === 'close' ? (
-                <Alert className="border-amber-500/50 bg-amber-500/10">
+                <Alert className="border-warning/50 bg-warning/10">
                   <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                  <AlertDescription className="text-amber-700 dark:text-amber-300">
+                  <AlertDescription className="text-warning">
                     <strong>Note:</strong> Closing this election will:
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       <li>Immediately stop accepting new votes</li>
@@ -552,9 +547,9 @@ export function ElectionsManagement() {
                 </Alert>
               ) : (
                 <div className="space-y-3">
-                  <Alert className="border-green-500/50 bg-green-500/10">
+                  <Alert className="border-success/50 bg-success/10">
                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                    <AlertDescription className="text-green-700 dark:text-green-300">
+                    <AlertDescription className="text-success">
                       Reopening will allow voters to cast new votes. Previously cast votes remain intact.
                     </AlertDescription>
                   </Alert>
@@ -596,8 +591,8 @@ export function ElectionsManagement() {
               onClick={handleUpdateElectionStatus}
               disabled={loading || (statusAction === 'reopen' && !reopenEndDate)}
               className={statusAction === 'close'
-                ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                : 'bg-green-600 hover:bg-green-700 text-white'}
+                ? 'bg-warning text-warning-foreground hover:bg-warning/90 active:bg-warning/85'
+                : 'bg-success text-success-foreground hover:bg-success/90 active:bg-success/85'}
             >
               {loading
                 ? (statusAction === 'close' ? 'Closing...' : 'Reopening...')

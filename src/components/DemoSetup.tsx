@@ -63,27 +63,27 @@ export function DemoSetup() {
                   <h4 className="font-semibold mb-2">What will be created:</h4>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary-strong mt-0.5 flex-shrink-0" />
                       <span>8 demo employees with authentication</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary-strong mt-0.5 flex-shrink-0" />
                       <span>1 active election (November 2024) with eligible employees</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary-strong mt-0.5 flex-shrink-0" />
                       <span>2 historical elections (October & September 2024)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary-strong mt-0.5 flex-shrink-0" />
                       <span>5 submitted ballots with voting reasons</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary-strong mt-0.5 flex-shrink-0" />
                       <span>Compiled leaderboard with anonymous messages</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary-strong mt-0.5 flex-shrink-0" />
                       <span>Personal voting history for demo accounts</span>
                     </li>
                   </ul>
@@ -125,9 +125,9 @@ export function DemoSetup() {
             </>
           ) : (
             <div className="space-y-6">
-              <Alert className="border-green-500/50 bg-green-500/10">
-                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <AlertDescription className="text-green-600 dark:text-green-400 font-semibold">
+              <Alert className="border-success/50 bg-success/10">
+                <CheckCircle2 className="w-5 h-5 text-success" />
+                <AlertDescription className="text-success font-semibold">
                   Demo data created successfully!
                 </AlertDescription>
               </Alert>
@@ -166,8 +166,8 @@ export function DemoSetup() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                <p className="text-sm text-blue-600 dark:text-blue-400">
+              <div className="p-4 rounded-xl bg-info/10 border border-info/20">
+                <p className="text-sm text-info">
                   <strong>Next step:</strong> Close this window and sign in with one of the accounts above to explore all features!
                 </p>
               </div>

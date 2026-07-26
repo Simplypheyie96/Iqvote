@@ -87,84 +87,90 @@ export function ResetPasswordPage({ onComplete }: ResetPasswordPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-background">
-      <div className="w-full max-w-md">
-        <div className="bg-card border border-border rounded-xl p-6 sm:p-8">
-          <div className="flex flex-col items-center justify-center mb-6">
-            <img
-              src={isDark ? logoImageDark : logoImageLight}
-              alt="IQ Vote Logo"
-              className="w-[102px] h-[102px] sm:w-[134px] sm:h-[134px] object-contain mb-[6px]"
-            />
-            <h1 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
-              Set New Password
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground text-center">
-              Choose a new password for your account
-            </p>
-          </div>
-
-          {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {success ? (
-            <Alert className="mb-6 border-green-500/50 bg-green-500/10">
-              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <AlertDescription className="text-green-600 dark:text-green-400">
-                Password updated! Signing you in…
-              </AlertDescription>
-            </Alert>
-          ) : !sessionReady ? (
-            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-              <LoadingSpinner size="sm" inline />
-              Verifying reset link…
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="rp-password">New Password</Label>
-                <Input
-                  id="rp-password"
-                  name="password"
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="••••••••"
-                  className="mt-1.5"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Must be at least 6 characters</p>
-              </div>
-              <div>
-                <Label htmlFor="rp-confirm">Confirm Password</Label>
-                <Input
-                  id="rp-confirm"
-                  name="confirm"
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="••••••••"
-                  className="mt-1.5"
-                />
-              </div>
-              <Button type="submit" className="w-full gap-2" disabled={loading}>
-                {loading ? (
-                  <>
-                    <LoadingSpinner size="sm" inline />
-                    Updating…
-                  </>
-                ) : (
-                  <>
-                    <KeyRound className="w-4 h-4" />
-                    Update Password
-                  </>
-                )}
-              </Button>
-            </form>
-          )}
+    // Same surface as the sign-in screen this page hands you back to: content
+    // centred on the page canvas, no card. A card here would be a second
+    // enclosure around a form that is already the only thing on screen.
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-5 py-12 sm:px-8">
+      <div className="w-full max-w-[26rem]">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <img
+            src={isDark ? logoImageDark : logoImageLight}
+            alt=""
+            className="mb-4 h-11 w-11 object-contain"
+          />
+          <h1 className="font-display text-2xl font-semibold tracking-tight">
+            Set a new password
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground text-pretty">
+            Pick something you haven&apos;t used here before.
+          </p>
         </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-5">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {success ? (
+          <Alert className="border-success/40 bg-success/10">
+            <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />
+            <AlertDescription className="text-success">
+              Password updated. Signing you in…
+            </AlertDescription>
+          </Alert>
+        ) : !sessionReady ? (
+          <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+            <LoadingSpinner size="sm" inline />
+            Checking your reset link…
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <Label htmlFor="rp-password">New password</Label>
+              <Input
+                id="rp-password"
+                name="password"
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                aria-describedby="rp-password-hint"
+                className="mt-1.5 h-11"
+              />
+              <p id="rp-password-hint" className="mt-1.5 text-xs text-muted-foreground">
+                At least 6 characters.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="rp-confirm">Confirm new password</Label>
+              <Input
+                id="rp-confirm"
+                name="confirm"
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                className="mt-1.5 h-11"
+              />
+            </div>
+            <Button type="submit" className="h-11 w-full gap-2 text-[0.9375rem]" disabled={loading}>
+              {loading ? (
+                <>
+                  <LoadingSpinner size="sm" inline />
+                  Updating…
+                </>
+              ) : (
+                <>
+                  <KeyRound className="h-4 w-4" aria-hidden="true" />
+                  Update password
+                </>
+              )}
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   );

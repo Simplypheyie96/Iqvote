@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Upload, AlertCircle, CheckCircle2, FileText, Download, Calendar } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle2, FileText, Download, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Checkbox } from './ui/checkbox';
 import { api } from '../utils/api';
@@ -201,97 +200,114 @@ Lope,15,18,8,5,10,91`;
       )}
 
       {success && (
-        <Alert className="border-green-500/50 bg-green-500/10">
+        <Alert className="border-success/50 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          <AlertDescription className="text-green-600 dark:text-green-400">{success}</AlertDescription>
+          <AlertDescription className="text-success">{success}</AlertDescription>
         </Alert>
       )}
 
-      <Card>
-        <CardHeader className="pb-6">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            Import Google Sheets Leaderboard
-          </CardTitle>
-          <CardDescription>
-            Import your historical leaderboard with multiple months. Each column (month) will be imported as a separate election.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      {/* How it works — read this before the form, because the shape of the
+          sheet is the thing people get wrong. */}
+      <section className="rounded-2xl border border-border bg-card p-5 shadow-e1 sm:p-6">
+        <h4 className="font-display text-base font-semibold tracking-tight">Before you start</h4>
+        <p className="mt-1 max-w-prose text-sm text-muted-foreground text-pretty">
+          One sheet, one year. The first column holds names, every other column holds a month's points —
+          and each of those months becomes its own election, dated to the last day of the month.
+        </p>
+        <ol className="mt-4 space-y-2.5">
+          {[
+            'Open the leaderboard in Google Sheets.',
+            'Choose File → Download → Comma Separated Values (.csv).',
+            'Upload that file below and pick the months you want.',
+          ].map((stepText, i) => (
+            <li key={stepText} className="flex items-start gap-3 text-sm text-muted-foreground">
+              <span
+                className="mt-px inline-grid h-5 w-5 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold tabular-nums text-foreground"
+                aria-hidden="true"
+              >
+                {i + 1}
+              </span>
+              <span className="text-pretty">{stepText}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-4 text-sm text-muted-foreground text-pretty">
+          Anyone in the sheet who isn't an employee yet will be added for you.
+        </p>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Leaderboard CSV</CardTitle>
-          <CardDescription>
-            Export your Google Sheets leaderboard as CSV. Format: First column = employee names, other columns = monthly points.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <section className="rounded-2xl border border-border bg-card p-5 shadow-e1 sm:p-6">
+        <h4 className="font-display text-base font-semibold tracking-tight">Upload the sheet</h4>
+        <p className="mt-1 max-w-prose text-sm text-muted-foreground text-pretty">
+          Nothing is imported until you press the button at the bottom — you get a preview first.
+        </p>
+
+        <div className="mt-5 space-y-5">
           {/* Template Download */}
-          <Alert>
-            <Download className="h-4 w-4" />
-            <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <span className="text-sm">Download a sample template to see the expected format</span>
-              <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-2 w-full sm:w-auto flex-shrink-0">
-                <Download className="w-3 h-3" />
-                Download Template
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <div className="flex flex-col gap-3 rounded-xl bg-muted/50 p-4 inset-ring-1 inset-ring-border sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <p className="text-sm text-muted-foreground text-pretty">
+                Want to see the layout first? The template is the same shape we expect back.
+              </p>
+            </div>
+            <Button variant="outline" onClick={downloadTemplate} className="h-10 w-full shrink-0 gap-2 sm:w-auto">
+              <Download className="h-4 w-4" aria-hidden="true" />
+              Download template
+            </Button>
+          </div>
 
           {/* Year Input */}
           <div>
-            <Label htmlFor="year">Year *</Label>
+            <Label htmlFor="year">Year</Label>
             <Input
               id="year"
               type="number"
               value={year}
               onChange={(e) => setYear(e.target.value)}
               placeholder="2024"
-              className="mt-1.5 max-w-xs"
+              className="mt-1.5 h-11 max-w-[10rem] tabular-nums"
               min="2000"
               max="2100"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              The year these elections took place
+            <p className="mt-2 text-xs text-muted-foreground">
+              The year every month in this sheet belongs to.
             </p>
           </div>
 
           {/* File Upload */}
           <div>
-            <Label htmlFor="leaderboard-upload">Upload CSV File</Label>
-            <div className="mt-1.5">
-              <Input
-                id="leaderboard-upload"
-                type="file"
-                accept=".csv"
-                onChange={handleFileSelect}
-                className="cursor-pointer"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Expected format: "Name of Employee, January Points, February Points, March Points, ..., Total Points"
+            <Label htmlFor="leaderboard-upload">CSV file</Label>
+            <Input
+              id="leaderboard-upload"
+              type="file"
+              accept=".csv"
+              onChange={handleFileSelect}
+              className="mt-1.5 h-11 cursor-pointer py-2.5 file:mr-3 file:text-sm file:font-medium"
+            />
+            <p className="mt-2 text-xs text-muted-foreground text-pretty">
+              Expected columns: name, then one column per month, with an optional total at the end.
             </p>
           </div>
 
           {/* Month Selection */}
           {csvData && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Select Months to Import ({selectedMonths.length} selected)</Label>
+            <div className="animate-fade-in">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <Label>Months to import</Label>
                 <div className="flex gap-2">
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    className="h-10"
                     onClick={() => setSelectedMonths(csvData.monthColumns)}
                   >
-                    Select All
+                    Select all
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    className="h-10"
                     onClick={() => setSelectedMonths([])}
                   >
                     Clear
@@ -299,53 +315,66 @@ Lope,15,18,8,5,10,91`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 border border-border rounded-xl bg-muted/30">
-                {csvData.monthColumns.map((month: string) => {
+              <div className="mt-3 grid grid-cols-1 overflow-hidden rounded-xl border border-border sm:grid-cols-2 lg:grid-cols-3">
+                {csvData.monthColumns.map((month: string, idx: number) => {
                   const employeesWithPoints = csvData.employees.filter((e: any) => (e.points[month] || 0) > 0).length;
-                  
+                  const checked = selectedMonths.includes(month);
+
                   return (
-                    <div key={month} className="flex items-start gap-2">
+                    <label
+                      key={month}
+                      htmlFor={`month-${month}`}
+                      className={`flex cursor-pointer items-start gap-3 border-border p-3.5 transition-colors duration-150 sm:[&:nth-child(2n)]:border-l lg:[&:nth-child(2n)]:border-l-0 lg:[&:nth-child(3n+2)]:border-l lg:[&:nth-child(3n)]:border-l ${
+                        idx > 0 ? 'border-t sm:[&:nth-child(2)]:border-t-0 lg:[&:nth-child(2)]:border-t-0 lg:[&:nth-child(3)]:border-t-0' : ''
+                      } ${checked ? 'bg-primary/8' : 'hover:bg-muted/40'}`}
+                    >
                       <Checkbox
                         id={`month-${month}`}
-                        checked={selectedMonths.includes(month)}
+                        className="mt-0.5"
+                        checked={checked}
                         onCheckedChange={() => toggleMonth(month)}
                       />
-                      <div className="flex flex-col">
-                        <label
-                          htmlFor={`month-${month}`}
-                          className="text-sm font-medium cursor-pointer"
-                        >
-                          {month} {year}
-                        </label>
-                        <span className="text-xs text-muted-foreground">
-                          {employeesWithPoints} employees
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">{month} {year}</span>
+                        <span className="mt-0.5 block text-xs tabular-nums text-muted-foreground">
+                          {employeesWithPoints} {employeesWithPoints === 1 ? 'person' : 'people'} scored
                         </span>
-                      </div>
-                    </div>
+                      </span>
+                    </label>
                   );
                 })}
               </div>
 
+              <p className="mt-3 text-sm text-muted-foreground tabular-nums" aria-live="polite">
+                {selectedMonths.length === 0
+                  ? 'No months selected yet — pick at least one.'
+                  : `${selectedMonths.length} of ${csvData.monthColumns.length} months selected`}
+              </p>
+
               {/* Preview */}
-              <div className="space-y-2">
-                <Label>Preview (First 5 employees)</Label>
-                <div className="border border-border rounded-xl overflow-hidden">
+              <div className="mt-5">
+                <Label>Preview — first 5 people</Label>
+                <div className="mt-1.5 overflow-hidden rounded-xl border border-border">
                   <div className="max-h-64 overflow-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-muted/50 sticky top-0">
+                      <thead className="sticky top-0 bg-muted/70 backdrop-blur-sm">
                         <tr>
-                          <th className="text-left p-2 font-medium sticky left-0 bg-muted/50 z-10">Employee</th>
+                          <th className="sticky left-0 z-10 bg-muted p-2.5 text-left text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                            Name
+                          </th>
                           {selectedMonths.map(month => (
-                            <th key={month} className="text-left p-2 font-medium">{month}</th>
+                            <th key={month} className="p-2.5 text-right text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                              {month}
+                            </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {csvData.employees.slice(0, 5).map((emp: any, idx: number) => (
                           <tr key={idx} className="border-t border-border">
-                            <td className="p-2 font-medium sticky left-0 bg-background">{emp.name}</td>
+                            <td className="sticky left-0 bg-card p-2.5 font-medium">{emp.name}</td>
                             {selectedMonths.map(month => (
-                              <td key={month} className="p-2 text-center">
+                              <td key={month} className="p-2.5 text-right tabular-nums text-muted-foreground">
                                 {emp.points[month] || 0}
                               </td>
                             ))}
@@ -355,8 +384,8 @@ Lope,15,18,8,5,10,91`;
                     </table>
                   </div>
                   {csvData.employees.length > 5 && (
-                    <div className="p-2 text-xs text-center text-muted-foreground bg-muted/30 border-t border-border">
-                      Showing first 5 of {csvData.employees.length} employees
+                    <div className="border-t border-border bg-muted/40 p-2.5 text-center text-xs text-muted-foreground">
+                      Showing the first 5 of {csvData.employees.length} people
                     </div>
                   )}
                 </div>
@@ -364,42 +393,20 @@ Lope,15,18,8,5,10,91`;
             </div>
           )}
 
-          <Button 
+          <Button
             onClick={handleImport}
             disabled={loading || !csvData || selectedMonths.length === 0 || !year}
-            className="w-full gap-2"
+            className="h-11 w-full gap-2"
           >
-            <Upload className="w-4 h-4" />
-            {loading ? 'Importing...' : `Import ${selectedMonths.length} Election${selectedMonths.length !== 1 ? 's' : ''}`}
+            {loading
+              ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              : <Upload className="h-4 w-4" aria-hidden="true" />}
+            {loading
+              ? 'Importing…'
+              : `Import ${selectedMonths.length} election${selectedMonths.length !== 1 ? 's' : ''}`}
           </Button>
-        </CardContent>
-      </Card>
-
-      {/* Instructions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            How It Works
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-            <li>Open your Google Sheets leaderboard</li>
-            <li>Click <strong>File → Download → Comma Separated Values (.csv)</strong></li>
-            <li>Upload the CSV file here</li>
-            <li>Select which months you want to import</li>
-            <li>Click "Import" to create historical elections</li>
-          </ol>
-          
-          <Alert className="mt-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs">
-              <strong>Note:</strong> Each month will be created as a separate election. Employees will be automatically created if they don't exist in your system. Each election will be dated as the last day of that month.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
