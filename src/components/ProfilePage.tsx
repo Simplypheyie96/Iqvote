@@ -1,38 +1,25 @@
 import { useState, useEffect } from 'react';
-import {
-  Camera, History, Eye, TrendingUp,
-  Calendar, ChevronDown, ChevronUp, Trophy, Pencil, X, Check, KeyRound, Upload
-} from 'lucide-react';
+import { Camera, X, Check, KeyRound, Upload, Pencil } from 'lucide-react';
 import { api } from '../utils/api';
 import { createClient } from '../utils/supabase/client';
 import { Employee } from '../types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Skeleton } from './ui/skeleton';
 import { LoadingSpinner } from './LoadingSpinner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Alert, AlertDescription } from './ui/alert';
+import {
+  Stat,
+  VotingHistory,
+  type VoteHistoryEntry,
+  type ReceivedVotesEntry,
+} from './VotingHistory';
 import { toast } from 'sonner';
 
 interface ProfilePageProps {
   currentUser: Employee;
   employees: Employee[];
   onProfileUpdated: (updated: Employee) => void;
-}
-
-interface VoteHistory {
-  election: { id: string; title: string; end_time: string };
-  ballot: { created_at: string; revoked: boolean; revoke_reason?: string };
-  selections: { rank: number; employee: Employee; points: number }[];
-}
-
-interface ReceivedVotes {
-  election: { id: string; title: string; end_time: string };
-  total_points: number;
-  rank: number;
-  total_participants: number;
 }
 
 export function ProfilePage({ currentUser, employees, onProfileUpdated }: ProfilePageProps) {
@@ -71,11 +58,9 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
     }
   }
 
-  const [myVotes, setMyVotes] = useState<VoteHistory[]>([]);
-  const [receivedVotes, setReceivedVotes] = useState<ReceivedVotes[]>([]);
+  const [myVotes, setMyVotes] = useState<VoteHistoryEntry[]>([]);
+  const [receivedVotes, setReceivedVotes] = useState<ReceivedVotesEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
-  const [expandedVotes, setExpandedVotes] = useState<Set<string>>(new Set());
-  const [expandedReceived, setExpandedReceived] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadHistory();
@@ -146,43 +131,6 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
     }
   }
 
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric', month: 'long', day: 'numeric',
-    });
-  }
-
-  function getRankBadge(rank: number) {
-    const configs: Record<number, { label: string; color: string }> = {
-      1: { label: '1st Place', color: 'text-muted-foreground bg-warning/10 border-warning/30' },
-      2: { label: '2nd Place', color: 'text-muted-foreground bg-border/10 border-border/30' },
-      3: { label: '3rd Place', color: 'text-warning bg-warning/10 border-warning/30' },
-    };
-    const cfg = configs[rank] || { label: `${rank}th Place`, color: 'text-muted-foreground bg-muted/50 border-border' };
-    return (
-      <Badge variant="outline" className={`gap-1.5 ${cfg.color}`}>
-        <Trophy className="w-3 h-3" />
-        {cfg.label}
-      </Badge>
-    );
-  }
-
-  function toggleVote(id: string) {
-    setExpandedVotes(prev => {
-      const s = new Set(prev);
-      s.has(id) ? s.delete(id) : s.add(id);
-      return s;
-    });
-  }
-
-  function toggleReceived(id: string) {
-    setExpandedReceived(prev => {
-      const s = new Set(prev);
-      s.has(id) ? s.delete(id) : s.add(id);
-      return s;
-    });
-  }
-
   const totalPointsReceived = receivedVotes.reduce((sum, v) => sum + v.total_points, 0);
   const initials = currentUser.name
     .split(' ')
@@ -195,390 +143,245 @@ export function ProfilePage({ currentUser, employees, onProfileUpdated }: Profil
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      {/* Page header */}
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-1">
-          My Profile
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Manage your profile and view your voting history
+      <div className="mb-8">
+        <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight">Your profile</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground text-pretty">
+          How the rest of the team sees you, and the recognition that came back to you.
         </p>
       </div>
 
-      {/* Profile card */}
-      <Card className="mb-8 border-border">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-            {/* Avatar */}
-            <div className="relative flex-shrink-0">
-              <div className="w-20 h-20 rounded-full bg-muted border-2 border-border flex items-center justify-center overflow-hidden">
-                {avatarSrc ? (
-                  <img
-                    src={avatarSrc}
-                    alt={currentUser.name}
-                    className="w-full h-full object-cover"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <span className="text-2xl font-semibold text-muted-foreground">{initials}</span>
-                )}
-              </div>
-            </div>
+      {/* The identity card. One surface, not a card wrapping a card. */}
+      <div className="mb-8 rounded-2xl border border-border bg-card p-5 shadow-e1 sm:p-6">
+        <div className="flex flex-col items-start gap-5 sm:flex-row sm:gap-6">
+          <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-muted-foreground inset-ring-1 inset-ring-border sm:h-20 sm:w-20">
+            {avatarSrc ? (
+              <img
+                src={avatarSrc}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <span className="font-display text-2xl font-semibold">{initials}</span>
+            )}
+          </div>
 
-            {/* Info / Edit form */}
-            <div className="flex-1 min-w-0">
-              {isEditing ? (
-                <div className="space-y-3">
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label htmlFor="profile-name" className="text-xs text-muted-foreground">Name</Label>
-                      <Input
-                        id="profile-name"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        placeholder="Your name"
-                        className="h-9"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="profile-role" className="text-xs text-muted-foreground">Job Title / Role</Label>
-                      <Input
-                        id="profile-role"
-                        value={role}
-                        onChange={e => setRole(e.target.value)}
-                        placeholder="e.g. Software Engineer"
-                        className="h-9"
-                      />
-                    </div>
+          <div className="min-w-0 flex-1">
+            {isEditing ? (
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="profile-name">Name</Label>
+                    <Input
+                      id="profile-name"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      placeholder="Your name"
+                      className="h-10"
+                    />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="profile-image" className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <Camera className="w-3 h-3" />
-                      Profile Photo (optional)
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="profile-image"
-                        value={imageUrl}
-                        onChange={e => { setImageUrl(e.target.value); setImageError(false); }}
-                        placeholder="https://example.com/your-photo.jpg"
-                        className="h-9"
-                      />
-                      <input
-                        type="file"
-                        id="profile-photo-upload"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 5 * 1024 * 1024) {
-                            toast.error('Image must be under 5MB');
-                            return;
-                          }
-                          setUploadingImage(true);
-                          try {
-                            const supabase = createClient();
-                            const ext = file.name.split('.').pop() || 'jpg';
-                            const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-                            const { error: uploadError } = await supabase.storage
-                              .from('make-e2c9f810-images')
-                              .upload(filename, file, { contentType: file.type, upsert: false });
-                            if (uploadError) throw new Error(uploadError.message);
-                            const { data: { publicUrl } } = supabase.storage
-                              .from('make-e2c9f810-images')
-                              .getPublicUrl(filename);
-                            setImageUrl(publicUrl);
-                            setImageError(false);
-                            toast.success('Photo uploaded!');
-                          } catch (err: any) {
-                            toast.error('Upload failed: ' + err.message);
-                          } finally {
-                            setUploadingImage(false);
-                            e.target.value = '';
-                          }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-9 w-9 flex-shrink-0"
-                        disabled={uploadingImage}
-                        onClick={() => document.getElementById('profile-photo-upload')?.click()}
-                      >
-                        {uploadingImage ? (
-                          <LoadingSpinner size="sm" />
-                        ) : (
-                          <Upload className="w-3.5 h-3.5" />
-                        )}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Paste a URL or click upload to choose a photo (max 5MB)</p>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="profile-role">Job title</Label>
+                    <Input
+                      id="profile-role"
+                      value={role}
+                      onChange={e => setRole(e.target.value)}
+                      placeholder="e.g. Software Engineer"
+                      className="h-10"
+                    />
                   </div>
-                  {/* Change Password */}
-                  <div className="border-t border-border pt-3 mt-1">
-                    <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
-                      <KeyRound className="w-3 h-3" />
-                      Change Password (optional)
-                    </p>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label htmlFor="new-password" className="text-xs text-muted-foreground">New Password</Label>
-                        <Input
-                          id="new-password"
-                          type="password"
-                          placeholder="Leave blank to keep current"
-                          value={newPassword}
-                          onChange={e => setNewPassword(e.target.value)}
-                          className="h-9"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="confirm-password" className="text-xs text-muted-foreground">Confirm New Password</Label>
-                        <Input
-                          id="confirm-password"
-                          type="password"
-                          placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
-                          value={confirmPassword}
-                          onChange={e => setConfirmPassword(e.target.value)}
-                          className="h-9"
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">Must be at least 6 characters</p>
-                  </div>
+                </div>
 
-                  <div className="flex gap-2 pt-1">
-                    <Button size="sm" onClick={handleSave} disabled={saving || changingPassword || uploadingImage} className="gap-1.5">
-                      {(saving || changingPassword) ? (
+                <div className="space-y-1.5">
+                  <Label htmlFor="profile-image" className="flex items-center gap-1.5">
+                    <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+                    Photo
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="profile-image"
+                      value={imageUrl}
+                      onChange={e => { setImageUrl(e.target.value); setImageError(false); }}
+                      placeholder="https://example.com/your-photo.jpg"
+                      className="h-10"
+                    />
+                    <input
+                      type="file"
+                      id="profile-photo-upload"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast.error('Image must be under 5MB');
+                          return;
+                        }
+                        setUploadingImage(true);
+                        try {
+                          const supabase = createClient();
+                          const ext = file.name.split('.').pop() || 'jpg';
+                          const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                          const { error: uploadError } = await supabase.storage
+                            .from('make-e2c9f810-images')
+                            .upload(filename, file, { contentType: file.type, upsert: false });
+                          if (uploadError) throw new Error(uploadError.message);
+                          const { data: { publicUrl } } = supabase.storage
+                            .from('make-e2c9f810-images')
+                            .getPublicUrl(filename);
+                          setImageUrl(publicUrl);
+                          setImageError(false);
+                          toast.success('Photo uploaded');
+                        } catch (err: any) {
+                          toast.error('Upload failed: ' + err.message);
+                        } finally {
+                          setUploadingImage(false);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10 shrink-0"
+                      disabled={uploadingImage}
+                      aria-label="Upload a photo"
+                      onClick={() => document.getElementById('profile-photo-upload')?.click()}
+                    >
+                      {uploadingImage ? (
                         <LoadingSpinner size="sm" />
                       ) : (
-                        <Check className="w-3.5 h-3.5" />
+                        <Upload className="h-4 w-4" aria-hidden="true" />
                       )}
-                      Save
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={saving || changingPassword} className="gap-1.5">
-                      <X className="w-3.5 h-3.5" />
-                      Cancel
                     </Button>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Paste a link, or upload an image up to 5MB.
+                  </p>
                 </div>
-              ) : (
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-semibold leading-tight">{currentUser.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-0.5">{currentUser.role}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{currentUser.email}</p>
-                    {currentUser.is_admin && (
-                      <Badge className="mt-2 text-xs" variant="secondary">Admin</Badge>
-                    )}
+
+                <div className="border-t border-border pt-4">
+                  <p className="mb-3 flex items-center gap-1.5 text-sm font-medium">
+                    <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+                    New password
+                    <span className="font-normal text-muted-foreground">— optional</span>
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new-password">Password</Label>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        placeholder="Leave blank to keep the current one"
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                        className="h-10"
+                        aria-describedby="password-hint"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirm-password">Confirm password</Label>
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        placeholder="Type it again"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        className="h-10"
+                      />
+                    </div>
                   </div>
+                  <p id="password-hint" className="mt-2 text-xs text-muted-foreground">
+                    At least 6 characters.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
                   <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsEditing(true)}
-                    className="gap-1.5 flex-shrink-0"
+                    onClick={handleSave}
+                    disabled={saving || changingPassword || uploadingImage}
+                    className="h-10 gap-2"
                   >
-                    <Pencil className="w-3.5 h-3.5" />
-                    Edit Profile
+                    {(saving || changingPassword) ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Check className="h-4 w-4" aria-hidden="true" />
+                    )}
+                    Save changes
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={cancelEdit}
+                    disabled={saving || changingPassword}
+                    className="h-10 gap-2"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                    Cancel
                   </Button>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              // On a phone the Edit button drops under the details rather than
+              // fighting the name for the same 200px.
+              <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="font-display text-lg font-semibold tracking-tight sm:text-xl">
+                      {currentUser.name}
+                    </h2>
+                    {currentUser.is_admin && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary-strong">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{currentUser.role}</p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{currentUser.email}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  className="h-10 shrink-0 gap-2"
+                >
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  Edit
+                </Button>
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '0ms' }}>
-          <CardHeader className="pb-3">
-            <CardDescription className="text-xs">Total Votes Cast</CardDescription>
-            <CardTitle className="text-3xl">{myVotes.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
-          <CardHeader className="pb-3">
-            <CardDescription className="text-xs">Total Points Received</CardDescription>
-            <CardTitle className="text-3xl text-primary-strong">{totalPointsReceived}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '160ms' }}>
-          <CardHeader className="pb-3">
-            <CardDescription className="text-xs">Elections Participated</CardDescription>
-            <CardTitle className="text-3xl">{receivedVotes.length}</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-
-      {/* Voting history */}
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <History className="w-5 h-5 text-primary-strong" />
-          Voting History
-        </h3>
+        </div>
       </div>
 
       {historyLoading ? (
-        <div className="text-center py-12">
-          <LoadingSpinner size="lg" text="Loading history" />
+        <div aria-busy="true">
+          <span className="sr-only" role="status">Loading your history</span>
+          <div className="mb-8 grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-e1 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="px-5 py-4 sm:px-6 sm:py-5">
+                <Skeleton className="h-7 w-12" />
+                <Skeleton className="mt-3 h-3 w-24" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            {[0, 1, 2].map(i => (
+              <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+            ))}
+          </div>
         </div>
       ) : (
-        <Tabs defaultValue="my-votes" className="w-full">
-          <TabsList>
-            <TabsTrigger value="my-votes" className="gap-2">
-              <Eye className="w-4 h-4" />
-              <span className="hidden sm:inline">My Votes</span>
-              <span className="sm:hidden">Votes</span>
-            </TabsTrigger>
-            <TabsTrigger value="received" className="gap-2">
-              <TrendingUp className="w-4 h-4" />
-              <span className="hidden sm:inline">Votes Received</span>
-              <span className="sm:hidden">Received</span>
-            </TabsTrigger>
-          </TabsList>
+        <>
+          {/* Two of the three tiles used to show the same number — votes cast
+              and "elections participated" were the same list. */}
+          <div className="mb-8 grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-e1 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <Stat label="Elections you voted in" value={myVotes.length} />
+            <Stat label="Points people gave you" value={totalPointsReceived} accent />
+            <Stat label="Elections you placed in" value={receivedVotes.length} />
+          </div>
 
-          {/* My Votes */}
-          <TabsContent value="my-votes" className="space-y-4 mt-6">
-            {myVotes.length === 0 ? (
-              <Card className="border-border bg-transparent">
-                <CardContent className="pt-12 pb-12 text-center">
-                  <Eye className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-                  <p className="text-muted-foreground">You haven't cast any votes yet.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {myVotes.map((vote) => {
-                  const expanded = expandedVotes.has(vote.election.id);
-                  return (
-                    <Card key={vote.election.id} className="overflow-hidden border-border bg-transparent">
-                      <div
-                        className="p-4 cursor-pointer hover:bg-muted/30 transition-colors border-b border-border"
-                        onClick={() => toggleVote(vote.election.id)}
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="font-semibold text-sm sm:text-base truncate">{vote.election.title}</h4>
-                              <Badge variant={vote.ballot.revoked ? 'destructive' : 'outline'} className="text-xs">
-                                {vote.ballot.revoked ? 'Revoked' : 'Counted'}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
-                              <Calendar className="w-3 h-3" />
-                              Voted on {formatDate(vote.ballot.created_at)}
-                            </p>
-                          </div>
-                          <Button variant="ghost" size="sm" className="flex-shrink-0">
-                            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      {expanded && (
-                        <CardContent className="pt-4 pb-4">
-                          <div className="grid sm:grid-cols-3 gap-4">
-                            {vote.selections
-                              .sort((a, b) => a.rank - b.rank)
-                              .map((sel) => (
-                                <div
-                                  key={sel.rank}
-                                  className={`p-4 rounded-xl border bg-muted/30 border-border`}
-                                >
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-xs flex-shrink-0">
-                                      {sel.rank}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                      {sel.rank === 1 ? '1st Choice' : sel.rank === 2 ? '2nd Choice' : '3rd Choice'}
-                                    </p>
-                                  </div>
-                                  <p className="font-bold text-lg mb-0.5 truncate">{sel.employee.name}</p>
-                                  <p className="text-xs text-muted-foreground mb-2 truncate">{sel.employee.role}</p>
-                                  <Badge variant="outline">
-                                    {sel.points} pts
-                                  </Badge>
-                                </div>
-                              ))}
-                          </div>
-                          {vote.ballot.revoked && (
-                            <Alert variant="destructive" className="mt-4">
-                              <AlertDescription className="text-xs">
-                                This vote was revoked: {vote.ballot.revoke_reason || 'No reason provided'}
-                              </AlertDescription>
-                            </Alert>
-                          )}
-                        </CardContent>
-                      )}
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Votes Received */}
-          <TabsContent value="received" className="space-y-4 mt-6">
-            {receivedVotes.length === 0 ? (
-              <Card className="border-border bg-transparent">
-                <CardContent className="pt-12 pb-12 text-center">
-                  <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-                  <p className="text-muted-foreground">You haven't received any votes yet.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {receivedVotes.map((vote) => {
-                  const expanded = expandedReceived.has(vote.election.id);
-                  return (
-                    <Card key={vote.election.id} className="overflow-hidden border-border bg-transparent">
-                      <div
-                        className="p-4 cursor-pointer hover:bg-muted/30 transition-colors border-b border-border"
-                        onClick={() => toggleReceived(vote.election.id)}
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="font-semibold text-sm sm:text-base truncate">{vote.election.title}</h4>
-                              {getRankBadge(vote.rank)}
-                            </div>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
-                              <Calendar className="w-3 h-3" />
-                              Ended {formatDate(vote.election.end_time)}
-                            </p>
-                          </div>
-                          <Button variant="ghost" size="sm" className="flex-shrink-0">
-                            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      {expanded && (
-                        <CardContent className="pt-4 pb-4">
-                          <div className="grid sm:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-xl bg-muted/30 border border-border">
-                              <p className="text-xs text-muted-foreground mb-1">Points Received</p>
-                              <p className="text-3xl font-bold text-primary-strong">{vote.total_points}</p>
-                            </div>
-                            <div className="p-4 rounded-xl bg-muted/30 border border-border">
-                              <p className="text-xs text-muted-foreground mb-1">Total Voters</p>
-                              <p className="text-3xl font-bold">{vote.total_participants}</p>
-                            </div>
-                          </div>
-                          <Alert className="mt-4 border-info/50 bg-info/10">
-                            <AlertDescription className="text-xs text-info">
-                              Votes are anonymous. We don't share who voted for whom to maintain fairness and prevent bias.
-                            </AlertDescription>
-                          </Alert>
-                        </CardContent>
-                      )}
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+          <VotingHistory myVotes={myVotes} receivedVotes={receivedVotes} />
+        </>
       )}
     </div>
   );

@@ -1,18 +1,37 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Trophy, Award, User, Crown, Star, MessageCircle, Calendar, Download } from 'lucide-react';
+import { Trophy, User, MessageCircle, Calendar, Download } from 'lucide-react';
 import { Employee, Election, LeaderboardEntry } from '../types';
 import { api } from '../utils/api';
-import { Alert, AlertDescription } from './ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { VotingReasonsModal } from './VotingReasonsModal';
+import { RankMedal } from './RankMedal';
 import { Button } from './ui/button';
-import { LoadingSpinner } from './LoadingSpinner';
+import { Skeleton } from './ui/skeleton';
 import * as XLSX from 'xlsx';
 
 interface LeaderboardPageProps {
   currentUser: Employee;
   election: Election | null;
   elections: Election[];
+}
+
+/**
+ * The podium tiers, in rank order.
+ *
+ * `order` is what puts 1st in the middle on desktop while keeping the DOM in
+ * rank order — a screen reader and a keyboard both still travel 1 → 2 → 3.
+ * `height` is the block each person stands on; it is the whole point of a
+ * podium, so it is a real height rather than extra padding under the card.
+ * `delay` runs the entrance 2nd → 3rd → 1st so the winner lands last.
+ */
+const TIERS = [
+  { order: 'md:order-2', height: 'md:h-28', delay: 180, medal: 'md' as const, avatar: 'h-20 w-20 sm:h-24 sm:w-24', points: 'text-4xl' },
+  { order: 'md:order-1', height: 'md:h-16', delay: 60,  medal: 'md' as const, avatar: 'h-16 w-16 sm:h-20 sm:w-20', points: 'text-3xl' },
+  { order: 'md:order-3', height: 'md:h-10', delay: 120, medal: 'md' as const, avatar: 'h-16 w-16 sm:h-20 sm:w-20', points: 'text-3xl' },
+];
+
+function initialsOf(name?: string) {
+  return (name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 }
 
 export function LeaderboardPage({ currentUser, election, elections }: LeaderboardPageProps) {
@@ -106,14 +125,24 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
 
   // Get filter description
   function getFilterDescription() {
+    const unit = electionsCount === 1 ? 'election' : 'elections';
     if (selectedYear === 'all-time') {
-      return `Showing all-time results (${electionsCount} elections)`;
+      return `All time · ${electionsCount} ${unit}`;
     } else if (selectedMonth && selectedMonth !== 'full-year') {
       const monthName = months.find(m => m.value === selectedMonth)?.label || '';
-      return `Showing ${monthName} ${selectedYear} (${electionsCount} ${electionsCount === 1 ? 'election' : 'elections'})`;
+      return `${monthName} ${selectedYear} · ${electionsCount} ${unit}`;
     } else {
-      return `Showing ${selectedYear} totals (${electionsCount} ${electionsCount === 1 ? 'election' : 'elections'})`;
+      return `${selectedYear} · ${electionsCount} ${unit}`;
     }
+  }
+
+  function openNotes(entry: LeaderboardEntry) {
+    setSelectedEmployee({
+      name: entry.employee?.name || 'Unknown',
+      messages: (entry as any).messages || [],
+      totalPoints: entry.total_points,
+    });
+    setReasonsModalOpen(true);
   }
 
   // Function to export leaderboard to Excel
@@ -166,7 +195,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Leaderboard');
-    
+
     // Generate filename based on period
     let filename = 'IQ_Vote_Leaderboard';
     if (selectedYear === 'all-time') {
@@ -178,436 +207,365 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
       filename += `_${selectedYear}`;
     }
     filename += `_${new Date().toISOString().split('T')[0]}.xlsx`;
-    
+
     XLSX.writeFile(wb, filename);
   };
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      {/* Header with Time Filters */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-          <div className="animate-fade-in">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
-              Leaderboard
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              {getFilterDescription()}
-            </p>
-          </div>
-          
-          {/* Time Period Filters */}
-          <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-            {/* Year Selector */}
-            <Select value={selectedYear} onValueChange={(value) => {
-              setSelectedYear(value);
-              if (value === 'all-time') {
-                setSelectedMonth('full-year');
-              }
-            }}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue />
+      {/* Header and time filters */}
+      <div className="mb-8 flex flex-col gap-4 sm:mb-10 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight" id="leaderboard-title">
+            Leaderboard
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground tabular-nums" aria-live="polite">
+            {getFilterDescription()}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
+          {/* Year Selector */}
+          <Select value={selectedYear} onValueChange={(value) => {
+            setSelectedYear(value);
+            if (value === 'all-time') {
+              setSelectedMonth('full-year');
+            }
+          }}>
+            <SelectTrigger className="h-11 min-w-[9rem] flex-1 sm:w-[172px] sm:flex-none" aria-label="Filter by year">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all-time">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  <span>All time</span>
+                </div>
+              </SelectItem>
+              {availableYears.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Month Selector (only show if not all-time) */}
+          {selectedYear !== 'all-time' && (
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="h-11 min-w-[9rem] flex-1 sm:w-[172px] sm:flex-none" aria-label="Filter by month">
+                <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all-time">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>All Time</span>
-                  </div>
-                </SelectItem>
-                {availableYears.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
+                {months.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            
-            {/* Month Selector (only show if not all-time) */}
-            {selectedYear !== 'all-time' && (
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="Select month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((month) => (
-                    <SelectItem key={month.value} value={month.value}>
-                      {month.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            
-            {/* Export Button */}
-            {currentUser.is_admin && (
-              <Button
-                variant="outline"
-                onClick={exportToExcel}
-                className="gap-2"
-                disabled={leaderboard.length === 0 || loading}
-              >
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
-            )}
-          </div>
+          )}
+
+          {/* Export Button */}
+          {currentUser.is_admin && (
+            <Button
+              variant="outline"
+              onClick={exportToExcel}
+              className="h-11 gap-2 shrink-0"
+              disabled={leaderboard.length === 0 || loading}
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </Button>
+          )}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-12" role="status" aria-live="polite">
-          <div className="inline-flex items-center gap-2 text-muted-foreground">
-            <LoadingSpinner />
-            Loading leaderboard...
+        /* Skeletons in the shape of what is coming — a tiered podium and a
+           ranked list — rather than a spinner that says only "wait". */
+        <div aria-busy="true" role="status" aria-live="polite">
+          <span className="sr-only">Loading the leaderboard</span>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end md:gap-3">
+            {['md:order-2 md:h-28', 'md:order-1 md:h-16', 'md:order-3 md:h-10'].map((tier, i) => (
+              <div key={i} className={`flex flex-col ${tier.split(' ')[0]}`}>
+                <div className="rounded-2xl border border-border bg-card p-6 shadow-e1">
+                  <Skeleton className="mx-auto h-20 w-20 rounded-full" />
+                  <Skeleton className="mx-auto mt-4 h-4 w-28" />
+                  <Skeleton className="mx-auto mt-2 h-3 w-20" />
+                  <Skeleton className="mx-auto mt-5 h-9 w-16" />
+                  <Skeleton className="mt-5 h-16 w-full rounded-xl" />
+                </div>
+                <div className={`hidden rounded-t-xl border border-b-0 border-border bg-muted md:block ${tier.split(' ')[1]}`} />
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
+            <div className="divide-y divide-border">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 px-4 py-4 sm:px-6">
+                  <Skeleton className="h-4 w-5" />
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-28" />
+                  </div>
+                  <Skeleton className="h-6 w-10" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : leaderboard.length === 0 ? (
-        <div className="text-center py-16 px-4">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center">
-            <Trophy className="w-10 h-10 text-primary-strong/40" />
+        <div className="rounded-2xl border border-dashed border-border px-6 py-16 text-center">
+          <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-muted text-muted-foreground">
+            <Trophy className="h-7 w-7" aria-hidden="true" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">No Results Yet</h3>
-          <p className="text-muted-foreground max-w-md mx-auto mb-6">
-            No votes have been cast for this time period. Results will appear here once voting begins.
+          <h2 className="font-display text-lg font-semibold tracking-tight">Nothing to show yet</h2>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground text-pretty">
+            No votes have been counted for this period. Standings appear here as soon as people start voting.
           </p>
-          {selectedYear === 'all-time' || selectedMonth === 'full-year' ? (
-            <p className="text-sm text-muted-foreground">
-              Try selecting a different time period or create an election in the Admin panel.
-            </p>
-          ) : (
+          {selectedYear !== 'all-time' && selectedMonth !== 'full-year' && (
             <Button
               variant="outline"
-              onClick={() => {
-                setSelectedMonth('full-year');
-              }}
-              className="gap-2"
+              onClick={() => setSelectedMonth('full-year')}
+              className="mt-6 h-11 gap-2"
             >
               <Calendar className="w-4 h-4" />
-              View Full Year
+              See the whole year
             </Button>
           )}
         </div>
       ) : (
-        <div id="leaderboard-content" role="tabpanel" aria-labelledby="leaderboard-title">
-          {/* Top 3 Podium */}
+        <div id="leaderboard-content">
+          {/* The podium. Three blocks of different heights standing on a floor
+              — the tiering IS the ranking, so it is drawn rather than
+              described. Below 768px there is no room for a silhouette, so the
+              blocks drop away and the cards stack in rank order. */}
           {topThree.length > 0 && (
-            <section className="mb-8 sm:mb-12 animate-fade-in" aria-labelledby="top-performers-heading">
-              <div className="flex items-center gap-2 mb-8 sm:mb-10">
-                <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">
-                  <Crown className="w-5 h-5 text-primary-strong" aria-hidden="true" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold" id="top-performers-heading">Top Performers</h3>
-              </div>
+            <section className="mb-10 sm:mb-14" aria-labelledby="podium-heading">
+              <h2 id="podium-heading" className="sr-only">Top three</h2>
 
-              {/* Podium — solid blocks with a lit top face, joined into one structure */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:items-end">
+              <ol className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end md:gap-3">
                 {topThree.map((entry, index) => {
-                  const config = [
-                    { primary: true,  label: 'Champion',    order: 'md:order-2', Icon: Crown,  iconColor: 'text-warning',  badge: 'bg-warning/15 border-warning/40',  plinth: 'md:pb-20', avatar: 'w-20 h-20 sm:w-24 sm:h-24', edge: '' },
-                    { primary: false, label: 'Runner-up',   order: 'md:order-1', Icon: Trophy, iconColor: 'text-muted-foreground',  badge: 'bg-border/15 border-border/40',  plinth: 'md:pb-10', avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tl-xl' },
-                    { primary: false, label: 'Third place', order: 'md:order-3', Icon: Trophy, iconColor: 'text-warning', badge: 'bg-warning/15 border-warning/40', plinth: 'md:pb-4',  avatar: 'w-16 h-16 sm:w-20 sm:h-20', edge: 'md:rounded-tr-xl' },
-                  ][index];
-                  const Icon = config.Icon;
+                  const tier = TIERS[index];
+                  const isFirst = index === 0;
                   const isCurrentUser = entry.employee_id === currentUser.id;
                   const messageCount = (entry as any).message_count || 0;
-                  const initials = (entry.employee?.name || '?')
-                    .split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                  const firstNote: string | undefined = ((entry as any).messages || [])[0];
 
                   return (
-                    <div
+                    <li
                       key={entry.employee_id}
-                      className={`flex flex-col items-center animate-fade-in-up ${config.order}`}
-                      style={{ animationDelay: `${index * 90}ms` }}
+                      className={`flex animate-fade-in-up flex-col ${tier.order}`}
+                      style={{ animationDelay: `${tier.delay}ms` }}
                     >
-                      {/* Person — stands above the platform */}
-                      <div className="flex flex-col items-center text-center px-2 pb-4">
+                      {/* On desktop the card and the block below it are one
+                          object — a two-tone column standing on the floor —
+                          so the card drops its bottom edge, its radius and
+                          its shadow rather than reading as a pill balanced on
+                          a second pill. On a phone there is no block, so the
+                          card goes back to being a card. */}
+                      <article
+                        className={`flex flex-col items-center rounded-2xl border px-4 py-6 text-center sm:px-5 md:rounded-b-none md:border-b-0 md:shadow-none ${
+                          isFirst
+                            ? 'border-primary/45 bg-card shadow-e2'
+                            : 'border-border bg-card shadow-e1'
+                        }`}
+                      >
                         <div className="relative">
-                          <div className={`${config.avatar} rounded-full bg-muted border overflow-hidden flex items-center justify-center text-lg font-medium text-muted-foreground ${
-                            config.primary ? 'border-primary' : 'border-border'
-                          }`}>
+                          <div
+                            className={`${tier.avatar} grid place-items-center overflow-hidden rounded-full bg-muted text-lg font-medium text-muted-foreground ${
+                              isFirst ? 'inset-ring-2 inset-ring-primary/60' : 'inset-ring-1 inset-ring-border'
+                            }`}
+                          >
                             {entry.employee?.image_url ? (
-                              <img src={entry.employee.image_url} alt={entry.employee.name} className="w-full h-full object-cover" />
+                              <img src={entry.employee.image_url} alt="" className="h-full w-full object-cover" />
                             ) : (
-                              initials
+                              initialsOf(entry.employee?.name)
                             )}
                           </div>
-                          <span className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold border-2 border-background ${
-                            config.primary ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
-                          }`}>
-                            {entry.rank}
-                          </span>
+                          <RankMedal
+                            rank={entry.rank}
+                            size={tier.medal}
+                            className="absolute -bottom-1 -right-1 ring-2 ring-card"
+                          />
                         </div>
 
-                        <div className="mt-3 flex items-center gap-1.5">
-                          <span className="font-semibold truncate max-w-[12rem]">{entry.employee?.name}</span>
+                        <div className="mt-4 flex max-w-full items-center justify-center gap-1.5">
+                          <h3 className="truncate font-display text-base font-semibold tracking-tight">
+                            {entry.employee?.name}
+                          </h3>
                           {isCurrentUser && (
-                            <span className="text-[10px] font-medium text-primary-strong bg-primary/10 px-1.5 py-0.5 rounded-full flex-shrink-0">You</span>
+                            <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary-strong">
+                              You
+                            </span>
                           )}
                         </div>
                         {entry.employee?.role && (
-                          <p className="text-xs text-muted-foreground truncate max-w-[12rem]">{entry.employee.role}</p>
+                          <p className="mt-0.5 max-w-full truncate text-xs text-muted-foreground">
+                            {entry.employee.role}
+                          </p>
                         )}
-                      </div>
 
-                      {/* Platform — a solid block: lit top face + front face.
-                          The top face is a real bordered element rotated in 3D
-                          (not clip-path), so the outline wraps the whole shape. */}
-                      <div className="w-full">
-                        {/* Top face (desktop only) */}
-                        <div
-                          className={`hidden md:block h-11 border border-b-0 ${config.edge} ${
-                            config.primary
-                              ? 'border-primary/60 bg-primary/[0.16]'
-                              : 'border-border bg-muted'
-                          }`}
-                          style={{ transform: 'perspective(420px) rotateX(58deg)', transformOrigin: 'bottom center' }}
-                          aria-hidden="true"
-                        />
-                        {/* Front face */}
-                        <div
-                          className={`w-full rounded-xl md:rounded-none border md:border-b-0 md:border-t-0 px-4 pt-5 pb-6 flex flex-col items-center ${config.plinth} ${
-                            config.primary
-                              ? 'border-primary/60 bg-primary/[0.11]'
-                              : 'border-border bg-card'
-                          }`}
-                        >
-                        {/* Award badge */}
-                        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${config.badge}`}>
-                          <Icon className={`w-6 h-6 ${config.iconColor}`} aria-hidden="true" />
-                        </div>
-                        <span className="mt-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                          {config.label}
-                        </span>
+                        <p className={`mt-5 font-display font-semibold leading-none tabular-nums ${tier.points}`}>
+                          {entry.total_points}
+                          <span className="sr-only"> points</span>
+                        </p>
+                        <p className="mt-1.5 text-xs text-muted-foreground" aria-hidden="true">points</p>
 
-                        <div className="mt-4 text-center">
-                          <div className="text-3xl sm:text-4xl font-bold tabular-nums leading-none">{entry.total_points}</div>
-                          <div className="text-xs text-muted-foreground mt-1.5">Points</div>
-                        </div>
-
-                        {/* Inner surfaces derive from the foreground token rather
-                            than a fixed white, so they tint with whatever block
-                            they sit in and survive light mode. */}
-                        <div className="mt-4 w-full grid grid-cols-3 rounded-xl border border-sunken-line divide-x divide-sunken-line overflow-hidden">
+                        {/* Where those points came from. Sunken so it reads as
+                            a panel inside the card, not a second card. */}
+                        <div className="mt-5 grid w-full grid-cols-3 divide-x divide-sunken-line overflow-hidden rounded-xl bg-sunken">
                           {[
                             { n: entry.count_first, l: '1st' },
                             { n: entry.count_second, l: '2nd' },
                             { n: entry.count_third, l: '3rd' },
                           ].map(({ n, l }) => (
-                            <div key={l} className="px-1 py-2 text-center bg-sunken">
-                              <div className="text-sm font-semibold tabular-nums leading-none">{n}</div>
-                              <div className="text-[11px] text-muted-foreground mt-1">{l}</div>
+                            <div key={l} className="px-1 py-2.5">
+                              <div className="text-sm font-semibold leading-none tabular-nums">{n}</div>
+                              <div className="mt-1 text-[11px] text-muted-foreground">{l}</div>
                             </div>
                           ))}
                         </div>
 
-                        {/* Always rendered, matching the All Rankings list. Hiding
-                            it at zero made the podium look like notes had been
-                            stripped from the top three rather than simply not
-                            written yet. */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={messageCount === 0}
-                          aria-label={
-                            messageCount === 0
-                              ? `No notes yet for ${entry.employee?.name || 'this person'}`
-                              : `Read ${messageCount} ${messageCount === 1 ? 'note' : 'notes'} for ${entry.employee?.name || 'this person'}`
-                          }
-                          onClick={() => {
-                            if (messageCount === 0) return;
-                            setSelectedEmployee({
-                              name: entry.employee?.name || 'Unknown',
-                              messages: (entry as any).messages || [],
-                              totalPoints: entry.total_points,
-                            });
-                            setReasonsModalOpen(true);
-                          }}
-                          className="w-full mt-3 gap-1.5 bg-sunken border-sunken-line hover:bg-sunken-strong disabled:opacity-60"
-                        >
-                          <MessageCircle className="w-4 h-4" aria-hidden="true" />
-                          <span className="text-sm">
-                            {messageCount === 0
-                              ? 'No notes yet'
-                              : `${messageCount} ${messageCount === 1 ? 'note' : 'notes'}`}
-                          </span>
-                        </Button>
-                        </div>
+                        {/* The reason someone won, in their voters' words. One
+                            element in both states so the three cards keep the
+                            same height and the podium stays level. */}
+                        {messageCount > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => openNotes(entry)}
+                            aria-label={`Read ${messageCount} anonymous ${messageCount === 1 ? 'note' : 'notes'} about ${entry.employee?.name || 'this person'}`}
+                            className="mt-4 min-h-[5.75rem] w-full rounded-xl bg-sunken px-3.5 py-3 text-left transition-colors inset-ring-1 inset-ring-sunken-line hover:bg-sunken-strong"
+                          >
+                            <p className="line-clamp-2 text-sm leading-relaxed text-pretty">
+                              &ldquo;{firstNote}&rdquo;
+                            </p>
+                            <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary-strong">
+                              <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                              {messageCount === 1 ? 'Read the note' : `Read all ${messageCount} notes`}
+                            </span>
+                          </button>
+                        ) : (
+                          <div className="mt-4 flex min-h-[5.75rem] w-full items-center justify-center rounded-xl bg-sunken px-3.5 py-3 text-sm text-muted-foreground inset-ring-1 inset-ring-sunken-line">
+                            No notes left yet.
+                          </div>
+                        )}
+                      </article>
+
+                      {/* The block itself. Decorative — the rank is already
+                          announced by the medal and the list order. */}
+                      <div
+                        className={`hidden place-items-center border border-t-0 border-b-0 md:grid ${tier.height} ${
+                          isFirst ? 'border-primary/45 bg-primary/[0.09]' : 'border-border bg-muted'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        <span className="font-display text-3xl font-bold tabular-nums text-foreground/20">
+                          {entry.rank}
+                        </span>
                       </div>
-                    </div>
+                    </li>
                   );
-                })}</div>
-              {/* Podium floor */}
-              <div className="hidden md:block h-px bg-border" aria-hidden="true" />
+                })}
+              </ol>
+
+              {/* The floor the blocks stand on */}
+              <div className="hidden h-px bg-border md:block" aria-hidden="true" />
             </section>
           )}
 
-          {/* Rest of the team */}
+          {/* Everyone else — one enclosure with hairline rows. A card each
+              would make a team of twenty read as twenty unrelated objects. */}
           {rest.length > 0 && (
             <section aria-labelledby="all-rankings-heading">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center border border-border">
-                  <Award className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold" id="all-rankings-heading">All Rankings</h3>
-              </div>
-              
-              <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+              <h2 id="all-rankings-heading" className="mb-4 font-display text-base font-semibold tracking-tight">
+                The rest of the field
+              </h2>
+
+              <ol className="overflow-hidden rounded-2xl border border-border bg-card shadow-e1 divide-y divide-border">
                 {rest.map((entry, idx) => {
                   const isCurrentUser = entry.employee_id === currentUser.id;
+                  const messageCount = (entry as any).message_count || 0;
 
+                  // One grid, two shapes. On a phone the row wraps to a second
+                  // line so the name gets the width it needs; from `sm` up
+                  // everything sits on one line. The cells move — nothing is
+                  // drawn twice.
                   return (
-                    <div
+                    <li
                       key={entry.employee_id}
-                      className="px-4 sm:px-6 py-4 sm:py-5 animate-fade-in-up transition-colors hover:bg-muted/40"
+                      className="grid animate-fade-in-up grid-cols-[1.25rem_auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 px-4 py-4 transition-colors hover:bg-muted/40 sm:grid-cols-[1.25rem_auto_minmax(0,1fr)_auto_auto] sm:gap-x-4 sm:px-6"
                       style={{ animationDelay: `${Math.min(idx, 12) * 40}ms` }}
                     >
-                      <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                        {/* Rank Badge */}
-                        <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-muted/50 border border-border flex items-center justify-center">
-                          <span className="text-sm sm:text-base font-bold text-muted-foreground">
-                            #{entry.rank}
-                          </span>
-                        </div>
-                        
-                        {/* Avatar & Info */}
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted/50 border border-border flex items-center justify-center">
-                            {entry.employee?.image_url ? (
-                              <img 
-                                src={entry.employee.image_url} 
-                                alt={entry.employee.name}
-                                className="w-full h-full rounded-full object-cover"
-                              />
-                            ) : (
-                              <User className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
-                            )}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="font-semibold truncate text-sm sm:text-base">{entry.employee?.name}</h4>
-                              {isCurrentUser && (
-                                <div className="flex items-center gap-1 text-xs text-primary-strong bg-primary/10 px-2 py-0.5 rounded-full">
-                                  <Star className="w-3 h-3 fill-current" />
-                                  You
-                                </div>
-                              )}
-                            </div>
-                            <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                              {entry.employee?.role}
-                              {entry.employee?.department && (
-                                <span> · {entry.employee.department}</span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {/* Stats - Desktop */}
-                        <div className="hidden sm:flex items-center gap-4">
-                          {/* Total Points - Most Prominent */}
-                          <div className="flex-shrink-0 text-right">
-                            <div className="text-xl sm:text-2xl font-bold">
-                              {entry.total_points}
-                            </div>
-                            <div className="text-xs text-muted-foreground">Points</div>
-                          </div>
-                          
-                          {/* Message Button */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const messageCount = (entry as any).message_count || 0;
-                              if (messageCount > 0) {
-                                setSelectedEmployee({
-                                  name: entry.employee?.name || 'Unknown',
-                                  messages: (entry as any).messages || [],
-                                  totalPoints: entry.total_points
-                                });
-                                setReasonsModalOpen(true);
-                              }
-                            }}
-                            className="flex items-center gap-1.5"
-                            disabled={(entry as any).message_count === 0}
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                            <span>{(entry as any).message_count || 0}</span>
-                          </Button>
-                          
-                          {/* Vote Breakdown */}
-                          <div className="flex items-center gap-3 pl-4 border-l border-border">
-                            <div className="text-center">
-                              <div className="text-sm font-semibold mb-0.5">{entry.count_first}</div>
-                              <div className="text-xs text-muted-foreground">1st</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-sm font-semibold mb-0.5">{entry.count_second}</div>
-                              <div className="text-xs text-muted-foreground">2nd</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-sm font-semibold mb-0.5">{entry.count_third}</div>
-                              <div className="text-xs text-muted-foreground">3rd</div>
-                            </div>
-                          </div>
-                        </div>
+                      <span className="row-span-2 self-center text-right text-sm font-semibold tabular-nums text-muted-foreground">
+                        {entry.rank}
+                      </span>
+
+                      <div className="row-span-2 grid h-10 w-10 shrink-0 place-items-center self-center overflow-hidden rounded-full bg-muted text-muted-foreground inset-ring-1 inset-ring-border sm:h-11 sm:w-11">
+                        {entry.employee?.image_url ? (
+                          <img src={entry.employee.image_url} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <User className="h-5 w-5" aria-hidden="true" />
+                        )}
                       </div>
-                      
-                      {/* Mobile stats */}
-                      <div className="sm:hidden mt-4 space-y-3">
-                        {/* Points */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Total Points</span>
-                          <span className="text-xl font-bold">{entry.total_points}</span>
+
+                      <div className="col-start-3 row-start-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="truncate text-sm font-semibold sm:text-base">{entry.employee?.name}</h3>
+                          {isCurrentUser && (
+                            <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary-strong">
+                              You
+                            </span>
+                          )}
                         </div>
-                        
-                        {/* Vote breakdown */}
-                        <div className="flex items-center gap-3 pt-3 border-t border-border">
-                          <div className="flex-1 text-center">
-                            <div className="text-sm font-semibold mb-0.5">{entry.count_first}</div>
-                            <div className="text-xs text-muted-foreground">1st Place</div>
-                          </div>
-                          <div className="flex-1 text-center">
-                            <div className="text-sm font-semibold mb-0.5">{entry.count_second}</div>
-                            <div className="text-xs text-muted-foreground">2nd Place</div>
-                          </div>
-                          <div className="flex-1 text-center">
-                            <div className="text-sm font-semibold mb-0.5">{entry.count_third}</div>
-                            <div className="text-xs text-muted-foreground">3rd Place</div>
-                          </div>
-                        </div>
-                        
-                        {/* Message button */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const messageCount = (entry as any).message_count || 0;
-                            if (messageCount > 0) {
-                              setSelectedEmployee({
-                                name: entry.employee?.name || 'Unknown',
-                                messages: (entry as any).messages || [],
-                                totalPoints: entry.total_points
-                              });
-                              setReasonsModalOpen(true);
-                            }
-                          }}
-                          className="w-full flex items-center justify-center gap-1.5"
-                          disabled={(entry as any).message_count === 0}
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                          <span>{(entry as any).message_count || 0} Messages</span>
-                        </Button>
+                        <p className="truncate text-xs text-muted-foreground sm:text-sm">
+                          {entry.employee?.role}
+                          {entry.employee?.department && <span> · {entry.employee.department}</span>}
+                        </p>
                       </div>
-                    </div>
+
+                      <div className="col-start-4 row-start-2 flex items-baseline justify-end gap-1.5 text-right sm:row-start-1 sm:block">
+                        <div className="font-display text-lg font-semibold leading-none tabular-nums sm:text-xl">
+                          {entry.total_points}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground sm:mt-1">points</div>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => messageCount > 0 && openNotes(entry)}
+                        disabled={messageCount === 0}
+                        aria-label={
+                          messageCount === 0
+                            ? `No notes yet for ${entry.employee?.name || 'this person'}`
+                            : `Read ${messageCount} ${messageCount === 1 ? 'note' : 'notes'} about ${entry.employee?.name || 'this person'}`
+                        }
+                        className="col-start-4 row-start-1 h-9 shrink-0 gap-1.5 px-2.5 sm:col-start-5"
+                      >
+                        <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                        <span className="tabular-nums">{messageCount}</span>
+                      </Button>
+
+                      {/* The breakdown as one line of prose. The old version
+                          drew it as a stat cluster on desktop and again as a
+                          three-column grid on mobile — same three numbers,
+                          twice the markup, and a row four times as tall on a
+                          phone. */}
+                      <p className="col-start-3 row-start-2 text-xs text-muted-foreground tabular-nums">
+                        {entry.count_first} × 1st · {entry.count_second} × 2nd · {entry.count_third} × 3rd
+                      </p>
+                    </li>
                   );
                 })}
-              </div>
+              </ol>
             </section>
           )}
         </div>
       )}
-      
+
       {/* Voting Reasons Modal */}
       {selectedEmployee && (
         <VotingReasonsModal
