@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Trophy, User, MessageCircle, Calendar, Download } from 'lucide-react';
+import { Trophy, User, MessageCircle, Calendar, Download, Share2 } from 'lucide-react';
 import { Employee, Election, LeaderboardEntry } from '../types';
 import { api } from '../utils/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { VotingReasonsModal } from './VotingReasonsModal';
+import { SharePodiumDialog } from './SharePodiumDialog';
 import { RankMedal } from './RankMedal';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
@@ -38,6 +39,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [reasonsModalOpen, setReasonsModalOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<{
     name: string;
     messages: string[];
@@ -135,6 +137,26 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
       return `${selectedYear} · ${electionsCount} ${unit}`;
     }
   }
+
+  /* What the share card is announcing, in words. Both strings come from the
+     filter state that is already on screen — no query, no recomputation. */
+  function getCardHeadings() {
+    if (selectedYear === 'all-time') {
+      return { title: 'All-time standings', subtitle: getFilterDescription() };
+    }
+    if (selectedMonth && selectedMonth !== 'full-year') {
+      const monthName = months.find(m => m.value === selectedMonth)?.label || '';
+      return { title: 'Employee of the Month', subtitle: `${monthName} ${selectedYear}` };
+    }
+    return { title: `The year in recognition`, subtitle: getFilterDescription() };
+  }
+
+  const sharePeople = topThree.map(entry => ({
+    name: entry.employee?.name || 'Unknown',
+    role: entry.employee?.role,
+    points: entry.total_points,
+    imageUrl: entry.employee?.image_url,
+  }));
 
   function openNotes(entry: LeaderboardEntry) {
     setSelectedEmployee({
@@ -266,17 +288,28 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
             </Select>
           )}
 
-          {/* Export Button */}
+          {/* Admin-only actions, behind the same role check that has always
+              gated the spreadsheet export. */}
           {currentUser.is_admin && (
-            <Button
-              variant="outline"
-              onClick={exportToExcel}
-              className="h-11 gap-2 shrink-0"
-              disabled={leaderboard.length === 0 || loading}
-            >
-              <Download className="w-4 h-4" />
-              Export
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={exportToExcel}
+                className="h-11 gap-2 shrink-0"
+                disabled={leaderboard.length === 0 || loading}
+              >
+                <Download className="w-4 h-4" aria-hidden="true" />
+                Export
+              </Button>
+              <Button
+                onClick={() => setShareOpen(true)}
+                className="h-11 gap-2 shrink-0"
+                disabled={topThree.length === 0 || loading}
+              >
+                <Share2 className="w-4 h-4" aria-hidden="true" />
+                Share podium
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -564,6 +597,15 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
             </section>
           )}
         </div>
+      )}
+
+      {currentUser.is_admin && sharePeople.length > 0 && (
+        <SharePodiumDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          people={sharePeople}
+          {...getCardHeadings()}
+        />
       )}
 
       {/* Voting Reasons Modal */}
