@@ -29,6 +29,25 @@ interface AdminPageProps {
   onElectionCreated: () => void;
 }
 
+/* Two letters, the same as the ballot, the leaderboard and the header. Admin
+   rows showed one, so the same colleague was a different mark depending on
+   which page you were looking at. */
+function initialsOf(name: string) {
+  return (name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
+/* The tab values, in the order they appear. Kept here so `?tab=` can be checked
+   against the real list rather than trusted. */
+const ADMIN_TABS = [
+  'elections',
+  'manage-elections',
+  'employees',
+  'users',
+  'votes',
+  'historical',
+  'activity',
+];
+
 /**
  * The four headline numbers, in one enclosure rather than four floating cards.
  * Four separate cards for four single integers gave each number its own border,
@@ -211,6 +230,13 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
   // Export state
   const [exporting, setExporting] = useState(false);
+
+  /* Which tab to open on. Read once, at mount, because Tabs owns its own state
+     from then on — this seeds it rather than driving it. */
+  const [initialTab] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get('tab');
+    return requested && ADMIN_TABS.includes(requested) ? requested : 'elections';
+  });
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -742,8 +768,10 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
       <StatStrip stats={stats} />
 
-      {/* Tabs */}
-      <Tabs defaultValue="elections" className="w-full">
+      {/* Tabs. `?tab=` makes each one linkable — an admin can send "the votes
+          tab" rather than "the admin page, then click across". Unknown values
+          fall back to the first tab instead of rendering an empty panel. */}
+      <Tabs defaultValue={initialTab} className="w-full">
         <div className="-mx-4 mb-6 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className={TAB_LIST_CLASS}>
             <TabsTrigger value="elections" className={TAB_TRIGGER_CLASS}>
@@ -1224,7 +1252,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                       />
                     ) : (
                       <span className="text-sm font-semibold text-primary-strong">
-                        {employee.name.slice(0, 1).toUpperCase()}
+                        {initialsOf(employee.name)}
                       </span>
                     )}
                   </div>
@@ -1310,7 +1338,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                         aria-hidden="true"
                       >
                         <span className="text-sm font-semibold text-primary-strong">
-                          {(user.name || user.email).slice(0, 1).toUpperCase()}
+                          {initialsOf(user.name || user.email)}
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
