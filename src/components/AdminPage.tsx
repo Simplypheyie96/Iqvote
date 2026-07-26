@@ -757,15 +757,22 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
         {/* Elections Tab */}
         <TabsContent value="elections" className="mt-0">
-          {/* Three questions, in the order you'd ask them out loud: what is it,
-              when does it run, who can win. Each numbered so the form reads as
-              a sequence rather than a wall of fields. */}
+          {/* Every other tab opens with a heading before its content, and this
+              one used to drop you straight into "Step 1" — so it read as a
+              fragment of a page rather than a page. */}
+          <TabHeader
+            title="Create an election"
+            description="Three questions, in the order you'd ask them out loud: what it's called, when it runs, and who can win it."
+          />
+          {/* The steps are numbered so the form reads as a sequence rather than
+              a wall of fields. */}
           {/* Full width, like every other tab. The step cards used to cap at
               max-w-4xl and centre, which made this the only tab that didn't
               reach the edges of the page container — it read as broken next to
-              Elections and Employees. Readability is handled per field instead:
-              the cards fill, and the things inside them that get unreadable when
-              stretched (long descriptions, single inputs) carry their own cap. */}
+              Elections and Employees. Nothing inside them carries a width cap
+              either: one element stopping short of the card holding it is the
+              same bug one level down. Prose is the exception, and only because
+              TabHeader already caps its own description at max-w-prose. */}
           <form onSubmit={handleCreateElection} className="space-y-6">
             <FormSection
               step={1}
@@ -780,7 +787,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                 onChange={(e) => setElectionTitle(e.target.value)}
                 placeholder="December 2026 — Employee of the Month"
                 required
-                className="mt-1.5 h-11 max-w-2xl"
+                className="mt-1.5 h-11"
               />
             </FormSection>
 
@@ -790,9 +797,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
               title="Set the voting window"
               description="Voting opens and closes automatically at these times, in your local timezone."
             >
-              {/* Two datetime fields, capped: a date picker stretched to
-                  1200px is a wide box holding a short string. */}
-              <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <Label htmlFor="start-date">Opens</Label>
                   <Input
@@ -945,7 +950,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
 
             {/* Demoted from a coloured Alert. Nothing is wrong and nothing needs
                 doing — it's a note about how the app works, so it reads like one. */}
-            <p className="flex max-w-3xl items-start gap-2.5 rounded-xl bg-muted/50 px-4 py-3 text-sm text-muted-foreground text-pretty inset-ring-1 inset-ring-border">
+            <p className="flex items-start gap-2.5 rounded-xl bg-muted/50 px-4 py-3 text-sm text-muted-foreground text-pretty inset-ring-1 inset-ring-border">
               <Users className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
                 <span className="font-medium text-foreground">Voters and candidates are separate.</span>{' '}
