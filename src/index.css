@@ -508,30 +508,48 @@
   /*  rather than transparent.                                          */
   /* ---------------------------------------------------------------- */
 
-  /* Header bar, once content is passing underneath it. */
+  /* Header bar, once content is passing underneath it.
+   *
+   * The fill percentages are a contrast floor, not a taste call. Whatever
+   * scrolls under the bar becomes part of the bar's background, so the
+   * nav text has no fixed backdrop — its contrast is whatever happens to
+   * be passing. Measured against the worst case (a dark block in light
+   * mode, a white one in dark), the old 58% / 52% put nav labels at
+   * 2.50:1 and 2.27:1. AA needs 4.5. The floor where it holds is 82% and
+   * 78%; these sit just above it, at ~5.2:1 and ~5.7:1.
+   *
+   * That is still glass, not paint: the blur is heavier now, so what does
+   * come through arrives as diffuse colour and movement rather than a
+   * ghost of the text underneath. Legible frost reads deliberate; a faint
+   * see-through bar reads broken. */
   .glass-bar {
-    background-color: color-mix(in srgb, var(--color-background) 58%, transparent);
-    backdrop-filter: blur(22px) saturate(190%);
-    -webkit-backdrop-filter: blur(22px) saturate(190%);
+    background-color: color-mix(in srgb, var(--color-background) 84%, transparent);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
   }
   .dark .glass-bar {
-    background-color: color-mix(in srgb, var(--color-background) 52%, transparent);
-    /* Dark glass needs a lift or everything behind it muddies into the bar. */
-    backdrop-filter: blur(22px) saturate(160%) brightness(1.18);
-    -webkit-backdrop-filter: blur(22px) saturate(160%) brightness(1.18);
+    background-color: color-mix(in srgb, var(--color-background) 80%, transparent);
+    /* No brightness() here any more. It multiplies the backdrop, so bright
+       content passing under was pulled up toward the bar — the one case
+       the text could least afford. The fill does that job predictably. */
+    backdrop-filter: blur(28px) saturate(155%);
+    -webkit-backdrop-filter: blur(28px) saturate(155%);
   }
 
-  /* Full-bleed sheet behind the mobile menu — same material, heavier,
-     because it has to stay legible over arbitrary page content. */
+  /* Full-bleed sheet behind the mobile menu — same material, heavier.
+     It covers the whole screen over arbitrary content, so it had the same
+     problem worse: 76% / 70% left the menu links at roughly 4.4:1 and
+     3.9:1 in the bad cases. A navigation menu you have to squint at is
+     not a trade worth making for a view of the page you just left. */
   .glass-sheet {
-    background-color: color-mix(in srgb, var(--color-background) 76%, transparent);
-    backdrop-filter: blur(32px) saturate(180%);
-    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    background-color: color-mix(in srgb, var(--color-background) 88%, transparent);
+    backdrop-filter: blur(36px) saturate(180%);
+    -webkit-backdrop-filter: blur(36px) saturate(180%);
   }
   .dark .glass-sheet {
-    background-color: color-mix(in srgb, var(--color-background) 70%, transparent);
-    backdrop-filter: blur(32px) saturate(150%) brightness(1.12);
-    -webkit-backdrop-filter: blur(32px) saturate(150%) brightness(1.12);
+    background-color: color-mix(in srgb, var(--color-background) 85%, transparent);
+    backdrop-filter: blur(36px) saturate(150%);
+    -webkit-backdrop-filter: blur(36px) saturate(150%);
   }
 
   /* The separator. One hairline, drawn from the foreground so it works in
