@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Users, Trophy, Edit2, Trash2, Calendar, Shield, UserCog, TrendingUp, Activity, FileDown, Award, AlertTriangle, Upload, Key, Download, Loader2, Copy, Check as CheckIcon } from 'lucide-react';
+import { useState, useEffect, useCallback, type ComponentType, type ReactNode } from 'react';
+import { Plus, Users, Trophy, Edit2, Trash2, Calendar, Shield, UserCog, TrendingUp, Activity, FileDown, Award, AlertTriangle, Upload, Key, Download, Loader2, Copy, Search, Check as CheckIcon } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Employee, Election } from '../types';
 import { api } from '../utils/api';
@@ -7,7 +7,6 @@ import { createClient } from '../utils/supabase/client';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
@@ -15,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Checkbox } from './ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
+import { TAB_LIST_CLASS, TAB_TRIGGER_CLASS, SUBTAB_LIST_CLASS, SUBTAB_TRIGGER_CLASS } from './ui/tab-pills';
 import { toast } from 'sonner@2.0.3';
 import { EmployeeCard } from './EmployeeCard';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -27,6 +27,111 @@ import { ElectionsManagement } from './ElectionsManagement';
 interface AdminPageProps {
   currentUser: Employee;
   onElectionCreated: () => void;
+}
+
+/**
+ * The four headline numbers, in one enclosure rather than four floating cards.
+ * Four separate cards for four single integers gave each number its own border,
+ * its own shadow and its own inner padding — a lot of furniture around very
+ * little content. One card with hairline dividers reads as a single instrument.
+ */
+function StatStrip({ stats }: { stats: Stats }) {
+  const items = [
+    { label: 'Employees', value: stats.totalEmployees || 0, hint: `${stats.activeEmployees || 0} active`, icon: Users },
+    { label: 'Votes cast', value: stats.totalVotes || 0, hint: 'across all elections', icon: Trophy },
+    { label: 'Running now', value: stats.activeElections || 0, hint: 'open for voting', icon: Activity },
+    { label: 'Completed', value: stats.completedElections || 0, hint: 'past elections', icon: Award },
+  ];
+
+  return (
+    <div className="mb-8 grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-e1 lg:grid-cols-4">
+      {items.map(({ label, value, hint, icon: Icon }, i) => (
+        <div
+          key={label}
+          className={`animate-fade-in-up p-4 sm:p-5 ${i % 2 === 1 ? 'border-l border-border' : ''} ${
+            i > 1 ? 'border-t border-border lg:border-t-0' : ''
+          } ${i === 2 ? 'lg:border-l' : ''}`}
+          style={{ animationDelay: `${i * 60}ms` }}
+        >
+          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+            {label}
+          </div>
+          <div className="mt-2.5 font-display text-3xl font-semibold tabular-nums tracking-tight sm:text-4xl">
+            {value}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The heading every tab opens with. Before this, three of the seven tabs led
+ * with a Card header, two with a bare h3 and two with nothing at all — so
+ * switching tabs moved the first line of content around the screen.
+ */
+function TabHeader({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0">
+        <h3 className="font-display text-xl font-semibold tracking-tight">{title}</h3>
+        <p className="mt-1 max-w-prose text-sm text-muted-foreground text-pretty">{description}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * One numbered step of a long form. The number is the point: creating an
+ * election is three decisions, and a form that shows them as three named steps
+ * is far less daunting than the same fields stacked in one undifferentiated card.
+ */
+function FormSection({
+  step,
+  icon: Icon,
+  title,
+  description,
+  children,
+}: {
+  step: number;
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-e1 sm:p-6">
+      <div className="flex items-start gap-3.5">
+        <span
+          className="mt-0.5 inline-grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/12 text-primary-strong"
+          aria-hidden="true"
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="font-display text-base font-semibold tracking-tight">
+            <span className="mr-2 text-sm font-medium tabular-nums text-muted-foreground">
+              Step {step}
+            </span>
+            {title}
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground text-pretty">{description}</p>
+        </div>
+      </div>
+      <div className="mt-5">{children}</div>
+    </section>
+  );
 }
 
 interface Stats {
@@ -65,7 +170,10 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
   const [electionStartDate, setElectionStartDate] = useState('');
   const [electionEndDate, setElectionEndDate] = useState('');
   const [eligibleEmployees, setEligibleEmployees] = useState<string[]>([]);
-  
+  /* Display-only filter over the candidate list. It never touches what gets
+     submitted — eligibleEmployees is the only thing the API sees. */
+  const [eligibilitySearch, setEligibilitySearch] = useState('');
+
   // Employee form
   const [showEmployeeDialog, setShowEmployeeDialog] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -551,23 +659,37 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
     }
   }
 
+  /* Derived for display only. The submit handler re-checks these itself — this
+     just says out loud, before you press the button, what it would have told
+     you after. */
+  const activeEmployees = employees.filter(e => e.active);
+  const eligibilityQuery = eligibilitySearch.trim().toLowerCase();
+  const visibleCandidates = eligibilityQuery
+    ? activeEmployees.filter(e =>
+        `${e.name} ${e.role ?? ''} ${e.department ?? ''}`.toLowerCase().includes(eligibilityQuery)
+      )
+    : activeEmployees;
+  const datesOutOfOrder =
+    Boolean(electionStartDate && electionEndDate) &&
+    new Date(electionStartDate) >= new Date(electionEndDate);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 sm:mb-8">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-2">
-            Admin Dashboard
+        <div className="min-w-0">
+          <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">
+            Admin
           </h2>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Manage elections, employees, and view analytics
+          <p className="mt-1.5 text-sm text-muted-foreground text-pretty">
+            Run elections, keep the roster current, and see what the team has been doing.
           </p>
         </div>
         <Button
           onClick={handleExportAllData}
           disabled={exporting}
           variant="outline"
-          className="gap-2 shrink-0 w-full sm:w-auto hover:border-primary/50 hover:text-primary-strong transition-colors"
+          className="h-10 gap-2 shrink-0 w-full sm:w-auto"
         >
           {exporting ? (
             <>
@@ -577,7 +699,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           ) : (
             <>
               <Download className="w-4 h-4" />
-              Export All Data
+              Export all data
             </>
           )}
         </Button>
@@ -595,295 +717,288 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
         </Alert>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '0ms' }}>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
-              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Users className="w-4 h-4 text-info" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.totalEmployees || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.activeEmployees || 0} active
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '80ms' }}>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
-              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Trophy className="w-4 h-4 text-primary-strong" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.totalVotes || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Across all elections
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '160ms' }}>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active Elections</CardTitle>
-              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Activity className="w-4 h-4 text-success" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.activeElections || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Currently running
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in-up transition-all duration-300" style={{ animationDelay: '240ms' }}>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
-              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
-                <Award className="w-4 h-4 text-primary-strong" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-semibold tracking-tight tabular-nums">{stats.completedElections || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Past elections
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatStrip stats={stats} />
 
       {/* Tabs */}
       <Tabs defaultValue="elections" className="w-full">
-        <div className="w-full overflow-x-auto">
-          <TabsList className="w-full sm:w-auto inline-flex">
-            <TabsTrigger value="elections" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
-              Create Election
+        <div className="-mx-4 mb-6 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList className={TAB_LIST_CLASS}>
+            <TabsTrigger value="elections" className={TAB_TRIGGER_CLASS}>
+              New election
             </TabsTrigger>
-            <TabsTrigger value="manage-elections" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
-              Manage Elections
+            <TabsTrigger value="manage-elections" className={TAB_TRIGGER_CLASS}>
+              Elections
             </TabsTrigger>
-            <TabsTrigger value="employees" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
+            <TabsTrigger value="employees" className={TAB_TRIGGER_CLASS}>
               Employees
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
+            <TabsTrigger value="users" className={TAB_TRIGGER_CLASS}>
               Users
             </TabsTrigger>
-            <TabsTrigger value="votes" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
+            <TabsTrigger value="votes" className={TAB_TRIGGER_CLASS}>
               Votes
             </TabsTrigger>
-            <TabsTrigger value="historical" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
+            <TabsTrigger value="historical" className={TAB_TRIGGER_CLASS}>
               Historical
             </TabsTrigger>
-            <TabsTrigger value="activity" className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-5">
+            <TabsTrigger value="activity" className={TAB_TRIGGER_CLASS}>
               Activity
             </TabsTrigger>
           </TabsList>
         </div>
 
         {/* Elections Tab */}
-        <TabsContent value="elections" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <Calendar className="w-5 h-5 text-primary-strong" />
-                Create New Election
-              </CardTitle>
-              <CardDescription>
-                Set up a new voting period for IQ Vote
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreateElection} className="space-y-4">
+        <TabsContent value="elections" className="mt-0">
+          {/* Three questions, in the order you'd ask them out loud: what is it,
+              when does it run, who can win. Each numbered so the form reads as
+              a sequence rather than a wall of fields. */}
+          <form onSubmit={handleCreateElection} className="max-w-3xl space-y-6">
+            <FormSection
+              step={1}
+              icon={Calendar}
+              title="Name the election"
+              description="Voters see this at the top of the ballot, so use the month it covers."
+            >
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={electionTitle}
+                onChange={(e) => setElectionTitle(e.target.value)}
+                placeholder="December 2026 — Employee of the Month"
+                required
+                className="mt-1.5 h-11"
+              />
+            </FormSection>
+
+            <FormSection
+              step={2}
+              icon={Activity}
+              title="Set the voting window"
+              description="Voting opens and closes automatically at these times, in your local timezone."
+            >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="title">Election Title</Label>
+                  <Label htmlFor="start-date">Opens</Label>
                   <Input
-                    id="title"
-                    value={electionTitle}
-                    onChange={(e) => setElectionTitle(e.target.value)}
-                    placeholder="e.g., December 2024 IQ Vote"
+                    id="start-date"
+                    type="datetime-local"
+                    value={electionStartDate}
+                    onChange={(e) => setElectionStartDate(e.target.value)}
                     required
-                    className="mt-1.5"
+                    className="mt-1.5 h-11"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="start-date">Start Date & Time</Label>
-                    <Input
-                      id="start-date"
-                      type="datetime-local"
-                      value={electionStartDate}
-                      onChange={(e) => setElectionStartDate(e.target.value)}
-                      required
-                      className="mt-1.5"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="end-date">End Date & Time</Label>
-                    <Input
-                      id="end-date"
-                      type="datetime-local"
-                      value={electionEndDate}
-                      onChange={(e) => setElectionEndDate(e.target.value)}
-                      required
-                      className="mt-1.5"
-                    />
-                  </div>
-                </div>
-
                 <div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                    <Label>Eligible Employees ({eligibleEmployees.length} selected)</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEligibleEmployees(employees.filter(e => e.active).map(e => e.id))}
-                        className="text-xs sm:text-sm"
-                      >
-                        Select All
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEligibleEmployees([])}
-                        className="text-xs sm:text-sm"
-                      >
-                        Clear
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 bg-muted/30 border border-border rounded-xl">
-                    {employees.filter(e => e.active).map(employee => (
-                      <div key={employee.id} className="flex items-start gap-2">
-                        <Checkbox
-                          id={`eligible-${employee.id}`}
-                          checked={eligibleEmployees.includes(employee.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setEligibleEmployees([...eligibleEmployees, employee.id]);
-                            } else {
-                              setEligibleEmployees(eligibleEmployees.filter(id => id !== employee.id));
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={`eligible-${employee.id}`}
-                          className="text-sm font-medium cursor-pointer flex-1"
-                        >
-                          {employee.name}
-                          <span className="block text-xs text-muted-foreground">{employee.role}</span>
-                        </label>
-                      </div>
-                    ))}
-                    {employees.filter(e => e.active).length === 0 && (
-                      <p className="text-sm text-muted-foreground col-span-full text-center py-4">
-                        No active employees found. Add employees in the Employees tab first.
-                      </p>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Only selected employees will be eligible to receive votes in this election
-                  </p>
+                  <Label htmlFor="end-date">Closes</Label>
+                  <Input
+                    id="end-date"
+                    type="datetime-local"
+                    value={electionEndDate}
+                    onChange={(e) => setElectionEndDate(e.target.value)}
+                    required
+                    aria-invalid={datesOutOfOrder}
+                    aria-describedby={datesOutOfOrder ? 'date-order-error' : undefined}
+                    className="mt-1.5 h-11"
+                  />
                 </div>
+              </div>
 
-                <Alert className="border-info/50 bg-info/10">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <AlertDescription className="text-info text-xs">
-                    <strong>Important:</strong> ALL registered users (including admins) can vote in this election. The employees selected above are candidates who can RECEIVE votes. This separation allows executives and managers to participate in voting without being candidates themselves.
-                  </AlertDescription>
-                </Alert>
+              {/* Says it here, next to the field that's wrong, instead of after
+                  the submit that would have failed. Same rule, same wording. */}
+              {datesOutOfOrder && (
+                <p
+                  id="date-order-error"
+                  role="alert"
+                  className="mt-3 flex items-center gap-2 text-sm font-medium text-destructive"
+                >
+                  <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  Start time must be before end time
+                </p>
+              )}
+            </FormSection>
 
-                <Button type="submit" disabled={loading || eligibleEmployees.length === 0} className="gap-2">
-                  {loading ? (
-                    <>
-                      <LoadingSpinner size="sm" inline />
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      Create Election
-                    </>
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+            <FormSection
+              step={3}
+              icon={Users}
+              title="Choose who can be voted for"
+              description="Everyone with an account votes. These are the people they can vote for."
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="relative flex-1">
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <Input
+                    type="search"
+                    value={eligibilitySearch}
+                    onChange={(e) => setEligibilitySearch(e.target.value)}
+                    placeholder="Search by name, role or team"
+                    aria-label="Filter the candidate list"
+                    className="h-11 pl-9"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEligibleEmployees(employees.filter(e => e.active).map(e => e.id))}
+                    className="h-11 flex-1 sm:flex-none"
+                  >
+                    Select all
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEligibleEmployees([])}
+                    disabled={eligibleEmployees.length === 0}
+                    className="h-11 flex-1 sm:flex-none"
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </div>
+
+              {/* 20rem clears six two-line rows outright. Past that the list
+                  scrolls and the seventh row is deliberately cut in half —
+                  a sliver of a row is the only honest way to say there's more. */}
+              <div className="mt-4 max-h-80 overflow-y-auto rounded-xl border border-border">
+                {visibleCandidates.map((employee, i) => {
+                  const checked = eligibleEmployees.includes(employee.id);
+                  return (
+                    <label
+                      key={employee.id}
+                      htmlFor={`eligible-${employee.id}`}
+                      className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors duration-150 ${
+                        i > 0 ? 'border-t border-border' : ''
+                      } ${checked ? 'bg-primary/8' : 'hover:bg-muted/50'}`}
+                    >
+                      <Checkbox
+                        id={`eligible-${employee.id}`}
+                        checked={checked}
+                        onCheckedChange={(isChecked) => {
+                          if (isChecked) {
+                            setEligibleEmployees([...eligibleEmployees, employee.id]);
+                          } else {
+                            setEligibleEmployees(eligibleEmployees.filter(id => id !== employee.id));
+                          }
+                        }}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{employee.name}</span>
+                        {employee.role && (
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {employee.role}
+                            {employee.department ? ` · ${employee.department}` : ''}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  );
+                })}
+
+                {activeEmployees.length === 0 && (
+                  <p className="px-4 py-10 text-center text-sm text-muted-foreground text-pretty">
+                    No active employees yet. Add people in the Employees tab first.
+                  </p>
+                )}
+
+                {activeEmployees.length > 0 && visibleCandidates.length === 0 && (
+                  <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    Nobody matches “{eligibilitySearch.trim()}”.
+                  </p>
+                )}
+              </div>
+
+              <p className="mt-3 text-sm text-muted-foreground tabular-nums" aria-live="polite">
+                {eligibleEmployees.length === 0
+                  ? 'Nobody selected yet — pick at least one candidate.'
+                  : `${eligibleEmployees.length} of ${activeEmployees.length} selected`}
+              </p>
+            </FormSection>
+
+            {/* Demoted from a coloured Alert. Nothing is wrong and nothing needs
+                doing — it's a note about how the app works, so it reads like one. */}
+            <p className="flex items-start gap-2.5 rounded-xl bg-muted/50 px-4 py-3 text-sm text-muted-foreground text-pretty inset-ring-1 inset-ring-border">
+              <Users className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>
+                <span className="font-medium text-foreground">Voters and candidates are separate.</span>{' '}
+                Everyone with an account can vote, including admins. Only the people you selected
+                above can receive votes — so managers can take part without competing.
+              </span>
+            </p>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button
+                type="submit"
+                disabled={loading || eligibleEmployees.length === 0 || datesOutOfOrder}
+                className="h-11 gap-2 sm:w-auto"
+              >
+                {loading ? (
+                  <>
+                    <LoadingSpinner size="sm" inline />
+                    Creating…
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    Create election
+                  </>
+                )}
+              </Button>
+              {eligibleEmployees.length === 0 && (
+                <p className="text-sm text-muted-foreground">Select at least one candidate to continue.</p>
+              )}
+            </div>
+          </form>
         </TabsContent>
 
         {/* Manage Elections Tab */}
-        <TabsContent value="manage-elections" className="space-y-6">
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-1">Manage Elections</h3>
-            <p className="text-sm text-muted-foreground">
-              View, search, and delete elections across all time periods
-            </p>
-          </div>
+        <TabsContent value="manage-elections" className="mt-0">
+          <TabHeader
+            title="Elections"
+            description="Every election ever run — search them, open them, or remove one that was created by mistake."
+          />
           <ElectionsManagement />
         </TabsContent>
 
         {/* Employees Tab */}
-        <TabsContent value="employees" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary-strong" />
-                    Employee Management
-                  </CardTitle>
-                  <CardDescription>
-                    Add, edit, or remove employees from the system
-                  </CardDescription>
-                </div>
+        <TabsContent value="employees" className="mt-0">
+          <TabHeader
+            title="Employees"
+            description="The people who can receive votes. Everyone here is a candidate; voting accounts live under Users."
+          >
                 <Dialog open={showEmployeeDialog} onOpenChange={setShowEmployeeDialog}>
                   <DialogTrigger asChild>
-                    <Button onClick={() => openEmployeeDialog()} className="gap-2 w-full sm:w-auto">
+                    <Button onClick={() => openEmployeeDialog()} className="h-11 gap-2 w-full shrink-0 sm:w-auto">
                       <Plus className="w-4 h-4" />
-                      Add Employee
+                      Add employee
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
                       <DialogTitle>
-                        {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
+                        {editingEmployee ? 'Edit employee' : 'Add an employee'}
                       </DialogTitle>
                       <DialogDescription>
-                        {editingEmployee 
-                          ? 'Update employee information below'
-                          : 'Enter the details for the new employee'
+                        {editingEmployee
+                          ? `Update ${editingEmployee.name}'s details.`
+                          : 'They become a candidate as soon as you add them to an election.'
                         }
                       </DialogDescription>
                     </DialogHeader>
 
                     <form onSubmit={handleSaveEmployee} className="space-y-4">
                       <div>
-                        <Label htmlFor="emp-name">Full Name</Label>
+                        <Label htmlFor="emp-name">Full name</Label>
                         <Input
                           id="emp-name"
                           value={employeeForm.name}
                           onChange={(e) => setEmployeeForm({ ...employeeForm, name: e.target.value })}
-                          placeholder="John Doe"
+                          placeholder="Ngozi Okonkwo"
                           required
-                          className="mt-1.5"
+                          className="mt-1.5 h-11"
                         />
                       </div>
 
@@ -894,9 +1009,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                           type="email"
                           value={employeeForm.email}
                           onChange={(e) => setEmployeeForm({ ...employeeForm, email: e.target.value })}
-                          placeholder="john.doe@company.com"
+                          placeholder="n.okonkwo@braindao.org"
                           required
-                          className="mt-1.5"
+                          className="mt-1.5 h-11"
                         />
                       </div>
 
@@ -906,31 +1021,36 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                           id="emp-role"
                           value={employeeForm.role}
                           onChange={(e) => setEmployeeForm({ ...employeeForm, role: e.target.value })}
-                          placeholder="Software Engineer"
+                          placeholder="Protocol Engineer"
                           required
-                          className="mt-1.5"
+                          className="mt-1.5 h-11"
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="emp-department">Department</Label>
+                        <Label htmlFor="emp-department">
+                          Department <span className="font-normal text-muted-foreground">(optional)</span>
+                        </Label>
                         <Input
                           id="emp-department"
                           value={employeeForm.department}
                           onChange={(e) => setEmployeeForm({ ...employeeForm, department: e.target.value })}
                           placeholder="Engineering"
-                          className="mt-1.5"
+                          className="mt-1.5 h-11"
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="emp-image">Profile Image URL</Label>
+                        <Label htmlFor="emp-image">
+                          Photo <span className="font-normal text-muted-foreground">(optional)</span>
+                        </Label>
                         <div className="flex gap-2 mt-1.5">
                           <Input
                             id="emp-image"
                             value={employeeForm.image_url}
                             onChange={(e) => setEmployeeForm({ ...employeeForm, image_url: e.target.value })}
-                            placeholder="https://example.com/image.jpg"
+                            placeholder="Paste an image URL"
+                            className="h-11"
                           />
                           <input
                             type="file"
@@ -964,30 +1084,32 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                               e.target.value = '';
                             }}
                           />
-                          <Button 
-                            type="button" 
-                            variant="outline" 
+                          <Button
+                            type="button"
+                            variant="outline"
                             size="icon"
+                            aria-label="Upload a photo from your computer"
                             onClick={() => document.getElementById('image-upload')?.click()}
+                            className="h-11 w-11 shrink-0"
                           >
                             <Upload className="w-4 h-4" />
                           </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Enter a URL or click upload to select an image
+                        <p className="text-xs text-muted-foreground mt-1.5">
+                          Paste a link, or upload a file under 5&nbsp;MB.
                         </p>
                       </div>
 
                       {editingEmployee && (
-                        <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-xl border border-border">
-                          <div className="flex items-center gap-3">
-                            <Shield className="w-5 h-5 text-primary-strong" />
+                        <div className="flex items-center justify-between gap-4 rounded-xl bg-muted/50 px-4 py-3.5 inset-ring-1 inset-ring-border">
+                          <div className="flex items-start gap-3">
+                            <Shield className="mt-0.5 h-5 w-5 shrink-0 text-primary-strong" aria-hidden="true" />
                             <div>
                               <Label htmlFor="emp-admin" className="cursor-pointer">
-                                Admin Access
+                                Admin access
                               </Label>
-                              <p className="text-xs text-muted-foreground">
-                                Grants permission to create elections and manage employees
+                              <p className="mt-0.5 text-xs text-muted-foreground text-pretty">
+                                Can create elections and manage everyone here.
                               </p>
                             </div>
                           </div>
@@ -999,285 +1121,289 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                         </div>
                       )}
 
-                      <div className="flex gap-2 pt-4">
-                        <Button type="submit" disabled={loading} className="flex-1">
-                          {loading ? 'Saving...' : editingEmployee ? 'Update' : 'Create'}
-                        </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          type="button"
+                          variant="outline"
                           onClick={() => setShowEmployeeDialog(false)}
+                          className="h-11 flex-1"
                         >
                           Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading} className="h-11 flex-1">
+                          {loading ? 'Saving…' : editingEmployee ? 'Save changes' : 'Add employee'}
                         </Button>
                       </div>
                     </form>
                   </DialogContent>
                 </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {employees.map(employee => (
-                  <div
-                    key={employee.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-all"
+          </TabHeader>
+
+          {/* One enclosure, hairline-separated rows. Each employee used to be
+              its own bordered card, which made a roster of twenty read as
+              twenty unrelated objects instead of one list. */}
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
+            {employees.map((employee, i) => (
+              <div
+                key={employee.id}
+                className={`flex flex-col gap-4 p-4 transition-colors duration-150 hover:bg-muted/40 sm:flex-row sm:items-center sm:px-5 ${
+                  i > 0 ? 'border-t border-border' : ''
+                }`}
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/12 inset-ring-1 inset-ring-border">
+                    {employee.image_url ? (
+                      <img
+                        src={employee.image_url}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold text-primary-strong">
+                        {employee.name.slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="truncate font-medium">{employee.name}</span>
+                      {employee.is_admin && employee.email !== 'ajayifey@gmail.com' && (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/12 px-2 py-0.5 text-xs font-medium text-primary-strong">
+                          <Shield className="h-3 w-3" aria-hidden="true" />
+                          Admin
+                        </span>
+                      )}
+                      {!employee.active && (
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                      {[employee.role, employee.department].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => openEmployeeDialog(employee)}
+                    className="h-10 flex-1 gap-2 sm:flex-none"
                   >
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
-                        {employee.image_url ? (
-                          <img 
-                            src={employee.image_url} 
-                            alt={employee.name}
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <Users className="w-6 h-6 text-primary-strong" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
-                          <span className="truncate">{employee.name}</span>
-                          {employee.is_admin && employee.email !== 'ajayifey@gmail.com' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary-strong border border-primary/20 text-xs flex-shrink-0">
-                              <Shield className="w-3 h-3" />
-                              Admin
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-2">
-                          <span className="truncate">{employee.role}</span>
-                          {employee.department && (
-                            <>
-                              <span className="hidden sm:inline">•</span>
-                              <span className="truncate">{employee.department}</span>
-                            </>
-                          )}
-                          {!employee.active && (
-                            <>
-                              <span className="hidden sm:inline">•</span>
-                              <span className="text-destructive flex-shrink-0">Inactive</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 self-end sm:self-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEmployeeDialog(employee)}
-                        className="gap-2 flex-1 sm:flex-none"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                        <span className="sm:inline">Edit</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteEmployee(employee.id)}
-                        className="gap-2 hover:border-destructive/50 hover:text-destructive flex-1 sm:flex-none"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        <span className="sm:inline">Delete</span>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {employees.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p className="mb-2">No employees found. Add your first employee to get started.</p>
-                    <p className="text-xs">Note: To make a user an admin, they need to sign up first, then you can update their profile in the database.</p>
-                  </div>
-                )}
+                    <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDeleteEmployee(employee.id)}
+                    className="h-10 flex-1 gap-2 hover:border-destructive/50 hover:text-destructive sm:flex-none"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    Delete
+                  </Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
 
+            {employees.length === 0 && (
+              <div className="px-6 py-16 text-center">
+                <div
+                  className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-muted"
+                  aria-hidden="true"
+                >
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <p className="mt-4 font-medium">No employees yet</p>
+                <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground text-pretty">
+                  Add the first one and they can be put forward as a candidate in your next election.
+                </p>
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* Users Tab */}
-        <TabsContent value="users" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary-strong" />
-                User Management
-              </CardTitle>
-              <CardDescription>
-                View all registered users (voters) and manage their admin permissions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Alert className="mb-6 border-info/50 bg-info/10">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <AlertDescription className="text-info text-sm">
-                  <strong>Note:</strong> Users are people who can vote. Employees (in the Employees tab) are candidates who can receive votes. These are two separate groups - executives can vote without being votable. Click "Make Employee" to convert a user into a votable employee.
-                </AlertDescription>
-              </Alert>
+        <TabsContent value="users" className="mt-0">
+          <TabHeader
+            title="Users"
+            description="Everyone with an account. They can all vote — being a candidate is separate, and set under Employees."
+          />
 
-              <div className="space-y-3">
-                {users.map(user => {
-                  const isEmployee = isUserAnEmployee(user.id);
-                  return (
-                    <div
-                      key={user.id}
-                      className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-all"
-                    >
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-12 h-12 flex-shrink-0 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
-                          <Users className="w-6 h-6 text-primary-strong" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold flex flex-wrap items-center gap-2 mb-1">
-                            <span className="truncate">{user.name}</span>
-                            {user.is_admin && user.email !== 'ajayifey@gmail.com' && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-primary/10 text-primary-strong border border-primary/20 text-xs flex-shrink-0">
-                                <Shield className="w-3 h-3" />
-                                Admin
-                              </span>
-                            )}
-                            {isEmployee && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl bg-success/10 text-success border border-success/20 text-xs flex-shrink-0">
-                                <Users className="w-3 h-3" />
-                                Employee
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            <div className="truncate">{user.email}</div>
-                            {user.role && (
-                              <div className="text-xs mt-0.5 truncate">{user.role}</div>
-                            )}
-                            <div className="text-xs mt-1">
-                              Signed up: {new Date(user.created_at).toLocaleDateString()}
-                            </div>
-                          </div>
-                        </div>
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
+            {users.map((user, i) => {
+              const isEmployee = isUserAnEmployee(user.id);
+              return (
+                <div
+                  key={user.id}
+                  className={`p-4 transition-colors duration-150 hover:bg-muted/40 sm:px-5 ${
+                    i > 0 ? 'border-t border-border' : ''
+                  }`}
+                >
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                    <div className="flex min-w-0 flex-1 items-center gap-4">
+                      <div
+                        className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/12 inset-ring-1 inset-ring-border"
+                        aria-hidden="true"
+                      >
+                        <span className="text-sm font-semibold text-primary-strong">
+                          {(user.name || user.email).slice(0, 1).toUpperCase()}
+                        </span>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3">
-                        {!isEmployee && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleConvertToEmployee(user.id)}
-                            disabled={loading}
-                            className="gap-2 whitespace-nowrap"
-                          >
-                            <Plus className="w-3 h-3" />
-                            Make Employee
-                          </Button>
-                        )}
-                        <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 sm:p-0 bg-muted/30 sm:bg-transparent rounded-xl sm:rounded-none border sm:border-0">
-                          <Label htmlFor={`admin-${user.id}`} className="text-sm cursor-pointer">
-                            Admin
-                          </Label>
-                          <Switch
-                            id={`admin-${user.id}`}
-                            checked={user.is_admin}
-                            onCheckedChange={() => handleToggleUserAdmin(user.id, user.is_admin)}
-                            disabled={loading || user.id === currentUser.id}
-                          />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="truncate font-medium">{user.name}</span>
+                          {user.is_admin && user.email !== 'ajayifey@gmail.com' && (
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/12 px-2 py-0.5 text-xs font-medium text-primary-strong">
+                              <Shield className="h-3 w-3" aria-hidden="true" />
+                              Admin
+                            </span>
+                          )}
+                          {isEmployee && (
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-success/12 px-2 py-0.5 text-xs font-medium text-success">
+                              <Users className="h-3 w-3" aria-hidden="true" />
+                              Candidate
+                            </span>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex gap-2 self-end sm:self-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setUserToResetPassword(user);
-                            setNewPassword('');
-                            setShowResetPasswordDialog(true);
-                          }}
-                          className="gap-2 flex-1 sm:flex-none"
-                        >
-                          <Key className="w-3 h-3" />
-                          <span className="sm:inline">Reset Pwd</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setUserToDelete(user);
-                            setDeleteUserConfirmText('');
-                            setShowDeleteUserDialog(true);
-                          }}
-                          className="gap-2 flex-1 sm:flex-none"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          <span className="sm:inline">Delete</span>
-                        </Button>
+                        <p className="mt-0.5 truncate text-sm text-muted-foreground">{user.email}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {user.role ? `${user.role} · ` : ''}
+                          Joined {new Date(user.created_at).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
 
-                {users.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p className="mb-2">No users found.</p>
-                    <p className="text-xs">Users appear here when they sign up to the system.</p>
+                    <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
+                      {!isEmployee && (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleConvertToEmployee(user.id)}
+                          disabled={loading}
+                          className="h-10 gap-2 whitespace-nowrap"
+                        >
+                          <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                          Make candidate
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setUserToResetPassword(user);
+                          setNewPassword('');
+                          setShowResetPasswordDialog(true);
+                        }}
+                        className="h-10 gap-2"
+                      >
+                        <Key className="w-3.5 h-3.5" aria-hidden="true" />
+                        Reset password
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setUserToDelete(user);
+                          setDeleteUserConfirmText('');
+                          setShowDeleteUserDialog(true);
+                        }}
+                        className="h-10 gap-2 hover:border-destructive/50 hover:text-destructive"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                        Delete
+                      </Button>
+                      {/* The one switch on the row, held apart from the buttons
+                          by a divider — it changes what someone can do, the
+                          buttons only open a dialog. */}
+                      <div className="ml-auto flex items-center gap-2.5 lg:ml-0 lg:border-l lg:border-border lg:pl-4">
+                        <Label htmlFor={`admin-${user.id}`} className="cursor-pointer text-sm">
+                          Admin
+                        </Label>
+                        <Switch
+                          id={`admin-${user.id}`}
+                          checked={user.is_admin}
+                          onCheckedChange={() => handleToggleUserAdmin(user.id, user.is_admin)}
+                          disabled={loading || user.id === currentUser.id}
+                        />
+                      </div>
+                    </div>
                   </div>
-                )}
+                </div>
+              );
+            })}
+
+            {users.length === 0 && (
+              <div className="px-6 py-16 text-center">
+                <div
+                  className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-muted"
+                  aria-hidden="true"
+                >
+                  <Shield className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <p className="mt-4 font-medium">No users yet</p>
+                <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground text-pretty">
+                  People appear here the moment they sign up.
+                </p>
               </div>
-            </CardContent>
-          </Card>
-          
+            )}
+          </div>
+
           {/* Delete User Dialog */}
           <Dialog open={showDeleteUserDialog} onOpenChange={setShowDeleteUserDialog}>
             <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
               <DialogHeader className="flex-shrink-0">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6 text-destructive" />
-                  </div>
+                <div
+                  className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-destructive/12"
+                  aria-hidden="true"
+                >
+                  <AlertTriangle className="h-6 w-6 text-destructive" />
                 </div>
-                <DialogTitle className="text-center">Delete User Account?</DialogTitle>
-                <DialogDescription className="text-center">
-                  This will permanently delete the user account for{' '}
-                  <span className="font-semibold">{userToDelete?.name}</span>
+                <DialogTitle className="mt-4 text-center">
+                  Delete {userToDelete?.name}&apos;s account?
+                </DialogTitle>
+                <DialogDescription className="text-center text-pretty">
+                  They are signed out straight away and can sign up again with the same email.
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4 overflow-y-auto flex-1 pr-2">
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
-                      <li>User will be signed out immediately</li>
-                      <li>All their authentication data will be deleted</li>
-                      <li>Their votes and voting history will be preserved</li>
-                      <li>If they are an employee, their employee record will remain</li>
-                      <li>They can sign up again with the same email</li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
+              <div className="flex-1 space-y-4 overflow-y-auto">
+                {/* Split by outcome, because "their votes are preserved" is
+                    reassurance and sat oddly inside a red danger box with the
+                    things that actually disappear. */}
+                <div className="rounded-xl bg-muted/50 p-4 inset-ring-1 inset-ring-border">
+                  <p className="text-sm font-medium">What gets deleted</p>
+                  <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                    Their sign-in account and password.
+                  </p>
+                  <p className="mt-3 text-sm font-medium">What stays</p>
+                  <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                    Every vote they cast, and their employee record if they have one.
+                  </p>
+                </div>
 
                 {userToDelete?.email === 'ajayifey@gmail.com' && (
                   <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription className="font-semibold">
-                      This is the system owner account. Deleting it is not recommended!
+                    <AlertDescription className="font-medium">
+                      This is the system owner account. Deleting it is not recommended.
                     </AlertDescription>
                   </Alert>
                 )}
 
                 <div>
                   <Label htmlFor="delete-confirm" className="text-sm">
-                    Type <span className="font-mono bg-muted px-1.5 py-0.5 rounded">DELETE</span> to confirm:
+                    Type <span className="rounded bg-muted px-1.5 py-0.5 font-mono">DELETE</span> to
+                    confirm
                   </Label>
                   <Input
                     id="delete-confirm"
                     value={deleteUserConfirmText}
                     onChange={(e) => setDeleteUserConfirmText(e.target.value)}
-                    placeholder="Type DELETE here"
-                    className="mt-2"
+                    placeholder="DELETE"
+                    className="mt-2 h-11"
                     autoComplete="off"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 flex-shrink-0 pt-4 border-t">
+              <div className="flex flex-shrink-0 gap-3 border-t border-border pt-4">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -1286,7 +1412,7 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                     setUserToDelete(null);
                   }}
                   disabled={deletingUser}
-                  className="flex-1"
+                  className="h-11 flex-1"
                 >
                   Cancel
                 </Button>
@@ -1294,9 +1420,9 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                   variant="destructive"
                   onClick={() => userToDelete && handleDeleteUser(userToDelete.id)}
                   disabled={deleteUserConfirmText !== 'DELETE' || deletingUser}
-                  className="flex-1"
+                  className="h-11 flex-1"
                 >
-                  {deletingUser ? 'Deleting...' : 'Delete User'}
+                  {deletingUser ? 'Deleting…' : 'Delete account'}
                 </Button>
               </div>
             </DialogContent>
@@ -1306,57 +1432,29 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
           <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
             <DialogContent className="max-w-md flex flex-col">
               <DialogHeader className="flex-shrink-0">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Key className="w-6 h-6 text-primary-strong" />
-                  </div>
+                <div
+                  className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary/12"
+                  aria-hidden="true"
+                >
+                  <Key className="h-6 w-6 text-primary-strong" />
                 </div>
-                <DialogTitle className="text-center">Reset Password</DialogTitle>
-                <DialogDescription className="text-center">
-                  Set a temporary password for{' '}
-                  <span className="font-semibold text-foreground">{userToResetPassword?.name}</span>
+                <DialogTitle className="mt-4 text-center">Set a temporary password</DialogTitle>
+                <DialogDescription className="text-center text-pretty">
+                  This replaces {userToResetPassword?.name}&apos;s current password immediately.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="rounded-xl border border-border bg-muted/40 p-4">
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary-strong font-bold mt-0.5">•</span>
-                      Their password will be replaced with the one you set
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary-strong font-bold mt-0.5">•</span>
-                      Share the temporary password with them via Slack or WhatsApp
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary-strong font-bold mt-0.5">•</span>
-                      They can change it in their Profile after logging in
-                    </li>
-                  </ul>
-                </div>
-
-                {userToResetPassword?.email === 'ajayifey@gmail.com' && (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription className="font-semibold">
-                      This is the system owner account. Resetting the password is not recommended!
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="space-y-3 my-2">
-                  <Label htmlFor="new-password" className="text-sm font-medium">
-                    New Password
-                  </Label>
-                  <div className="flex rounded-xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+                <div>
+                  <Label htmlFor="new-password">New password</Label>
+                  <div className="mt-1.5 flex h-11 overflow-hidden rounded-xl border border-border transition-shadow focus-within:border-primary focus-within:ring-2 focus-within:ring-ring/40">
                     <input
                       id="new-password"
                       type="text"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter temporary password"
-                      className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+                      placeholder="At least 6 characters"
+                      className="min-w-0 flex-1 bg-transparent px-3.5 text-sm outline-none placeholder:text-muted-foreground"
                       autoComplete="off"
                     />
                     <button
@@ -1367,19 +1465,36 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                         setCopiedPassword(true);
                         setTimeout(() => setCopiedPassword(false), 2000);
                       }}
-                      title="Copy password"
-                      className="flex items-center gap-1.5 px-3 bg-info text-info-foreground hover:bg-info/90 active:bg-info/85 text-xs font-medium transition-colors border-l border-info shrink-0"
+                      disabled={!newPassword}
+                      className="flex shrink-0 items-center gap-1.5 border-l border-border px-3.5 text-xs font-medium transition-colors duration-150 hover:bg-muted disabled:opacity-50"
                     >
-                      {copiedPassword
-                        ? <><CheckIcon className="w-3.5 h-3.5" /> Copied</>
-                        : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                      {copiedPassword ? (
+                        <>
+                          <CheckIcon className="h-3.5 w-3.5 text-success" aria-hidden="true" /> Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" aria-hidden="true" /> Copy
+                        </>
+                      )}
                     </button>
                   </div>
-                  <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
+                  <p className="mt-2 text-xs text-muted-foreground text-pretty">
+                    Send it to them yourself — they can change it from their profile once they&apos;re in.
+                  </p>
                 </div>
+
+                {userToResetPassword?.email === 'ajayifey@gmail.com' && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="font-medium">
+                      This is the system owner account. Resetting the password is not recommended.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
-              <div className="flex gap-3 flex-shrink-0 pt-4 border-t mt-2">
+              <div className="mt-2 flex flex-shrink-0 gap-3 border-t border-border pt-4">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -1390,16 +1505,16 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
                     setUserToResetPassword(null);
                   }}
                   disabled={resettingPassword}
-                  className="flex-1"
+                  className="h-11 flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => userToResetPassword && handleResetPassword(userToResetPassword.id)}
                   disabled={newPassword.length < 6 || resettingPassword}
-                  className="flex-1"
+                  className="h-11 flex-1"
                 >
-                  {resettingPassword ? 'Resetting...' : 'Reset Password'}
+                  {resettingPassword ? 'Resetting…' : 'Reset password'}
                 </Button>
               </div>
             </DialogContent>
@@ -1407,45 +1522,49 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
         </TabsContent>
 
         {/* Votes Tab */}
-        <TabsContent value="votes" className="space-y-6">
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-1">Vote Management</h3>
-            <p className="text-sm text-muted-foreground">
-              View who has voted and manage votes while protecting voter privacy
-            </p>
-          </div>
+        <TabsContent value="votes" className="mt-0">
+          <TabHeader
+            title="Votes"
+            description="Check turnout for any election."
+          />
           <VoteManagement />
         </TabsContent>
 
         {/* Historical Data Tab */}
-        <TabsContent value="historical" className="space-y-6">
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-1">Import Historical Elections</h3>
-            <p className="text-sm text-muted-foreground">
-              Import past voting data into the system from various sources
-            </p>
-          </div>
+        <TabsContent value="historical" className="mt-0">
+          <TabHeader
+            title="Import past results"
+            description="Bring elections that ran before IQ Vote into the leaderboard."
+          />
 
           <Tabs defaultValue="leaderboard" className="w-full">
-            <div className="w-full overflow-x-auto">
-              <TabsList className="w-full sm:w-auto inline-flex">
-                <TabsTrigger value="leaderboard" className="flex-1 sm:flex-none">Google Sheets Leaderboard</TabsTrigger>
-                <TabsTrigger value="single" className="flex-1 sm:flex-none">Single Election</TabsTrigger>
+            <div className="-mx-4 mb-6 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <TabsList className={SUBTAB_LIST_CLASS}>
+                <TabsTrigger value="leaderboard" className={SUBTAB_TRIGGER_CLASS}>
+                  Google Sheets leaderboard
+                </TabsTrigger>
+                <TabsTrigger value="single" className={SUBTAB_TRIGGER_CLASS}>
+                  Single election
+                </TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="leaderboard" className="mt-6">
+            <TabsContent value="leaderboard" className="mt-0">
               <LeaderboardImport />
             </TabsContent>
 
-            <TabsContent value="single" className="mt-6">
+            <TabsContent value="single" className="mt-0">
               <HistoricalDataImport />
             </TabsContent>
           </Tabs>
         </TabsContent>
 
         {/* Activity Tab */}
-        <TabsContent value="activity" className="space-y-6">
+        <TabsContent value="activity" className="mt-0">
+          <TabHeader
+            title="Activity"
+            description="A running log of what admins have changed and when."
+          />
           <SystemActivity />
         </TabsContent>
       </Tabs>
