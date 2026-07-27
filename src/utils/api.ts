@@ -178,6 +178,14 @@ export const api = {
     apiCall(`/admin/elections/${electionId}/notify`, {
       method: 'POST',
     }),
+
+  /* Omit `emails` to write to everyone still to vote; pass a subset to narrow
+     it. Either way the server only mails within its own non-voter set. */
+  remindNonVoters: (electionId: string, emails?: string[]) =>
+    apiCall(`/admin/elections/${electionId}/remind-non-voters`, {
+      method: 'POST',
+      body: JSON.stringify({ emails }),
+    }),
   
   getElectionVoteCounts: () => apiCall('/admin/elections/vote-counts'),
   
