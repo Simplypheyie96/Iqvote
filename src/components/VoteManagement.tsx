@@ -266,7 +266,13 @@ export function VoteManagement() {
     users.map(u => u.email?.toLowerCase()).filter(Boolean) as string[]
   );
 
-  /* An older election may predate the eligibility field, in which case every
+  /* Scoped to the people on the ballot, deliberately — not to everyone who
+     holds an account and could vote. An account holder who isn't standing as a
+     candidate never appears here and is never reminded. See "Still to vote
+     means candidates, not all voters" in docs/architecture.md before widening
+     this; the company-wide blast on the Elections tab is the other case.
+
+     An older election may predate the eligibility field, in which case every
      employee was on the ballot — fall back to that rather than claiming nobody
      was standing. */
   const ballotCandidates = selectedElection?.eligible_employees?.length

@@ -28,6 +28,23 @@ Consequences worth remembering:
   `is_admin: true` — see `isSuperAdmin()` in the server. Only they can reset the
   database once users exist.
 
+### "Still to vote" means candidates, not all voters
+
+The turnout list in Admin → Votes, and the reminder that sends from it, are
+scoped to the election's `eligible_employees` — the people **on the ballot**.
+Someone who holds an account and could vote, but isn't standing as a candidate,
+does not appear there and is never sent a reminder.
+
+This is intended, and confirmed by the builder. Do not "fix" it by widening the
+list to every account holder. If you widen it, the count under the heading stops
+matching the ballot it is counting against, and the admin blast on the Elections
+tab — which does write to everyone — loses its reason to be a separate thing.
+
+The reminder endpoint recomputes this set server-side on every request and mails
+only within it, so a stale client list can never reach someone who has since
+voted, and the endpoint cannot be pointed at arbitrary addresses. That guarantee
+lives in `getElectionNonVoters()`; keep it there if you touch this.
+
 ## Storage
 
 Everything lives in one Supabase table, `kv_store_e2c9f810` (`key TEXT PRIMARY
@@ -66,8 +83,10 @@ per-id query inside a loop is the main way this app gets slow.
 ## Frontend
 
 React + Vite + Tailwind v4. Design tokens live in `src/index.css` under
-`@theme` and `.dark`; the app is dark-only, with `.dark` applied to
-`<html>` by `ThemeProvider`.
+`@theme` and `.dark`. The app has real light and dark themes on the IQ.wiki
+token set: `ThemeProvider` resolves a stored `light` / `dark` / `system`
+preference and applies `.dark` to `<html>`, and an inline script in
+`index.html` paints the saved choice before first render so there is no flash.
 
 `App.tsx` owns auth and the top-level data fetch. Two flags gate the shell:
 `loading` (auth resolved) and `dataReady` (first data fetch settled). Both must
