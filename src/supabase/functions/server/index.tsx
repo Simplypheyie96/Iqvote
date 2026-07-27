@@ -261,11 +261,16 @@ app.post('/make-server-e2c9f810/auth/reset-password', async (c) => {
 
 // ─── Email notifications via Brevo ───────────────────────────────────────────
 
-async function sendElectionNotificationEmails(election: any) {
-  const brevoApiKey = Deno.env.get('BREVO_API_KEY');
-  if (!brevoApiKey) {
+/* Both sends — "everyone" and "only the ones still to vote" — go out through
+   the same door: same key check, same sender round-robin, same batching, same
+   error shape. Only the recipients and the words differ, so only those are
+   arguments. */
+
+function getBrevoConfig() {
+  const apiKey = Deno.env.get('BREVO_API_KEY');
+  if (!apiKey) {
     console.log('BREVO_API_KEY not set — skipping email notification');
-    return { sent: 0, skipped: true };
+    return null;
   }
 
   // Support multiple comma-separated sender emails e.g. "a@gmail.com,b@gmail.com"
@@ -276,19 +281,88 @@ async function sendElectionNotificationEmails(election: any) {
 
   if (senders.length === 0) {
     console.log('BREVO_FROM_EMAIL not set — skipping email notification');
-    return { sent: 0, skipped: true };
+    return null;
   }
+
+  return { apiKey, senders };
+}
+
+const fmtDateTime = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+
+async function sendBrevoBatch(
+  config: { apiKey: string; senders: string[] },
+  recipients: any[],
+  subject: string,
+  html: string,
+  label: string
+) {
+  let sent = 0;
+  const errors: string[] = [];
+
+  // Send in batches of 5 to avoid hitting Brevo rate limits
+  const BATCH_SIZE = 5;
+  for (let b = 0; b < recipients.length; b += BATCH_SIZE) {
+    const batch = recipients.slice(b, b + BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (u: any, j: number) => {
+        const i = b + j;
+        // Round-robin across available senders, but never send from the recipient's own address
+        const eligibleSenders = config.senders.filter((s: string) => s !== u.email);
+        const pool = eligibleSenders.length > 0 ? eligibleSenders : config.senders;
+        const senderEmail = pool[i % pool.length];
+        try {
+          const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+              'api-key': config.apiKey,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              sender: { name: 'IQ Vote', email: senderEmail },
+              to: [{ email: u.email, name: u.name || u.email }],
+              subject,
+              htmlContent: html,
+            }),
+          });
+          if (res.ok) {
+            sent++;
+          } else {
+            const err = await res.json().catch(() => ({}));
+            const msg = (err as any).message || res.status;
+            errors.push(`${u.email} (via ${senderEmail}): ${msg}`);
+            console.log(`Send failed — to: ${u.email}, sender: ${senderEmail}, error: ${msg}`);
+          }
+        } catch (err: any) {
+          errors.push(`${u.email} (via ${senderEmail}): ${err.message}`);
+          console.log(`Send threw — to: ${u.email}, sender: ${senderEmail}, error: ${err.message}`);
+        }
+      })
+    );
+    // Small pause between batches
+    if (b + BATCH_SIZE < recipients.length) {
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
+
+  if (errors.length) console.log('Email send errors:', errors);
+  console.log(`${label}: sent ${sent}/${recipients.length} emails`);
+  return { sent, total: recipients.length, errors };
+}
+
+async function sendElectionNotificationEmails(election: any) {
+  const config = getBrevoConfig();
+  if (!config) return { sent: 0, skipped: true };
 
   const appUrl = Deno.env.get('APP_URL') || 'https://iqvote.vercel.app';
 
   const users = await kv.getByPrefix('user:');
   const recipients = users.filter((u: any) => u.active !== false && u.email);
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
+  const fmt = fmtDateTime;
 
   const html = `
 <!DOCTYPE html>
@@ -325,57 +399,151 @@ async function sendElectionNotificationEmails(election: any) {
 </body>
 </html>`;
 
-  let sent = 0;
-  const errors: string[] = [];
+  return await sendBrevoBatch(
+    config,
+    recipients,
+    `🗳️ ${election.title} — Voting is now open!`,
+    html,
+    'Election notification'
+  );
+}
 
-  // Send in batches of 5 to avoid hitting Brevo rate limits
-  const BATCH_SIZE = 5;
-  for (let b = 0; b < recipients.length; b += BATCH_SIZE) {
-    const batch = recipients.slice(b, b + BATCH_SIZE);
-    await Promise.all(
-      batch.map(async (u: any, j: number) => {
-        const i = b + j;
-        // Round-robin across available senders, but never send from the recipient's own address
-        const eligibleSenders = senders.filter((s: string) => s !== u.email);
-        const pool = eligibleSenders.length > 0 ? eligibleSenders : senders;
-        const senderEmail = pool[i % pool.length];
-        try {
-          const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-            method: 'POST',
-            headers: {
-              'api-key': brevoApiKey,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              sender: { name: 'IQ Vote', email: senderEmail },
-              to: [{ email: u.email, name: u.name || u.email }],
-              subject: `🗳️ ${election.title} — Voting is now open!`,
-              htmlContent: html,
-            }),
-          });
-          if (res.ok) {
-            sent++;
-          } else {
-            const err = await res.json().catch(() => ({}));
-            const msg = (err as any).message || res.status;
-            errors.push(`${u.email} (via ${senderEmail}): ${msg}`);
-            console.log(`Send failed — to: ${u.email}, sender: ${senderEmail}, error: ${msg}`);
-          }
-        } catch (err: any) {
-          errors.push(`${u.email} (via ${senderEmail}): ${err.message}`);
-          console.log(`Send threw — to: ${u.email}, sender: ${senderEmail}, error: ${err.message}`);
-        }
-      })
-    );
-    // Small pause between batches
-    if (b + BATCH_SIZE < recipients.length) {
-      await new Promise(r => setTimeout(r, 300));
-    }
+/* Who on this election's ballot still owes a vote.
+
+   Deliberately the same rule the Votes screen shows, worked out again here
+   rather than trusted from the client: the screen's copy of turnout can be
+   minutes old, and a stale list means mailing someone who has already voted.
+
+   Email is the join key, not id. An employee converted from a user account
+   shares that user's id, but an admin-created one gets a fresh UUID, so
+   matching on id alone quietly misses people. Match on either. */
+async function getElectionNonVoters(election: any) {
+  const ballots = await kv.getByPrefix(`ballot:${election.id}:`);
+  const counting = ballots.filter((b: any) => !b.revoked);
+
+  const allUsers = await kv.getByPrefix('user:');
+  const usersById = new Map(allUsers.map((u: any) => [u.id, u]));
+  const usersByEmail = new Map(
+    allUsers.filter((u: any) => u.email).map((u: any) => [u.email.toLowerCase(), u])
+  );
+
+  const votedIds = new Set(counting.map((b: any) => b.voter_id).filter(Boolean));
+  const votedEmails = new Set(
+    counting
+      .map((b: any) => usersById.get(b.voter_id)?.email?.toLowerCase())
+      .filter(Boolean)
+  );
+
+  const allEmployees = (await kv.getByPrefix('employee:')).filter((e: any) => e.active !== false);
+
+  /* An older election may predate the eligibility field, in which case every
+     employee was on the ballot — fall back to that rather than claiming nobody
+     was standing. */
+  const candidates = election.eligible_employees?.length
+    ? election.eligible_employees
+        .map((id: string) => allEmployees.find((e: any) => e.id === id))
+        .filter(Boolean)
+    : allEmployees;
+
+  const nonVoters = candidates.filter(
+    (e: any) => !votedIds.has(e.id) && !(e.email && votedEmails.has(e.email.toLowerCase()))
+  );
+
+  /* Someone with no sign-in cannot cast a ballot however hard you chase them,
+     and mail to an address with no account is a reminder nobody can act on.
+     Return the user record, because that is what the sender needs. */
+  const reachable = nonVoters
+    .map((e: any) => {
+      const account = e.email ? usersByEmail.get(e.email.toLowerCase()) || usersById.get(e.id) : usersById.get(e.id);
+      return account?.email && account.active !== false ? account : null;
+    })
+    .filter(Boolean);
+
+  // One person can hold two employee rows; one reminder each is plenty.
+  const seen = new Set<string>();
+  const recipients = reachable.filter((u: any) => {
+    const key = u.email.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return { candidates, nonVoters, recipients };
+}
+
+async function sendVoteReminderEmails(election: any, only?: string[]) {
+  const config = getBrevoConfig();
+  if (!config) return { sent: 0, skipped: true };
+
+  const appUrl = Deno.env.get('APP_URL') || 'https://iqvote.vercel.app';
+  const { nonVoters, recipients } = await getElectionNonVoters(election);
+
+  /* The admin may have unticked some names. Narrow to their choice, but only
+     ever within the set the server itself worked out — this endpoint is a
+     reminder, not a way to mail an arbitrary address. */
+  let targets = recipients;
+  if (Array.isArray(only)) {
+    /* An empty list means "nobody", not "everyone" — the caller asked for a
+       specific set and that set happens to be empty. */
+    const wanted = new Set(only.map((e: any) => String(e).toLowerCase()));
+    targets = recipients.filter((u: any) => wanted.has(u.email.toLowerCase()));
   }
 
-  if (errors.length) console.log('Email send errors:', errors);
-  console.log(`Election notification: sent ${sent}/${recipients.length} emails`);
-  return { sent, total: recipients.length, errors };
+  const closes = new Date(election.end_time);
+  const msLeft = closes.getTime() - Date.now();
+  const hoursLeft = Math.max(0, Math.round(msLeft / 3_600_000));
+  const timeLeft = msLeft <= 0
+    ? 'Voting has closed.'
+    : hoursLeft < 48
+      ? `Only ${hoursLeft} ${hoursLeft === 1 ? 'hour' : 'hours'} left.`
+      : `${Math.round(hoursLeft / 24)} days left.`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,#781444,#ff007a);padding:32px 40px;">
+          <h1 style="margin:0;color:#ffffff;font-size:28px;letter-spacing:-0.5px;">IQ Vote</h1>
+          <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:14px;">Employee Recognition Platform</p>
+        </td></tr>
+        <!-- Body -->
+        <tr><td style="padding:40px;">
+          <h2 style="margin:0 0 8px;color:#111;font-size:22px;">⏰ Your vote is still missing</h2>
+          <p style="margin:0 0 24px;color:#555;font-size:15px;">Most of the team has voted. Yours hasn't come in yet — it takes about a minute.</p>
+          <!-- Election card -->
+          <div style="background:#fdf2f7;border:1px solid #f0c0d8;border-radius:10px;padding:24px;margin-bottom:28px;">
+            <h3 style="margin:0 0 12px;color:#781444;font-size:18px;">${election.title}</h3>
+            <p style="margin:4px 0;color:#444;font-size:14px;">⏰ <strong>Closes:</strong> ${fmtDateTime(election.end_time)}</p>
+            <p style="margin:4px 0;color:#781444;font-size:14px;"><strong>${timeLeft}</strong></p>
+          </div>
+          <!-- CTA -->
+          <a href="${appUrl}" style="display:inline-block;background:#781444;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:600;">
+            Cast your vote →
+          </a>
+          <p style="margin:28px 0 0;color:#999;font-size:12px;">You received this because our records show you haven't voted in this election yet. If you have just voted, please ignore this.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  const result = await sendBrevoBatch(
+    config,
+    targets,
+    `⏰ ${election.title} — you haven't voted yet`,
+    html,
+    'Vote reminder'
+  );
+
+  /* `unreachable` is the honest gap between the list on screen and the mail
+     that could actually be sent: people on the ballot with no account. */
+  return { ...result, nonVoters: nonVoters.length, unreachable: nonVoters.length - recipients.length };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1204,6 +1372,37 @@ app.post('/make-server-e2c9f810/admin/elections/:id/notify', async (c) => {
     return c.json(result);
   } catch (error) {
     console.log('Notify election error:', error);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+/* Remind only the people who still owe a vote.
+
+   The company-wide send is a blunt instrument once voting is underway: it
+   writes to everyone, including the people who already did the thing it is
+   asking them to do, and a reminder that reaches someone who has voted teaches
+   them to ignore the next one. This writes to the remainder only.
+
+   Optional body { emails: [...] } narrows it further to the names the admin
+   ticked. The server still works out the non-voter set itself and only mails
+   within it, so a stale screen can't reach someone who has since voted. */
+app.post('/make-server-e2c9f810/admin/elections/:id/remind-non-voters', async (c) => {
+  try {
+    const user = await getAuthenticatedUser(c.req.raw);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    if (!(await isUserAdmin(user.id))) return c.json({ error: 'Admin access required' }, 403);
+
+    const electionId = c.req.param('id');
+    const election = await kv.get(`election:${electionId}`);
+    if (!election) return c.json({ error: 'Election not found' }, 404);
+
+    const body = await c.req.json().catch(() => ({}));
+    const only = Array.isArray(body?.emails) ? body.emails : undefined;
+
+    const result = await sendVoteReminderEmails(election, only);
+    return c.json(result);
+  } catch (error) {
+    console.log('Remind non-voters error:', error);
     return c.json({ error: String(error) }, 500);
   }
 });

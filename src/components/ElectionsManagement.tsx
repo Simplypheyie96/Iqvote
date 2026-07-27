@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Trash2, AlertCircle, AlertTriangle, CheckCircle2, Calendar, Clock, Search, Users, Vote, Play, X, Bell } from 'lucide-react';
+import { Trash2, AlertCircle, CheckCircle2, Calendar, Clock, Search, Users, Vote, Play, X, Bell } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Alert, AlertDescription } from './ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Badge } from './ui/badge';
+import { EmailSendResult } from './EmailSendResult';
 import { api } from '../utils/api';
+import { describeSendResult, type SendOutcome } from '../utils/emailSend';
 
 interface Election {
   id: string;
@@ -26,90 +28,6 @@ interface ElectionWithVotes extends Election {
   voteCount?: number;
 }
 
-/* The outcome of one "Remind everyone" press, as one thing rather than a green
-   banner and a red banner arguing with each other. */
-interface NotifyResult {
-  tone: 'success' | 'warning' | 'error';
-  title: string;
-  cause?: string;
-  fix?: string;
-  fixHref?: string;
-  fixLabel?: string;
-  detail?: string;
-}
-
-/* Brevo repeats the same sentence once per recipient, prefixed with who it was
-   for. Sixteen identical paragraphs is not sixteen pieces of information — fold
-   them down to the distinct complaints and say how many people each one hit. */
-function summariseFailures(failures: string[]): string {
-  const counts = new Map<string, number>();
-  for (const failure of failures) {
-    const message = failure.replace(/^\S+@\S+\s*\(via[^)]*\)\s*:\s*/, '').trim() || failure;
-    counts.set(message, (counts.get(message) || 0) + 1);
-  }
-
-  const distinct = [...counts.entries()].sort((a, b) => b[1] - a[1]);
-  const shown = distinct.slice(0, 2).map(([message, n]) => {
-    const clipped = message.length > 260 ? `${message.slice(0, 260)}…` : message;
-    return `“${clipped}” (${n} ${n === 1 ? 'recipient' : 'recipients'})`;
-  });
-
-  if (distinct.length > shown.length) {
-    shown.push(`and ${distinct.length - shown.length} other ${distinct.length - shown.length === 1 ? 'error' : 'errors'}`);
-  }
-  return shown.join(' · ');
-}
-
-/* Brevo answers with one message per recipient, and those messages say very
-   different things — a blocked IP is not an unverified sender is not a rate
-   limit. This screen used to print the same guess over all of them ("check that
-   both sender emails are verified"), which sends you off to inspect the one
-   thing that usually isn't wrong. Read what Brevo actually said instead. */
-function diagnoseSendFailure(failures: string[]): Pick<NotifyResult, 'cause' | 'fix' | 'fixHref' | 'fixLabel'> {
-  const all = failures.join(' ').toLowerCase();
-
-  if (all.includes('unrecognised ip') || all.includes('unrecognized ip') || all.includes('authorised_ips')) {
-    return {
-      cause: 'Brevo refused the API key because the call came from an IP address it does not recognise — the Authorised IPs security setting is switched on.',
-      fix: 'Switch that setting off in Brevo. Adding the address from the message below only holds until it changes, and it changes constantly: the server runs on Supabase Edge Functions, which have no fixed outbound IP.',
-      fixHref: 'https://app.brevo.com/security/authorised_ips',
-      fixLabel: 'Open Authorised IPs in Brevo',
-    };
-  }
-
-  if (all.includes('sender') && (all.includes('not valid') || all.includes('not verified') || all.includes('unknown'))) {
-    return {
-      cause: 'Brevo rejected the address the mail was sent from.',
-      fix: 'Every address in BREVO_FROM_EMAIL has to be verified as a sender in Brevo before it can send.',
-      fixHref: 'https://app.brevo.com/senders/list',
-      fixLabel: 'Open Senders in Brevo',
-    };
-  }
-
-  if (all.includes('rate limit') || all.includes('too many') || all.includes('429') || all.includes('credit')) {
-    return {
-      cause: 'Brevo throttled the account, or the sending plan ran out of credits.',
-      fix: 'Check the plan and daily limit, then press Remind everyone again — the ones that already went out will simply arrive twice for those people.',
-      fixHref: 'https://app.brevo.com/billing/plan',
-      fixLabel: 'Open the plan in Brevo',
-    };
-  }
-
-  if (all.includes('key not found') || all.includes('unauthorized') || all.includes('api key')) {
-    return {
-      cause: 'Brevo did not accept the API key at all.',
-      fix: 'Check BREVO_API_KEY on the Supabase Edge Function — a revoked or mistyped key looks exactly like this.',
-    };
-  }
-
-  return {
-    cause: 'Brevo rejected these sends and the reason is in its own words below.',
-    fix: 'If the wording is unfamiliar, the Brevo dashboard logs the same failures with more context.',
-    fixHref: 'https://app.brevo.com/log',
-    fixLabel: 'Open the Brevo email log',
-  };
-}
-
 export function ElectionsManagement() {
   const [elections, setElections] = useState<ElectionWithVotes[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -125,7 +43,7 @@ export function ElectionsManagement() {
 
   // Notify
   const [notifyingId, setNotifyingId] = useState<string | null>(null);
-  const [notifyResult, setNotifyResult] = useState<NotifyResult | null>(null);
+  const [notifyResult, setNotifyResult] = useState<SendOutcome | null>(null);
 
   // Close/Reopen dialog
   const [showStatusDialog, setShowStatusDialog] = useState(false);
@@ -172,38 +90,7 @@ export function ElectionsManagement() {
     setNotifyResult(null);
     try {
       const result = await api.notifyElection(election.id);
-
-      if (result.skipped) {
-        setNotifyResult({
-          tone: 'error',
-          title: 'Email is not configured, so nothing was sent.',
-          cause: 'The server has no Brevo API key or no sender address, so it never attempted a send.',
-          fix: 'Set BREVO_API_KEY and BREVO_FROM_EMAIL on the Supabase Edge Function, then redeploy it.',
-        });
-        return;
-      }
-
-      const failures: string[] = result.errors || [];
-      const total = result.total ?? result.sent;
-
-      if (failures.length === 0) {
-        setNotifyResult({
-          tone: 'success',
-          title: `Reminder sent to all ${result.sent} ${result.sent === 1 ? 'person' : 'people'}.`,
-        });
-        return;
-      }
-
-      /* Nothing arriving is a failure, not a success with a footnote. The old
-         copy announced "Sent 0/16 emails" in green next to the red one. */
-      setNotifyResult({
-        tone: result.sent === 0 ? 'error' : 'warning',
-        title: result.sent === 0
-          ? `None of the ${total} reminders went out.`
-          : `${result.sent} of ${total} reminders went out. ${failures.length} failed.`,
-        ...diagnoseSendFailure(failures),
-        detail: summariseFailures(failures),
-      });
+      setNotifyResult(describeSendResult(result, { audience: 'with an account' }));
     } catch (err: any) {
       setNotifyResult({
         tone: 'error',
@@ -454,61 +341,7 @@ export function ElectionsManagement() {
         </Alert>
       )}
 
-      {/* The result of a reminder send. One banner, in the tone the outcome
-          actually deserves, and — when it failed — the cause and the fix rather
-          than a wall of Brevo's own prose to interpret yourself. */}
-      {notifyResult && (
-        <Alert
-          className={
-            notifyResult.tone === 'success' ? 'border-success/50 bg-success/10'
-              : notifyResult.tone === 'warning' ? 'border-warning/50 bg-warning/10'
-              : 'border-destructive/50 bg-destructive/10'
-          }
-        >
-          {notifyResult.tone === 'success'
-            ? <CheckCircle2 className="h-4 w-4 text-success" />
-            : notifyResult.tone === 'warning'
-              ? <AlertTriangle className="h-4 w-4 text-warning" />
-              : <AlertCircle className="h-4 w-4 text-destructive" />}
-          <AlertTitle
-            className={
-              notifyResult.tone === 'success' ? 'text-success'
-                : notifyResult.tone === 'warning' ? 'text-warning'
-                : 'text-destructive'
-            }
-          >
-            {notifyResult.title}
-          </AlertTitle>
-          {(notifyResult.cause || notifyResult.fix || notifyResult.detail) && (
-            <AlertDescription className="gap-2">
-              {notifyResult.cause && <p>{notifyResult.cause}</p>}
-              {notifyResult.fix && (
-                <p>
-                  {notifyResult.fix}
-                  {notifyResult.fixHref && (
-                    <>
-                      {' '}
-                      <a
-                        href={notifyResult.fixHref}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
-                      >
-                        {notifyResult.fixLabel || 'Open Brevo'}
-                      </a>
-                    </>
-                  )}
-                </p>
-              )}
-              {notifyResult.detail && (
-                <p className="mt-1 break-words text-xs text-muted-foreground/80">
-                  Brevo said: {notifyResult.detail}
-                </p>
-              )}
-            </AlertDescription>
-          )}
-        </Alert>
-      )}
+      <EmailSendResult result={notifyResult} />
 
       {/* A bare search field. It was wrapped in a Card, which gave a single
           input the same visual weight as a whole section of content. */}

@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Trash2, AlertCircle, CheckCircle2, XCircle, Search, FileDown, UserX } from 'lucide-react';
+import { Trash2, AlertCircle, CheckCircle2, XCircle, Search, FileDown, UserX, Bell } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Alert, AlertDescription } from './ui/alert';
+import { Checkbox } from './ui/checkbox';
 import { Skeleton } from './ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Textarea } from './ui/textarea';
+import { EmailSendResult } from './EmailSendResult';
 import { api } from '../utils/api';
+import { describeSendResult, type SendOutcome } from '../utils/emailSend';
 
 interface Ballot {
   voter_id: string;
@@ -68,6 +70,15 @@ export function VoteManagement() {
   // Search/filter state for voters
   const [voterSearch, setVoterSearch] = useState('');
 
+  /* Reminders. Held as the people the admin has *unticked* rather than the ones
+     ticked, so everyone still to vote is a recipient by default and anyone who
+     appears later — a candidate added mid-election — is included without the
+     selection needing to be resynced behind the scenes. */
+  const [excludedFromReminder, setExcludedFromReminder] = useState<Set<string>>(new Set());
+  const [showRemindDialog, setShowRemindDialog] = useState(false);
+  const [sendingReminder, setSendingReminder] = useState(false);
+  const [reminderResult, setReminderResult] = useState<SendOutcome | null>(null);
+
   useEffect(() => {
     loadElections();
     loadEmployees();
@@ -78,6 +89,9 @@ export function VoteManagement() {
     if (selectedElectionId) {
       loadVotes();
     }
+    // A different election is a different set of people to chase.
+    setExcludedFromReminder(new Set());
+    setReminderResult(null);
   }, [selectedElectionId]);
 
   async function loadElections() {
@@ -274,6 +288,66 @@ export function VoteManagement() {
      Only claim that when the roster actually loaded. */
   const hasAccount = (e: any) =>
     users.length === 0 || (!!e.email && accountEmails.has(e.email.toLowerCase()));
+
+  /* Who a reminder could actually reach: still to vote, has an address, has a
+     way in. Mailing the other two groups would be a message nobody can act on.
+     Deduplicated by address, because one person can hold two employee rows and
+     one reminder each is plenty. */
+  const remindable = nonVoters.filter((e: any) => e.email && hasAccount(e));
+  const remindableByEmail = new Map<string, any>();
+  for (const e of remindable) {
+    const key = e.email.toLowerCase();
+    if (!remindableByEmail.has(key)) remindableByEmail.set(key, e);
+  }
+  const reminderRecipients = [...remindableByEmail.entries()]
+    .filter(([email]) => !excludedFromReminder.has(email))
+    .map(([, employee]) => employee);
+
+  const isReminding = (e: any) =>
+    !!e.email && !excludedFromReminder.has(e.email.toLowerCase());
+
+  function toggleReminder(employee: any) {
+    const key = employee.email?.toLowerCase();
+    if (!key) return;
+    setExcludedFromReminder(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  function setAllReminders(on: boolean) {
+    setExcludedFromReminder(
+      on ? new Set() : new Set(remindableByEmail.keys())
+    );
+  }
+
+  async function handleSendReminders() {
+    if (!selectedElectionId || reminderRecipients.length === 0) return;
+
+    setSendingReminder(true);
+    setError(null);
+    setSuccess(null);
+    setReminderResult(null);
+
+    try {
+      const result = await api.remindNonVoters(
+        selectedElectionId,
+        reminderRecipients.map((e: any) => e.email)
+      );
+      setReminderResult(describeSendResult(result, { audience: 'still to vote' }));
+      setShowRemindDialog(false);
+    } catch (err: any) {
+      setReminderResult({
+        tone: 'error',
+        title: err.message || 'The reminder request never reached the server.',
+      });
+      setShowRemindDialog(false);
+    } finally {
+      setSendingReminder(false);
+    }
+  }
 
   // Group elections by status
   const now = new Date();
@@ -542,15 +616,55 @@ export function VoteManagement() {
               turnout; this tells you who to go and ask. Same enclosure and the
               same shared search, so the two read as one pair. */}
           <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-e1">
-            <div className="border-b border-border p-5 sm:p-6">
-              <h3 className="flex items-center gap-2 font-display text-base font-semibold tracking-tight">
-                <UserX className="w-4 h-4 text-muted-foreground" />
-                Still to vote
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground tabular-nums text-pretty">
-                {nonVoters.length} of {ballotCandidates.length} on this ballot {nonVoters.length === 1 ? 'has' : 'have'} not voted
-              </p>
+            <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+              <div>
+                <h3 className="flex items-center gap-2 font-display text-base font-semibold tracking-tight">
+                  <UserX className="w-4 h-4 text-muted-foreground" />
+                  Still to vote
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground tabular-nums text-pretty">
+                  {nonVoters.length} of {ballotCandidates.length} on this ballot {nonVoters.length === 1 ? 'has' : 'have'} not voted
+                </p>
+                {/* Sits with the count it changes, not under the button — a
+                    text link tucked beneath a filled button reads as an
+                    afterthought and crowds it. */}
+                {remindableByEmail.size > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setAllReminders(reminderRecipients.length === 0)}
+                    className="mt-2 rounded-sm text-xs text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    {reminderRecipients.length === 0 ? 'Select everyone' : 'Clear selection'}
+                  </button>
+                )}
+              </div>
+
+              {/* Chasing these people is the whole reason the list exists, so
+                  the way to do it sits in the list's own header rather than on
+                  the elections screen, where the only option writes to everyone
+                  — including the people who have already voted. */}
+              {remindableByEmail.size > 0 && (
+                <Button
+                  onClick={() => setShowRemindDialog(true)}
+                  disabled={reminderRecipients.length === 0 || sendingReminder}
+                  className="h-11 w-full shrink-0 gap-2 sm:w-auto"
+                >
+                  <Bell className="w-4 h-4" aria-hidden="true" />
+                  {sendingReminder
+                    ? 'Sending…'
+                    : `Remind ${reminderRecipients.length} ${reminderRecipients.length === 1 ? 'person' : 'people'}`}
+                </Button>
+              )}
             </div>
+
+            {/* The outcome sits with the list it came from, not at the top of
+                the screen where a send from the bottom of a long page reports
+                itself somewhere you aren't looking. */}
+            {reminderResult && (
+              <div className="border-b border-border p-5 sm:p-6">
+                <EmailSendResult result={reminderResult} />
+              </div>
+            )}
 
             {loading ? (
               <div className="divide-y divide-border" aria-busy="true">
@@ -582,32 +696,64 @@ export function VoteManagement() {
               </div>
             ) : (
               <div className="divide-y divide-border">
-                {filteredNonVoters.map((employee: any, idx: number) => (
-                  <div
-                    key={employee.id || employee.email || idx}
-                    className="flex items-center justify-between gap-4 p-5 transition-colors duration-150 hover:bg-muted/40 animate-fade-in-up sm:p-6"
-                    style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{employee.name || 'Unnamed candidate'}</div>
-                      <div className="mt-0.5 truncate text-sm text-muted-foreground">
-                        {employee.email || 'No email on file'}
-                      </div>
-                      {employee.role && (
-                        <div className="mt-1 truncate text-xs text-muted-foreground">{employee.role}</div>
+                {filteredNonVoters.map((employee: any, idx: number) => {
+                  /* Only the people a reminder could reach get a tick box. The
+                     rest aren't choices to make — there is nowhere to send. */
+                  const canRemind = !!employee.email && hasAccount(employee);
+                  const rowId = `remind-${employee.id || employee.email || idx}`;
+                  /* No address is a different problem from no sign-in, and the
+                     fix is different too — say which one it is. */
+                  const blocker = !employee.email ? 'No email' : !hasAccount(employee) ? 'No account' : null;
+
+                  return (
+                    <div
+                      key={employee.id || employee.email || idx}
+                      className="flex items-start gap-4 p-5 transition-colors duration-150 hover:bg-muted/40 animate-fade-in-up sm:p-6"
+                      style={{ animationDelay: `${Math.min(idx, 12) * 35}ms` }}
+                    >
+                      {canRemind ? (
+                        <Checkbox
+                          id={rowId}
+                          checked={isReminding(employee)}
+                          onCheckedChange={() => toggleReminder(employee)}
+                          aria-label={`Include ${employee.name || employee.email} in the reminder`}
+                          /* Rows are three lines tall; centring would park the
+                             box against the address rather than the name. */
+                          className="mt-1 shrink-0"
+                        />
+                      ) : (
+                        /* Holds the column so names stay on one line down the
+                           list instead of stepping in and out. */
+                        <span className="mt-1 w-4 shrink-0" aria-hidden="true" />
+                      )}
+
+                      {/* A plain label, not the UI one: that carries
+                          `flex items-center`, which would lay the three lines
+                          out side by side instead of stacked. */}
+                      <label
+                        htmlFor={canRemind ? rowId : undefined}
+                        className={`min-w-0 flex-1 ${canRemind ? 'cursor-pointer' : ''}`}
+                      >
+                        <span className="block truncate font-medium">{employee.name || 'Unnamed candidate'}</span>
+                        <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                          {employee.email || 'No email on file'}
+                        </span>
+                        {employee.role && (
+                          <span className="mt-1 block truncate text-xs text-muted-foreground">{employee.role}</span>
+                        )}
+                      </label>
+
+                      {/* A candidate with no sign-in isn't dragging their feet —
+                          they have no way in. Worth saying, so nobody spends a
+                          reminder on them. */}
+                      {blocker && (
+                        <span className="shrink-0 self-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground inset-ring-1 inset-ring-border">
+                          {blocker}
+                        </span>
                       )}
                     </div>
-
-                    {/* A candidate with no sign-in isn't dragging their feet —
-                        they have no way in. Worth saying, so nobody spends a
-                        reminder on them. */}
-                    {!hasAccount(employee) && (
-                      <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground inset-ring-1 inset-ring-border">
-                        No account
-                      </span>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
@@ -789,6 +935,63 @@ export function VoteManagement() {
           <div className="flex justify-end pt-4 border-t flex-shrink-0">
             <Button variant="outline" onClick={() => setShowElectionModal(false)}>
               Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reminder confirmation. Mail to real colleagues shouldn't leave on a
+          single click, and the one thing worth checking before it does is the
+          list of who gets it — so that's what the dialog shows. */}
+      <Dialog open={showRemindDialog} onOpenChange={setShowRemindDialog}>
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle>
+              Remind {reminderRecipients.length} {reminderRecipients.length === 1 ? 'person' : 'people'}?
+            </DialogTitle>
+            <DialogDescription className="text-pretty">
+              Each one gets a single email asking them to vote in “{selectedElection?.title}” before it closes
+              {selectedElection ? ` on ${new Date(selectedElection.end_time).toLocaleString()}` : ''}. Nobody who has already
+              voted is written to.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+              {reminderRecipients.map((employee: any, idx: number) => (
+                <div key={employee.id || employee.email || idx} className="px-4 py-3">
+                  <div className="truncate font-medium">{employee.name || 'Unnamed candidate'}</div>
+                  <div className="mt-0.5 truncate text-sm text-muted-foreground">{employee.email}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Say the gap out loud rather than letting the header count and
+                the recipient count quietly disagree. */}
+            {nonVoters.length > remindableByEmail.size && (
+              <p className="mt-4 text-sm text-muted-foreground text-pretty">
+                {nonVoters.length - remindableByEmail.size} other{nonVoters.length - remindableByEmail.size === 1 ? '' : 's'} on
+                this list can't be emailed — no account or no address on file.
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-shrink-0 gap-3 border-t border-border pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowRemindDialog(false)}
+              disabled={sendingReminder}
+              className="h-11 flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendReminders}
+              disabled={sendingReminder || reminderRecipients.length === 0}
+              className="h-11 flex-1 gap-2"
+            >
+              <Bell className="w-4 h-4" aria-hidden="true" />
+              {sendingReminder ? 'Sending…' : 'Send reminder'}
             </Button>
           </div>
         </DialogContent>
