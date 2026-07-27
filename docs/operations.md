@@ -41,13 +41,47 @@ preview deployments.
 **Edge Function** — *not* covered by the Vercel build. Deploy separately:
 
 ```bash
-npx supabase functions deploy make-server-e2c9f810 --project-ref xgecjoivqzmqrgffchnn
+npm run deploy:server
 ```
 
 Anything under `src/supabase/functions/server/` — new endpoints, query
 optimisations, bug fixes — stays inert in production until this is run. If the
 app is behaving like an older version of the server, this is the first thing to
 check.
+
+Merging to `main` does **not** deploy the server. There is no hook. Nothing will
+warn you. If your change touched anything under `src/supabase/functions/server/`,
+running this is part of shipping it.
+
+> Do not call `supabase functions deploy` directly from the repo root. The CLI
+> looks for `supabase/functions/make-server-e2c9f810/index.ts`, and this repo
+> keeps the server at `src/supabase/functions/server/index.tsx`, so the command
+> fails with "no such file or directory". That mismatch went unnoticed for four
+> months, during which every server change sat undeployed while `main` moved on.
+> `npm run deploy:server` stages the source into the layout the CLI expects,
+> deploys, and then checks the function still answers.
+
+### Verifying a server deploy
+
+The function is one unit — deploying your change also deploys every server
+commit merged since the last deploy. Before shipping, check what is riding
+along:
+
+```bash
+git log --oneline <last-deployed-sha>..HEAD -- src/supabase/functions/server/
+```
+
+If any of it touches the leaderboard or tally paths, snapshot the numbers first
+and compare after — the API is readable with the public anon key:
+
+```bash
+BASE=https://xgecjoivqzmqrgffchnn.supabase.co/functions/v1/make-server-e2c9f810
+KEY=$(grep -oE 'publicAnonKey = "[^"]+' src/utils/supabase/info.tsx | cut -d'"' -f2)
+curl -s -H "Authorization: Bearer $KEY" "$BASE/leaderboard/aggregated"
+```
+
+A new endpoint is live when it returns **401** rather than 404 — 404 means the
+route isn't there and the deploy didn't take.
 
 ## Changing things while an election is live
 
