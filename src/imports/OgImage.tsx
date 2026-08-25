@@ -14,6 +14,12 @@
  *   the running app, so it must not inherit from — or leak into — app CSS.
  * - Contrast is measured, not estimated. Worst pair on the card is 5.10:1
  *   (muted text on the champion step face); everything else is higher.
+ * - Type sizes are set against a legibility floor, not chosen for the 1200px
+ *   view. Discord shows a large embed inline at ~400px, so everything here
+ *   divides by three when it is actually read. Nothing but the headline is
+ *   allowed to shrink for composition's sake, and small uppercase labels carry
+ *   *less* tracking as they grow — wide tracking is what smears them when
+ *   downscaled. See docs/og-image.md for the measured table.
  */
 
 const css = `
@@ -95,16 +101,16 @@ const css = `
 }
 
 /* 1 — top rail: lockup left, URL anchoring the right corner */
-.og-rail { display: flex; align-items: center; justify-content: space-between; height: 38px; }
-.og-lockup { display: flex; align-items: center; gap: 11px; }
-.og-lockup img { width: 34px; height: 39px; display: block; }
-.og-lockup span { font-size: 22px; font-weight: 700; letter-spacing: -0.012em; line-height: 1.2; color: #fff; }
+.og-rail { display: flex; align-items: center; justify-content: space-between; height: 46px; }
+.og-lockup { display: flex; align-items: center; gap: 13px; }
+.og-lockup img { width: 40px; height: 46px; display: block; }
+.og-lockup span { font-size: 26px; font-weight: 700; letter-spacing: -0.014em; line-height: 1.2; color: #fff; }
 .og-url {
-  font-size: 13.5px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 600;
   line-height: 1.2;
-  letter-spacing: -0.005em;
-  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: -0.006em;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 /* 2 — headline: size carries it, not weight */
@@ -143,13 +149,13 @@ const css = `
 }
 
 .og-brief { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.og-brief h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.014em; line-height: 1.2; color: var(--og-ink); }
+.og-brief h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.016em; line-height: 1.2; color: var(--og-ink); }
 .og-brief p {
-  margin-top: 11px;
-  max-width: 340px;
-  font-size: 13.5px;
+  margin-top: 12px;
+  max-width: 384px;
+  font-size: 16px;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.5;
   color: var(--og-ink-soft);
   text-wrap: balance;
 }
@@ -158,22 +164,22 @@ const css = `
   margin-top: 20px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 26px;
-  padding: 0 12px;
+  gap: 8px;
+  height: 31px;
+  padding: 0 14px;
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.05);
   box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.10);
-  font-size: 10.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
   line-height: 1;
   color: var(--og-ink-mid);
 }
 .og-chip i {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: var(--og-primary);
   box-shadow: 0 0 0 3px rgba(231, 0, 117, 0.18);
@@ -209,13 +215,13 @@ const css = `
 }
 
 .og-medal {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1;
   color: var(--og-ink);
@@ -225,17 +231,17 @@ const css = `
 .og-m2 { background: var(--og-medal-2); }
 .og-m3 { background: var(--og-medal-3); }
 
-.og-pts { font-size: 17px; font-weight: 700; letter-spacing: -0.014em; line-height: 1.15; color: var(--og-ink); }
-.og-pts small { font-size: 11px; font-weight: 500; letter-spacing: 0; color: var(--og-ink-soft); margin-left: 3px; }
+.og-pts { font-size: 22px; font-weight: 700; letter-spacing: -0.016em; line-height: 1.15; color: var(--og-ink); }
+.og-pts small { font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--og-ink-soft); margin-left: 4px; }
 
 .og-floor { height: 1px; background: rgba(15, 23, 42, 0.16); }
 .og-ranks { margin-top: 9px; display: flex; gap: 24px; }
 .og-ranks span {
   flex: 1;
   text-align: center;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.085em;
+  letter-spacing: 0.065em;
   text-transform: uppercase;
   line-height: 1.2;
   color: var(--og-ink-soft);
