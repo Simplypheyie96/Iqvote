@@ -48,8 +48,52 @@ Measure it with edge standard deviation, not by eye:
 python3 -c "from PIL import Image, ImageFilter, ImageStat; im=Image.open('public/og-image.png').convert('RGB').resize((1712,899), Image.LANCZOS); print(ImageStat.Stat(im.convert('L').filter(ImageFilter.FIND_EDGES)).stddev[0])"
 ```
 
-Cost is file size: 1.32 MB versus 492 KB. That is comfortably inside every
+Cost is file size: 1.39 MB versus 492 KB. That is comfortably inside every
 platform cap (Twitter and LinkedIn 5 MB, Facebook 8 MB).
+
+**3× was measured and rejected.** A 3600 × 1890 source is within ±1% of the
+2400px source at every display width up to 2048 — 400px: +0.1%, 800px: −0.3%,
+1712px: −0.4%, 2048px: −0.9%. That is noise, not a gain, and it is exactly what
+the logic above predicts: past 2×, every real display width is *down*scaling
+either source, and downscaling is already sharp. 3× doubles the file to 2.74 MB
+and buys nothing. Do not go past 2×.
+
+## The real legibility limit is type size, not resolution
+
+If the card reads as "blurry" and the asset is provably sharp, the cause is
+almost certainly type size, and no amount of resolution will touch it.
+
+Discord renders a large embed **inline at roughly 400 CSS px wide** — the card is
+being shown at about a third of its design size. (The ~1712px figure above is the
+*expanded* view you get after clicking, which is a different and much rarer
+case.) So every type size in the design divides by three:
+
+| element | design | at 400px inline |
+|---|---|---|
+| headline | 74px | 24.7px |
+| `IQ Vote` wordmark | 26px | 8.7px |
+| `iqvote.vercel.app` | 17px | 5.7px |
+| card heading | 24px | 8.0px |
+| card body copy | 16px | 5.3px |
+| podium numerals | 18px | 6.0px |
+| points | 22px | 7.3px |
+| `pts` / rank labels | 13px | 4.3px |
+
+Those figures are *after* the legibility pass, and most of them are still under
+8px — because a 1200px-wide composition physically cannot make eight distinct
+text elements legible at 400px. Only the headline survives at that size, which
+is what a headline is for. The pass raised every sub-22px element by ~20–30%
+linear, which is decisive at the expanded and desktop-client widths and a real
+but partial improvement in the small inline thumbnail.
+
+If full legibility in the 400px inline thumbnail is ever the requirement, the fix
+is fewer and larger elements — a genuinely simpler card — not more pixels.
+
+One counter-intuitive rule from this pass: **as a small uppercase label gets
+bigger, its letter-spacing should come down.** The `LIVE` chip and the rank
+labels were carrying 0.14em and 0.085em, which is tracking doing the job size
+should be doing; wide tracking is what makes small uppercase text smear into a
+grey band when it is downscaled. They are now 0.10em and 0.065em.
 
 Dimensions matter: keep the 1.91:1 ratio. Off-ratio images get cropped
 unpredictably per platform.
@@ -60,7 +104,7 @@ Platforms cache the scraped image hard, and Discord is the worst case — it
 caches the page embed *and* re-hosts the image on its own proxy, with no public
 purge tool. Changing bytes at the same URL will not dislodge it.
 
-So the image URL carries a version query: `og-image.png?v=2`, set in **both**
+So the image URL carries a version query: `og-image.png?v=3`, set in **both**
 `index.html` (the static tags scrapers read, since they do not run JS) and
 `App.tsx` (the runtime injection). **Bump that `v=` on every future image
 change, in both files, or the new card will not propagate.** Twitter's Card
