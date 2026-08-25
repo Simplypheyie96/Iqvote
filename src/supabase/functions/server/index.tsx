@@ -1132,7 +1132,19 @@ app.get('/make-server-e2c9f810/leaderboard/aggregated', async (c) => {
         }
       });
     }
-    
+
+    // Standings are only revealed once a vote has closed. An election whose
+    // voting window is still open (end_time in the future) is excluded from
+    // the aggregate, so the public leaderboard holds still while ballots come
+    // in. An admin close sets end_time to now, so both a natural finish and a
+    // manual close reveal the results immediately. Tallies themselves are
+    // untouched — this only gates what the read endpoint reports. The admin
+    // per-election leaderboard route stays live on purpose.
+    const revealCutoff = new Date();
+    filteredElections = filteredElections.filter(e =>
+      new Date(e.end_time) <= revealCutoff
+    );
+
     // Aggregate tallies across filtered elections
     const aggregatedTallies = new Map<string, {
       employee_id: string;
