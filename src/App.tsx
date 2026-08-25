@@ -15,7 +15,7 @@ import { Toaster } from './components/ui/sonner';
 import logoImageLight from 'figma:asset/adf5897e345947bbe763382a76a190054bc17e88.png';
 import logoImageDark from 'figma:asset/edd81dc1188a78ee35f46489ff2f13306860893c.png';
 
-const ogImage = '/og-image.png';
+const ogImage = '/og-image.png?v=2';
 
 export default function App() {
   // Check if we should render the OG image preview page
@@ -59,8 +59,8 @@ export default function App() {
     setMetaTag('og:image', imageUrl);
     setMetaTag('og:image:secure_url', imageUrl);
     setMetaTag('og:image:type', 'image/png');
-    setMetaTag('og:image:width', '1200');
-    setMetaTag('og:image:height', '630');
+    setMetaTag('og:image:width', '2400');
+    setMetaTag('og:image:height', '1260');
     setMetaTag('og:type', 'website');
     setMetaTag('og:url', currentUrl);
     setMetaTag('og:site_name', 'IQ Vote');
