@@ -1045,7 +1045,22 @@ app.post('/make-server-e2c9f810/elections/:electionId/ballot', async (c) => {
 app.get('/make-server-e2c9f810/elections/:electionId/leaderboard', async (c) => {
   try {
     const electionId = c.req.param('electionId');
-    
+
+    // Standings are sealed while the voting window is open — no one, admins
+    // included, sees results until end_time has passed. (An admin close sets
+    // end_time to now, so a manual close reveals immediately.) Turnout is
+    // still reported so "who has voted" surfaces keep working.
+    const election = await kv.get(`election:${electionId}`);
+    if (election && new Date(election.end_time) > new Date()) {
+      const liveBallots = (await kv.getByPrefix(`ballot:${electionId}:`))
+        .filter((b: any) => !b.revoked);
+      const total_selections = liveBallots.reduce(
+        (sum: number, b: any) => sum + (b.selections?.length || 0),
+        0,
+      );
+      return c.json({ leaderboard: [], sealed: true, total_selections });
+    }
+
     const tallies = await kv.getByPrefix(`tally:${electionId}:`);
     const allEmployees = await kv.getByPrefix('employee:');
     const employeeMap = new Map(allEmployees.map(emp => [emp.id, emp]));
@@ -1138,8 +1153,10 @@ app.get('/make-server-e2c9f810/leaderboard/aggregated', async (c) => {
     // the aggregate, so the public leaderboard holds still while ballots come
     // in. An admin close sets end_time to now, so both a natural finish and a
     // manual close reveal the results immediately. Tallies themselves are
-    // untouched — this only gates what the read endpoint reports. The admin
-    // per-election leaderboard route stays live on purpose.
+    // untouched — this only gates what the read endpoints report. The
+    // per-election leaderboard, results export, and my-received-votes routes
+    // are sealed the same way, so no one — admins included — sees standings
+    // before a vote closes.
     const revealCutoff = new Date();
     filteredElections = filteredElections.filter(e =>
       new Date(e.end_time) <= revealCutoff
@@ -1774,6 +1791,11 @@ app.get('/make-server-e2c9f810/admin/elections/:electionId/votes', async (c) => 
     }
     
     const electionId = c.req.param('electionId');
+    // While the vote is live, each ballot's picks are stripped before they
+    // leave the server — who voted stays visible (turnout, revoke, reminders
+    // all keep working), but what they picked stays sealed until close.
+    const election = await kv.get(`election:${electionId}`);
+    const resultsSealed = !!election && new Date(election.end_time) > new Date();
     const ballots = await kv.getByPrefix(`ballot:${electionId}:`);
     const users = await kv.getByPrefix('user:');
     
@@ -1789,12 +1811,12 @@ app.get('/make-server-e2c9f810/admin/elections/:electionId/votes', async (c) => 
       }));
       return {
         ...ballot,
-        selections: selectionsWithoutReasons,
+        selections: resultsSealed ? [] : selectionsWithoutReasons,
         voter
       };
     });
     
-    return c.json({ votes });
+    return c.json({ votes, results_sealed: resultsSealed });
   } catch (error) {
     console.log('Get votes error:', error);
     return c.json({ error: String(error) }, 500);
@@ -1878,6 +1900,15 @@ app.get('/make-server-e2c9f810/admin/elections/:electionId/export', async (c) =>
     
     const electionId = c.req.param('electionId');
     const election = await kv.get(`election:${electionId}`);
+
+    // Export reveals the full standings and every ballot, so it is refused
+    // while the vote is live — for everyone, admins included.
+    if (election && new Date(election.end_time) > new Date()) {
+      return c.json({
+        error: 'Results are sealed until voting closes. Export becomes available the moment the vote ends.'
+      }, 403);
+    }
+
     const ballots = await kv.getByPrefix(`ballot:${electionId}:`);
     const tallies = await kv.getByPrefix(`tally:${electionId}:`);
     const employees = await kv.getByPrefix('employee:');
@@ -2611,8 +2642,13 @@ app.get('/make-server-e2c9f810/my-received-votes', async (c) => {
     }
 
     const votes: any[] = [];
+    const revealCutoff = new Date();
 
     allElections.forEach((election: any) => {
+      // A live election is skipped — personal points and rank would reveal
+      // in-progress results, which stay sealed until the vote closes.
+      if (new Date(election.end_time) > revealCutoff) return;
+
       const electionTallies = talliesByElection.get(election.id) ?? [];
       const myTally = electionTallies.find((t: any) => t.employee_id === user.id);
 

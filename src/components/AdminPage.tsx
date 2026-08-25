@@ -268,8 +268,12 @@ export function AdminPage({ currentUser, onElectionCreated }: AdminPageProps) {
       let totalVotes = 0;
       for (const election of electionsList) {
         try {
-          const { leaderboard } = await api.getLeaderboard(election.id);
-          totalVotes += leaderboard.reduce((sum: number, entry: any) => sum + entry.vote_count, 0);
+          const { leaderboard, total_selections } = await api.getLeaderboard(election.id);
+          // While a vote is live the leaderboard comes back sealed (empty)
+          // with a turnout-only selection count, so "Votes cast" stays
+          // accurate without revealing standings.
+          totalVotes += leaderboard.reduce((sum: number, entry: any) => sum + entry.vote_count, 0)
+            + (total_selections || 0);
         } catch (err) {
           console.error('Error loading votes for election:', err);
         }
