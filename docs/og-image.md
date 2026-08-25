@@ -58,10 +58,50 @@ the logic above predicts: past 2×, every real display width is *down*scaling
 either source, and downscaling is already sharp. 3× doubles the file to 2.74 MB
 and buys nothing. Do not go past 2×.
 
-## The real legibility limit is type size, not resolution
+## Blur has two causes, and grain is the one that hides
 
-If the card reads as "blurry" and the asset is provably sharp, the cause is
-almost certainly type size, and no amount of resolution will touch it.
+When the card reads as "blurry", check these in order. Resolution is almost
+never the answer — see above.
+
+### 1. Grain adjacent to small text (checked first, it is usually this)
+
+`.og-canvas::after` lays an `feTurbulence` noise tile over the whole card at
+`mix-blend-mode: soft-light`. `.og-stage` carries `z-index: 1` and the pseudo
+element does not, so the grain paints *behind* the content: the glyphs
+themselves come out clean, but small type on the dark ground sits on a speckled
+field, and the eye cannot resolve a 1px stroke against noise. This is why the
+74px headline survives it and 17px type does not, and why the body copy on the
+white paper panel — where there is far less grain contrast — has always looked
+crisp while the URL and the lockup did not.
+
+It shipped at `opacity: 0.45`, which measured a **46-level** luminance spread on
+the dark ground (mean 36.5, stddev 5.46, range 23..69) against the 14–17 levels
+this doc used to claim. Two things fix it together:
+
+- **`opacity: 0.45` → `0.17`.** Spread drops to 27 levels, stddev to 2.58. The
+  ground also lands *closer* to the `#1b2430` token, not further: drift went
+  from 1.89 levels to 1.02.
+- **`baseFrequency: 0.8` → `1.6`.** Grain coarseness scales with render
+  density. The tile is 260 CSS px, so at DSF 2 it rasterises to 520 device px
+  and each noise feature spans ~2.5 device px — big enough to read as smear
+  rather than texture. Doubling the frequency restores roughly one device pixel
+  per noise cell at 2×. **If the ship density ever changes, this value has to
+  track it.**
+
+Measure it, do not eyeball it: crop a flat patch of ground at native resolution
+and read stddev and range. Then crop the URL and the lockup and upscale with
+`Image.NEAREST` — nearest-neighbour shows you the real pixels, where resampling
+hides the defect behind its own softening.
+
+`text-rendering: geometricPrecision` was also removed. It disables hinting and
+uses fractional glyph advances, which helps animated type and hurts a static
+raster at 17px. Verified to move no geometry at all — paper, headline and URL
+column extents were byte-identical before and after.
+
+### 2. Type size
+
+If the grain is already quiet and the card still reads soft, the cause is type
+size, and no amount of resolution will touch it.
 
 Discord renders a large embed **inline at roughly 400 CSS px wide** — the card is
 being shown at about a third of its design size. (The ~1712px figure above is the
@@ -104,7 +144,7 @@ Platforms cache the scraped image hard, and Discord is the worst case — it
 caches the page embed *and* re-hosts the image on its own proxy, with no public
 purge tool. Changing bytes at the same URL will not dislodge it.
 
-So the image URL carries a version query: `og-image.png?v=3`, set in **both**
+So the image URL carries a version query: `og-image.png?v=4`, set in **both**
 `index.html` (the static tags scrapers read, since they do not run JS) and
 `App.tsx` (the runtime injection). **Bump that `v=` on every future image
 change, in both files, or the new card will not propagate.** Twitter's Card
