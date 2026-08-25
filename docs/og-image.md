@@ -11,7 +11,7 @@ Already done — `public/og-image.png` exists and `App.tsx` sets the `og:` and
 |---|---|
 | Design (React component) | `src/imports/OgImage.tsx` |
 | Preview route | `/og-image-preview` or `#og-preview` |
-| Rendered image | `public/og-image.png` (1200 × 630) |
+| Rendered image | `public/og-image.png` (2400 × 1260 — 2× of 1200 × 630) |
 | Meta tags | `App.tsx`, in the mount effect |
 
 ## Regenerating it
@@ -19,11 +19,11 @@ Already done — `public/og-image.png` exists and `App.tsx` sets the `og:` and
 `src/imports/OgImage.tsx` is the only source of truth. The PNG is rendered *from
 that component on a running instance*, so the two can never drift.
 
-Supersample at 2× and downscale — a straight 1200 × 630 grab leaves visibly
-harder edges on the podium radii and the headline:
+Render at 2× and **ship it at 2×** — do not downscale. The asset is
+2400 × 1260, which is the 1.91:1 ratio at double density:
 
 ```bash
-npm --prefix iqvote-still-to-vote run dev   # serves on :3000
+npm run dev   # serves on :3000
 ```
 
 ```bash
@@ -31,15 +31,41 @@ npm --prefix iqvote-still-to-vote run dev   # serves on :3000
 ```
 
 ```bash
-python3 -c "from PIL import Image; Image.open('/tmp/og@2x.png').convert('RGB').resize((1200,630), Image.LANCZOS).save('iqvote-still-to-vote/public/og-image.png', optimize=True)"
+python3 -c "from PIL import Image; Image.open('/tmp/og@2x.png').convert('RGB').save('public/og-image.png', optimize=True)"
 ```
 
-Then deploy and re-scrape the URL so caches update — social platforms hold the
-old image for a long time otherwise. Facebook's Sharing Debugger and LinkedIn's
-Post Inspector both force a refresh.
+Why 2× and not 1200 × 630, which is what every OG guide tells you to ship:
+clients render the card *wider* than 1200px, so a 1200px source gets upscaled
+and goes soft. Discord's large embed on a HiDPI display draws it around 1712px;
+at that width a 1200px source has lost ~21% of its edge acutance relative to its
+own native size, which reads as visible blur on the headline. A 2400px source is
+always being *down*scaled instead, which is always sharp — measured ~14% sharper
+than the 1200px source at 1712px, and ~30% sharper at 2048px.
 
-Dimensions matter: 1200 × 630 is the standard 1.91:1 ratio. Off-ratio images get
-cropped unpredictably per platform.
+Measure it with edge standard deviation, not by eye:
+
+```bash
+python3 -c "from PIL import Image, ImageFilter, ImageStat; im=Image.open('public/og-image.png').convert('RGB').resize((1712,899), Image.LANCZOS); print(ImageStat.Stat(im.convert('L').filter(ImageFilter.FIND_EDGES)).stddev[0])"
+```
+
+Cost is file size: 1.32 MB versus 492 KB. That is comfortably inside every
+platform cap (Twitter and LinkedIn 5 MB, Facebook 8 MB).
+
+Dimensions matter: keep the 1.91:1 ratio. Off-ratio images get cropped
+unpredictably per platform.
+
+## Busting social caches
+
+Platforms cache the scraped image hard, and Discord is the worst case — it
+caches the page embed *and* re-hosts the image on its own proxy, with no public
+purge tool. Changing bytes at the same URL will not dislodge it.
+
+So the image URL carries a version query: `og-image.png?v=2`, set in **both**
+`index.html` (the static tags scrapers read, since they do not run JS) and
+`App.tsx` (the runtime injection). **Bump that `v=` on every future image
+change, in both files, or the new card will not propagate.** Twitter's Card
+Validator and LinkedIn's Post Inspector force a refresh; Discord needs the
+changed URL.
 
 ## Notes on the current design
 
