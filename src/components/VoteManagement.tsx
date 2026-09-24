@@ -257,6 +257,9 @@ export function VoteManagement() {
      share that user's id, but an admin-created employee gets a fresh UUID, so
      matching on id alone quietly misses people. Match on either. */
   const selectedElection = elections.find(e => e.id === selectedElectionId);
+  // The server refuses result exports while a vote is live; mirror that here
+  // so the button explains itself instead of failing.
+  const exportSealed = !!selectedElection && new Date(selectedElection.end_time) > new Date();
 
   const votedIds = new Set(activeVotes.map(b => b.voter_id).filter(Boolean));
   const votedEmails = new Set(
@@ -552,14 +555,23 @@ export function VoteManagement() {
                     />
                   </div>
                 )}
-                <Button
-                  onClick={handleExportVotes}
-                  variant="outline"
-                  className="h-11 gap-2 shrink-0"
-                >
-                  <FileDown className="w-4 h-4" />
-                  Export
-                </Button>
+                <div className="flex shrink-0 flex-col gap-1 sm:items-end">
+                  <Button
+                    onClick={handleExportVotes}
+                    variant="outline"
+                    disabled={exportSealed}
+                    title={exportSealed ? 'Results are sealed until voting closes' : undefined}
+                    className="h-11 gap-2"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    Export
+                  </Button>
+                  {exportSealed && (
+                    <span className="text-xs text-muted-foreground">
+                      Sealed until voting closes
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

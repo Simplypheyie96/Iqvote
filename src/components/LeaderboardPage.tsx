@@ -139,6 +139,26 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
   const topThree = leaderboard.slice(0, 3);
   const rest = leaderboard.slice(3);
 
+  /* Standings for a vote in progress are held back by the server until it
+     closes (naturally or by an admin). Surface that here so the board reading
+     "unchanged" mid-vote looks deliberate rather than broken — but only when
+     the live election actually falls inside the period being viewed. */
+  const now = new Date();
+  const liveElection =
+    election &&
+    new Date(election.start_time) <= now &&
+    new Date(election.end_time) > now
+      ? election
+      : null;
+  const liveResultsHeldHere = (() => {
+    if (!liveElection) return false;
+    if (selectedYear === 'all-time') return true;
+    const started = new Date(liveElection.start_time);
+    if (started.getFullYear().toString() !== selectedYear) return false;
+    if (selectedMonth === 'full-year') return true;
+    return started.getMonth().toString() === selectedMonth;
+  })();
+
   // Get filter description
   function getFilterDescription() {
     const unit = electionsCount === 1 ? 'election' : 'elections';
@@ -328,6 +348,23 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
         </div>
       </div>
 
+      {liveResultsHeldHere && (
+        <div
+          className="mb-6 flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-e1 sm:px-5"
+          role="status"
+        >
+          <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+          </span>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{liveElection!.title}</span>{' '}
+            is in progress — its results are kept sealed and will appear here
+            the moment voting closes.
+          </p>
+        </div>
+      )}
+
       {loading ? (
         /* Skeletons in the shape of what is coming — a tiered podium and a
            ranked list — rather than a spinner that says only "wait". */
@@ -375,7 +412,7 @@ export function LeaderboardPage({ currentUser, election, elections }: Leaderboar
           </div>
           <h2 className="font-display text-lg font-semibold tracking-tight">Nothing to show yet</h2>
           <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground text-pretty">
-            No votes have been counted for this period. Standings appear here as soon as people start voting.
+            No closed votes for this period yet. Standings appear here the moment a vote finishes.
           </p>
           {selectedYear !== 'all-time' && selectedMonth !== 'full-year' && (
             <Button
